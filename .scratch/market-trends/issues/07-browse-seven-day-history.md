@@ -7,7 +7,10 @@
 **Status:** ready-for-agent
 
 - [ ] Collection continues while the game and companion are closed, following verified source cadence and limits.
-- [ ] The companion retrieves and caches accumulated history, and subsequent revisions appear automatically through the validated transport.
+- [ ] The companion retrieves, caches, and exports accumulated history. New revisions become visible at the next login or user-initiated `/reload`, while the loaded revision stays unchanged between imports.
 - [ ] Render aligned price and stock graphs with seven days as the default requested range and actual coverage disclosed.
 - [ ] Controlled sequences verify that repeated unchanged upstream snapshots do not create new observations or new sales evidence.
 
+## Comments
+
+2026-11-14: Reconciled with the owner-approved login and user-initiated `/reload` import model; ticket number and blocking edges retained.

@@ -6,8 +6,11 @@
 
 **Status:** ready-for-agent
 
-- [ ] A live upstream observation passes through backend persistence, companion local cache, and validated addon delivery to a visible display.
+- [ ] A live upstream observation passes through backend persistence, companion local cache, and dataset export to a visible addon display at login or user-initiated `/reload`.
 - [ ] Show quantity-weighted median, middle-50% band, all-listed-unit stock, market identity, and source observation timestamp using the agreed rules.
 - [ ] Keep upstream credentials in the backend; the internal installation requires no product account.
 - [ ] Verify the visible result with a controlled fixture and a live target-market smoke test on the target platform.
 
+## Comments
+
+2026-11-14: Reconciled with the owner-approved login and user-initiated `/reload` import model; ticket number and blocking edges retained.

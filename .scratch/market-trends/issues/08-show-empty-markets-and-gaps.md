@@ -9,5 +9,8 @@
 - [ ] A successful empty-market observation displays zero stock and no fabricated zero asking price.
 - [ ] Collection failures and missing observations produce explicit gaps without invented continuity.
 - [ ] Show actual coverage and source observation age separately from collection, download, and import times.
-- [ ] Controlled sequences verify visible empty, missing, unchanged, and resumed observations through the real pipeline.
+- [ ] Controlled sequences verify visible empty, missing, unchanged, and resumed observations through the real pipeline at login or user-initiated `/reload`.
 
+## Comments
+
+2026-11-14: Reconciled with the owner-approved login and user-initiated `/reload` import model; ticket number and blocking edges retained.
