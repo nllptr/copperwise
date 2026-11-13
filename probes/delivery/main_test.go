@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -57,6 +58,9 @@ func TestBackendRevisionsReachCompanionExport(t *testing.T) {
 		}
 		if !strings.Contains(string(exported), "revision = "+revision+",") {
 			t.Fatalf("export: %s", exported)
+		}
+		if !regexp.MustCompile(`downloadedAt = [1-9][0-9]*, exportedAt = [1-9][0-9]*`).Match(exported) {
+			t.Fatalf("export must distinguish download and export timestamps: %s", exported)
 		}
 	}
 }

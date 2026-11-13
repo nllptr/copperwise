@@ -1,8 +1,6 @@
 local frame = CreateFrame("Frame")
-local elapsed, attempts, lastRevision = 0, 0, nil
 local session
-local api = C_AddOns or {}
-local loadAddon = api.LoadAddOn or LoadAddOn
+
 local function record(message)
     local line = string.format("t=%s %s", tostring(GetTime()), message)
     print("Copperwise probe: " .. line)
@@ -10,34 +8,42 @@ local function record(message)
     if #session.events > 300 then table.remove(session.events, 1) end
 end
 
+local function showStatus()
+    if not session then return end
+    if session.revision then
+        record(string.format("LOADED revision=%s observedAt=%s downloadedAt=%s exportedAt=%s importedAt=%s sourceAgeSeconds=%s",
+            tostring(session.revision), tostring(session.observedAt),
+            tostring(session.downloadedAt), tostring(session.exportedAt),
+            tostring(session.importedAt), tostring(time() - session.observedAt)))
+    else
+        record("NO DATA: no valid probe payload was loaded")
+    end
+    record("companion connection UNKNOWN; newer exports UNKNOWN; refresh only at login or user /reload")
+end
+
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:SetScript("OnEvent", function()
+    frame:UnregisterEvent("PLAYER_LOGIN")
     local version, build, buildDate, interface = GetBuildInfo()
     session = { version = version, build = build, buildDate = buildDate,
-        interface = interface, startedAt = time(), events = {} }
+        interface = interface, importedAt = time(), events = {} }
+    -- Capture only the dataset already loaded by the ordinary addon dependency.
+    -- Status commands never load files or replace this session's snapshot.
+    local payload = CopperwiseDeliveryPayload
+    if type(payload) == "table" and type(payload.revision) == "number"
+        and payload.revision > 0 and type(payload.observedAt) == "number"
+        and payload.observedAt > 0 then
+        session.revision = payload.revision
+        session.observedAt = payload.observedAt
+        session.downloadedAt = payload.downloadedAt
+        session.exportedAt = payload.exportedAt
+    end
     CopperwiseDeliveryEvidence = CopperwiseDeliveryEvidence or {}
     table.insert(CopperwiseDeliveryEvidence, session)
     if #CopperwiseDeliveryEvidence > 5 then table.remove(CopperwiseDeliveryEvidence, 1) end
-    record(string.format("client=%s build=%s interface=%s loadAPI=%s", tostring(version), tostring(build), tostring(interface), type(loadAddon)))
-    record("companion connection UNKNOWN; source timestamps are payload claims")
-    frame:SetScript("OnUpdate", function(_, delta)
-        elapsed = elapsed + delta
-        if elapsed < 5 or attempts >= 36 then return end
-        elapsed = 0
-        attempts = attempts + 1
-        if type(loadAddon) ~= "function" then
-            record("LoadAddOn unavailable; experiment stopped")
-            frame:SetScript("OnUpdate", nil)
-            return
-        end
-        local ok, loaded, reason = pcall(loadAddon, "CopperwiseDeliveryData")
-        local payload = CopperwiseDeliveryPayload
-        local revision = type(payload) == "table" and payload.revision or nil
-        record(string.format("attempt=%d callOK=%s loaded=%s reason=%s revision=%s", attempts, tostring(ok), tostring(loaded), tostring(reason), tostring(revision)))
-        if revision and revision ~= lastRevision then
-            record(string.format("VISIBLE revision=%s observedAt=%s downloadedAt=%s importedAt=%s", tostring(revision), tostring(payload.observedAt), tostring(payload.downloadedAt), tostring(time())))
-            lastRevision = revision
-        end
-        if attempts == 36 then record("experiment ended; compare visible revisions with companion exports") end
-    end)
+    record(string.format("client=%s build=%s interface=%s evidenceSession=%d", tostring(version), tostring(build), tostring(interface), #CopperwiseDeliveryEvidence))
+    showStatus()
 end)
+
+SLASH_COPPERWISEDELIVERYPROBE1 = "/cwprobe"
+SlashCmdList["COPPERWISEDELIVERYPROBE"] = showStatus

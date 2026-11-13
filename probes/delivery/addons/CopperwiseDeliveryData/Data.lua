@@ -1,2 +1,2 @@
--- Replaced atomically by the probe companion. Not a working live transport.
+-- Replaced atomically by the companion; imported only at login or /reload.
 CopperwiseDeliveryPayload = nil

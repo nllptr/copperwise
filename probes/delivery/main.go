@@ -120,6 +120,7 @@ func download(client *http.Client, url, out string) error {
 	if data.Revision <= 0 || data.ObservedAt <= 0 {
 		return fmt.Errorf("invalid revision or source timestamp")
 	}
+	downloadedAt := time.Now().Unix()
 	cache, err := json.Marshal(data)
 	if err != nil {
 		return err
@@ -127,11 +128,12 @@ func download(client *http.Client, url, out string) error {
 	if err := atomicWrite(filepath.Join(out, "cache.json"), cache); err != nil {
 		return err
 	}
-	lua := fmt.Sprintf("CopperwiseDeliveryPayload = { revision = %d, observedAt = %d, downloadedAt = %d }\n", data.Revision, data.ObservedAt, time.Now().Unix())
+	exportedAt := time.Now().Unix()
+	lua := fmt.Sprintf("CopperwiseDeliveryPayload = { revision = %d, observedAt = %d, downloadedAt = %d, exportedAt = %d }\n", data.Revision, data.ObservedAt, downloadedAt, exportedAt)
 	if err := atomicWrite(filepath.Join(out, "CopperwiseDeliveryData", "Data.lua"), []byte(lua)); err != nil {
 		return err
 	}
-	log.Printf("exported revision=%d observedAt=%d; addon receipt UNKNOWN", data.Revision, data.ObservedAt)
+	log.Printf("exported revision=%d observedAt=%d downloadedAt=%d exportedAt=%d; addon receipt UNKNOWN; import requires login or /reload", data.Revision, data.ObservedAt, downloadedAt, exportedAt)
 	return nil
 }
 

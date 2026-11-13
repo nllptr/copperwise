@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** in-progress — login/reload probe implemented; awaiting actual client observations
 
 - [ ] Record the actual running client and platform builds, ordinary addon-loading/export setup, and reproducible probe steps.
 - [ ] Verify an initial login import, then multiple distinct companion exports becoming visible after user-initiated `/reload` cycles. Confirm newer exports do not replace the loaded dataset before login or `/reload`; exports alone do not pass.
@@ -14,4 +14,6 @@
 ## Comments
 
 2026-11-14: The owner replaced continuous in-session imports with login and user-initiated `/reload` imports. The earlier repeated-load experiment is historical work and has not passed the revised gate. Adapt the existing backend/companion probe and replace repeated load-on-demand polling with ordinary addon loading; do not automatically trigger reloads or bypass client protections. Record actual in-client observations before completing this ticket. Dependent full implementation remains gated by the revised acceptance criteria.
+
+2026-11-14: Adapted the probe to ordinary dependency loading and a read-only `/cwprobe` status command. Separate source, download, export, and import timestamps are reported without connectivity or unseen-export claims. Updated reproducible login/unchanged/reload/unchanged/reload instructions and evidence report under the delivery probe. The runtime gate remains pending; no acceptance criteria are marked complete based solely on file exports or repository checks.
 
