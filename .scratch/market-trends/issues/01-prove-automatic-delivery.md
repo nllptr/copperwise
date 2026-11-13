@@ -4,10 +4,20 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** in-progress — runnable probe prepared; awaiting in-client evidence
 
 - [ ] Record the actual client and platform builds, supported transport, setup, and reproducible probe steps.
 - [ ] Second and subsequent distinct dataset revisions become visibly observable in the same session without manual reload; initial loading or a single demand-loaded import alone does not pass.
 - [ ] Record what delivery and connection state the addon can actually observe.
 - [ ] If the gate fails, report evidence and viable alternatives, and stop dependent full implementation until the owner explicitly decides.
+
+## Implementation notes
+
+Runnable Phase 0 backend, companion and addon experiment: [probe instructions](../../../probes/delivery/README.md).
+Installed platform/build evidence, limitations and pending runtime observations:
+[evidence report](../../../probes/delivery/REPORT.md).
+
+The companion exports synthetic revisions; repeated in-session imports remain
+unproven. Do not start dependent full implementation until this gate passes or
+the owner explicitly chooses an alternative.
 

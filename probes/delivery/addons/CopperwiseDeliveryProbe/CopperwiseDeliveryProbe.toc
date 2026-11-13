@@ -1,0 +1,5 @@
+## Interface: 16001
+## Title: Copperwise Delivery Probe
+## Notes: Phase 0 repeated import experiment; no proven companion connection
+## SavedVariables: CopperwiseDeliveryEvidence
+Probe.lua
