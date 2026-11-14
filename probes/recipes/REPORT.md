@@ -47,8 +47,24 @@ Learned examples include 1229432 (Camp Tent), 3816 (Cured Light Hide) and 2881
 Leatherworking data source, not catalog completeness or current availability
 of every returned recipe in the target environment.
 
-Pending: inspect an unlearned schematic, compare native UI learned state,
-change native filters and compare totals; second profession where available.
+At t=1794679416 (same client/build/interface/macOS, own Leatherworking skill
+65; all four non-own context flags false), recipe 3817 (Cured Medium Hide)
+returned learned=false, craftable=true, disabled=false and unavailable
+sourceType. Its schematic returned output item 4233 (Cured Medium Hide),
+yield 1–1, vendor sell 200 copper/unit, and two required slots:
+
+- Quantity 1 of item 4232; name and vendor sell metadata unavailable.
+- Quantity 1 of item 4289 (Salt); vendor sell 12 copper/unit.
+
+Each slot has one alternative and zero variable-quantity entries. This verifies
+unlearned schematic access for this sample and explicit cache/missing metadata
+handling. `craftable=true` coexists with `learned=false`; never use craftable
+alone to infer recipe ownership or executable crafting. The unavailable item
+name must not be filled from an assumed catalog.
+
+Pending: native UI learned-state and schematic comparison, filter-change totals
+and second profession where available. Rerun recipe 3817 after item metadata
+loads to investigate the unavailable name/sell value for item 4232.
 
 ## Ingredient sources and merchant prices
 
@@ -81,9 +97,13 @@ The run does not independently identify which vendor modifiers apply; prices
 must not become universal constants. Only the first 15 offers were supplied.
 Multi-item bundles and extended-cost offers were not exercised.
 
-Pending: ingredient ID matched to an inspected recipe and native merchant UI
-price comparison. Salt (4289) is a candidate to compare with recipe 3817's
-schematic; that recipe's ingredients have not yet been supplied as evidence.
+Recipe 3817's required Salt (4289) at t=1794679416 matches the merchant item ID
+observed at t=1794679330: purchase price 45 copper/unit, distinct from the
+schematic item's vendor sell value of 12 copper/unit. This proves an observed
+vendor acquisition option for one recipe ingredient, not exclusivity or a
+universal price. Item 4232's acquisition source/purchase price remains unknown.
+
+Pending: owner comparison of merchant prices with the native UI.
 Vendor sell metadata does not establish purchase cost. Unmatched ingredients
 have unknown sources and purchase prices; dual-source selection is unresolved.
 

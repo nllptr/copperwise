@@ -26,6 +26,14 @@ status does not bypass blockers or turn unverified capabilities into facts.
 
 ## Comments
 
+2026-11-14: Owner runtime output at t=1794679416 confirms unlearned schematic
+access for recipe 3817 (Cured Medium Hide): output 4233, yield 1–1, required
+one item 4232 (name/sell metadata unavailable) and one Salt (4289). Salt matches
+the earlier vendor offer at 45 copper/unit, distinct from its sell value of
+12 copper/unit. `learned=false` coexists with `craftable=true`, so craftable
+must not establish ownership/executability. Native UI comparisons remain
+pending; full catalog coverage and dual-source rules remain unestablished.
+
 2026-11-14: Owner supplied open-merchant runtime output at t=1794679330:
 15 offers with purchase prices, bundle count 1, no extended costs, available=-1
 and purchasable=true. Examples: Salt (4289) 45 copper/unit and Coarse Thread
