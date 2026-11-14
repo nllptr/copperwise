@@ -4,7 +4,7 @@
 
 **Blocked by:** M18: Probe native auction-house scanning.
 
-**Status:** ready-for-agent
+**Status:** in-progress — runnable probe implemented; awaiting actual-client posting and cancellation evidence
 
 **Labels:** ready-for-agent
 
@@ -29,3 +29,12 @@ status does not bypass blockers or turn unverified capabilities into facts.
 2026-11-14: Published using to-tickets after the owner approved the 23-slice
 breakdown and requested tickets small enough for a single fresh context.
 Testing follows the owner-confirmed public pipeline and actual-client boundaries.
+
+2026-11-14: Implemented the standalone [posting probe](../../../probes/posting/README.md)
+with operator-selected bag slot/quantity/price/duration, native deposit preview,
+revalidation and a separate single-dispatch button. Inventory changes and tab
+lifecycle discard previews; attempted requests lock further posts for the visit.
+Native events and API returns are never labelled confirmed listings. Extra
+native-confirmation requirements are reported without automatic confirmation.
+[Runtime report](../../../probes/posting/REPORT.md) and public-client checklist
+are ready. All acceptance boxes remain open pending actual-client evidence.

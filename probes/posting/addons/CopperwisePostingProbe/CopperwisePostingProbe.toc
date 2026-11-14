@@ -1,0 +1,5 @@
+## Interface: 16001
+## Title: Copperwise Posting Probe
+## Notes: S08 deliberate single native posting capability probe
+## SavedVariables: CopperwisePostingEvidence
+Probe.lua
