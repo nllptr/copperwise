@@ -1,6 +1,7 @@
 local session
 local bankOpen = false
 local confirmed = false
+local unavailableEvents = {}
 local samples = {2447, 2770, 5206}
 local frame = CreateFrame("Frame")
 
@@ -103,10 +104,6 @@ SlashCmdList.COPPERWISEBANKPROBE = function(message)
     end
 end
 
-for _, event in ipairs({"PLAYER_LOGIN", "BANKFRAME_OPENED", "BANKFRAME_CLOSED",
-    "PLAYERBANKSLOTS_CHANGED", "PLAYERBANKBAGSLOTS_CHANGED", "BAG_UPDATE_DELAYED"}) do
-    frame:RegisterEvent(event)
-end
 frame:SetScript("OnEvent", function(_, event)
     if event == "PLAYER_LOGIN" then
         if type(CopperwiseBankEvidence) ~= "table" or CopperwiseBankEvidence.version ~= 1 then
@@ -123,6 +120,9 @@ frame:SetScript("OnEvent", function(_, event)
             .. "; NUM_BAG_SLOTS=" .. tostring(NUM_BAG_SLOTS)
             .. " NUM_BANKBAGSLOTS=" .. tostring(NUM_BANKBAGSLOTS)
             .. "; verify IDs/coverage against visible bank; reopen bank after reload")
+        for _, missing in ipairs(unavailableEvents) do
+            record("event unavailable=" .. missing .. "; use /cwbank for manual observations")
+        end
     elseif event == "BANKFRAME_OPENED" then
         bankOpen = true
     elseif event == "BANKFRAME_CLOSED" then
@@ -130,3 +130,12 @@ frame:SetScript("OnEvent", function(_, event)
     end
     snapshot(event)
 end)
+
+for _, event in ipairs({"PLAYER_LOGIN", "BANKFRAME_OPENED", "BANKFRAME_CLOSED",
+    "PLAYERBANKSLOTS_CHANGED", "BAG_UPDATE_DELAYED"}) do
+    local ok = pcall(frame.RegisterEvent, frame, event)
+    if not ok then
+        table.insert(unavailableEvents, event)
+        print("Copperwise bank probe: event unavailable=" .. event)
+    end
+end

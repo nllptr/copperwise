@@ -15,7 +15,13 @@ Status: implementation ready; actual-client verification pending.
 
 ## Runtime evidence
 
-Pending. Follow README.md and record:
+Owner-reported runtime failure (2026-11-14, 17:44:06): registering
+`PLAYERBANKBAGSLOTS_CHANGED` raises an unknown-event error, preventing login
+initialization and leaving `/cwbank` silent. Removed that unsupported event;
+remaining registrations are protected and report unavailable events rather than
+aborting startup. Runtime retest pending. This is not successful bank evidence.
+
+Follow README.md and record:
 
 - Client version/build/interface, platform/architecture and installed addon context.
 - Before-bank unknown counts, sample IDs, visible bag/bank counts and capacities.
