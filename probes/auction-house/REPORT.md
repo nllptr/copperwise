@@ -1,14 +1,15 @@
 # M18 native scan evidence
 
-Status: runtime acceptance pending — probe implemented, no target-client query
-result has been supplied or observed yet.
+Status: partial runtime evidence — native tab and one full Peacebloom query
+observed; metadata/quantity verification and remaining acceptance checks pending.
 
 ## Repository and research evidence
 
 - Standalone `CopperwiseAuctionProbe`, interface loading target 16001, with
   native display-mode tab and bounded user-triggered sample searches.
 - Modern API path supported by Forever UI source; installed Auctionator 346
-  ships modern and legacy code. Running-client availability remains unverified.
+  ships modern and legacy code. Owner scan output now demonstrates the modern
+  query/event/completeness path for one sample.
 - Samples: Peacebloom 2447, Copper Ore 2770, Rough Stone 2835. Per-unit buyout,
   covered units, bid-only units, local receipt time and completeness are shown.
 - Limits: three requests per observation, 500 processed rows/update, 15-second
@@ -38,7 +39,27 @@ incorrectly anchored above the window and Auctionator's row followed it rightwar
 Native Classic tab XML establishes `parentArray="Tabs"`; LibAHTab anchors its
 row to the last native tab. Corrected Copperwise to follow `AuctionsTab` with
 native spacing and registered its index/display mode. Corrected layout and tab
-switching remain pending another actual-client check.
+switching were subsequently demonstrated by the owner's screenshots below.
+
+### Owner screenshots: bottom tabs and Peacebloom scan
+
+- Bottom-row placement verified. Owner reports an initial selected-tab texture
+  showing behind the unselected Copperwise tab while Buy is selected. Selecting
+  Copperwise and then another tab clears it. Added explicit initial
+  `PanelTemplates_DeselectTab`; the fix still requires a reload/reopen check.
+- Selected Copperwise and subsequently selected Buy screenshots demonstrate
+  the expected selected/unselected appearances after interaction. This is sample
+  switching evidence, not exhaustive coexistence acceptance.
+- Peacebloom, item 2447: state **complete**, one of three allowed requests,
+  23 covered rows, 2,439 covered units, lowest covered buyout **38 copper/unit**,
+  bid-only units 0, full selected-key results true.
+- Start and result observation both display **2026-11-14 22:38:03 CET**.
+  These are receipt/start timestamps, not evidence of source publication time or
+  measured subsecond latency.
+- This demonstrates visible query results and full-result state for one sample.
+  The screenshots do not supply the game build, market diagnostics, commodity
+  classification, raw listing fields or independent native quantity/price
+  comparison. Zero bid-only units does not exercise bid-only handling.
 
 Continue the [acceptance checklist](README.md#actual-client-acceptance-pre-agreed-test-seam).
 Record game build, market context, enabled addons, sample IDs, actions, raw
@@ -46,8 +67,8 @@ results, coverage and outcomes. Do not copy account paths or unrelated saves.
 
 ## Unverified paths
 
-All target-client paths remain unverified: native tab creation, query dispatch,
-matching event delivery, commodity versus item rows, stack normalization,
+Remaining unverified paths: initial-highlight fix, commodity versus item rows,
+independent quantity/price comparison and stack normalization,
 bid-only stock, full/empty/partial results, More, cooldowns, cancellation,
 timeouts/errors, late responses, bounds and Auctionator coexistence.
 No M18 runtime acceptance is claimed by repository checks or installation.

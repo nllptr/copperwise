@@ -64,3 +64,11 @@ but exposes incorrect upper/rightward tab placement. Corrected the probe's nativ
 tab anchor to follow Auctions at the bottom; template parentArray registration
 had made Auctionator follow the misplaced probe. Layout retest and scan runtime
 evidence remain pending; screenshot contains no query result.
+
+2026-11-14: Owner screenshots verify corrected bottom-tab placement and selecting
+Copperwise then Buy. Initial selected-texture artifact clears after interaction;
+added explicit initial tab deselection, pending retest. Peacebloom scan reports
+complete, 23 rows, 2,439 units, minimum 38 copper/unit, no bid-only units, one
+request, full=true at 22:38:03 CET. Recorded in report. Independent native
+quantity/price comparison, build/market diagnostics and remaining coexistence/
+failure-path checks remain pending; M18 stays in progress.

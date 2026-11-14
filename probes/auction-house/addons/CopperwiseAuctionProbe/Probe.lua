@@ -308,6 +308,7 @@ local function setupPanel()
     tab:SetID(#ah.Tabs)
     ah.tabsForDisplayMode[mode] = #ah.Tabs
     PanelTemplates_SetNumTabs(ah, #ah.Tabs)
+    PanelTemplates_DeselectTab(tab)
     tab:SetScript("OnClick", guard(function()
         ah:SetDisplayMode(mode)
         ah:SetTitle("Copperwise — local scan probe")
