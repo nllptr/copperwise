@@ -26,6 +26,14 @@ status does not bypass blockers or turn unverified capabilities into facts.
 
 ## Comments
 
+2026-11-14: Owner runtime output confirms client 1.60.1/70938/interface 16001
+on macOS, own Leatherworking context (skill 65), and GetAllRecipeIDs returning
+592 recipes (13 learned, 579 unlearned, 0 unknown). Learned recipe 2881 exposes
+three Ruined Leather Scraps (2934) to one Light Leather (2318), with fixed
+1–1 yield. Recorded in the runtime report. Native UI comparison, unlearned
+schematic inspection and vendor purchase/source investigation remain pending;
+no complete catalog or ingredient acquisition policy is established.
+
 2026-11-14: Added the standalone [recipe probe](../../../probes/recipes/README.md)
 with paged profession discovery, learned-state and schematic inspection, raw
 yield/ingredient alternatives, context diagnostics and separate open-merchant
