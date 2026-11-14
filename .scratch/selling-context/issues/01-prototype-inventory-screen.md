@@ -4,16 +4,16 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** in-progress — browser prototype implemented; owner feedback and target-client readability pending
+**Status:** completed — owner approved the browser prototype at the intended approximate addon scale
 
-**Labels:** ready-for-agent
+**Labels:** completed
 
 **Type:** prototype
 
 - [x] Show a small, clearly synthetic bag-item list with quantities and a selected-item detail panel; selection changes the displayed item without requiring tooltip interaction.
 - [x] Bring lowest buyout, vendor sell value and aligned price/stock history together with units, observation age, timezone and actual coverage; distinguish missing observations from observed empty supply.
 - [x] Show an understandable mark-for-sale affordance as intent only; do not imply a working posting integration or approved ranking formula.
-- [ ] Review the screen at a realistic addon window size; record owner feedback and which details are browser-only versus already verified client capabilities.
+- [x] Review the screen at a realistic addon window size; record owner feedback and which details are browser-only versus already verified client capabilities.
 
 ## Scope and verification
 
@@ -51,3 +51,12 @@ Inventory; row selection remains independent of marking.
 from the higher AH/vendor value (gold AH, green Vendor); scheduled rows retain
 the chosen destination. Unknown comparisons remain neutral/disabled. Equal
 values provisionally choose Vendor; all choices remain synthetic sale intent.
+
+2026-11-14 acceptance: owner reviewed the revised browser prototype, said “this
+looks good,” and agreed that its approximate intended in-game scale is sufficient
+for S01. Layout feedback and browser review are accepted; S01 is complete. The
+README records browser-only details versus prior M03 capabilities. Native fonts,
+normal game UI scaling and fit alongside bags/chat remain unverified and should
+be checked during actual addon implementation, not used to block this disposable
+prototype. This acceptance does not pass production capability gates or settle
+other tickets’ outstanding ranking, quantity, persistence or bank policies.

@@ -65,7 +65,8 @@ M03 previously verified sample graphs/local-time labels, lookup, window access
 and bindings on client 1.60.1 (70938), interface 16001, macOS 26.6.2 Intel.
 That evidence does not establish this layout, bag metadata, native widgets,
 range density, sale intent or real inventory integration. Actual client fit at
-the owner's normal UI scale remains pending. This ticket creates no addon,
+the owner's normal UI scale remains unverified and will be checked during
+actual addon implementation; it does not block acceptance of S01. This ticket creates no addon,
 backend contract, bank access, posting path or production queue.
 
 ## Owner feedback
@@ -73,11 +74,12 @@ backend contract, bank access, posting path or production queue.
 2026-11-14 feedback implemented: make the UI more compact, show all inventory
 items in the sidebar, show AH and vendor totals for owned quantity with unit
 calculations, and add Include bank to count bank items when selected.
-Further review and actual-client readability remain pending. Existing direction prefers lowest buyout
-and vendor comparison, with native WoW integration; it is not approval of this
-layout. Review whether the bag rail/detail split is comfortable at normal play
-size, whether price/stock/age are readable, and whether “Mark for sale” clearly
-means later intent. Record feedback here before claiming owner acceptance.
+2026-11-14 acceptance: the owner approved the revised layout (“this looks good”)
+and agreed that browser review at approximately the intended addon scale is
+sufficient for this disposable prototype. S01 is complete. Native fonts, UI
+scaling and coexistence with bags/chat still require an actual-client check
+during addon implementation. This approval covers the prototype layout, not
+production data access, transactions or outstanding policies in other tickets.
 
 2026-11-14 follow-up feedback: moved sale marking from the detail panel to small
 sidebar row buttons. Marked items occupy a separate sidebar section; removing a
