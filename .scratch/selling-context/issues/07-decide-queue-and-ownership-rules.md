@@ -4,7 +4,7 @@
 
 **Blocked by:** S02: Explore the Crafting screen; S04: Verify bank observations and freshness.
 
-**Status:** ready-for-agent
+**Status:** in-progress — decision walkthrough prepared; awaiting owner policy choices
 
 **Labels:** ready-for-agent
 
@@ -25,6 +25,12 @@ M identifiers refer to the existing market-trends series. A ready-for-agent
 status does not bypass blockers or turn unverified capabilities into facts.
 
 ## Comments
+
+2026-11-14: Prepared [queue rules and synthetic walkthrough](../queue-rules.md)
+from the approved S02/S06 presentation and S04 runtime evidence. Defaults are
+proposals, including persistence, cached-bank eligibility, shared allocation and
+cross-queue priority. Acceptance remains open pending owner decisions. This is
+documentation work; no production queue or runtime behavior is claimed.
 
 2026-11-14: Published using to-tickets after the owner approved the 23-slice
 breakdown and requested tickets small enough for a single fresh context.
