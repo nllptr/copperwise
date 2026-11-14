@@ -48,7 +48,7 @@ switching were subsequently demonstrated by the owner's screenshots below.
   Copperwise and then another tab clears it. Added explicit initial
   `PanelTemplates_DeselectTab`; the fix still requires a reload/reopen check.
 - Selected Copperwise and subsequently selected Buy screenshots demonstrate
-  the expected selected/unselected appearances after interaction. This is sample
+  the expected selected/unselected appearances after interaction. This is tab
   switching evidence, not exhaustive coexistence acceptance.
 - Peacebloom, item 2447: state **complete**, one of three allowed requests,
   23 covered rows, 2,439 covered units, lowest covered buyout **38 copper/unit**,
@@ -69,6 +69,6 @@ results, coverage and outcomes. Do not copy account paths or unrelated saves.
 
 Remaining unverified paths: initial-highlight fix, commodity versus item rows,
 independent quantity/price comparison and stack normalization,
-bid-only stock, full/empty/partial results, More, cooldowns, cancellation,
+bid-only stock, empty/partial results, full results for other samples, More, cooldowns, cancellation,
 timeouts/errors, late responses, bounds and Auctionator coexistence.
 No M18 runtime acceptance is claimed by repository checks or installation.
