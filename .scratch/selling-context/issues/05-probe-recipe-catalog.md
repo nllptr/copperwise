@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** in-progress — read-only probe implemented; target-client evidence pending
 
 **Labels:** ready-for-agent
 
@@ -25,6 +25,14 @@ M identifiers refer to the existing market-trends series. A ready-for-agent
 status does not bypass blockers or turn unverified capabilities into facts.
 
 ## Comments
+
+2026-11-14: Added the standalone [recipe probe](../../../probes/recipes/README.md)
+with paged profession discovery, learned-state and schematic inspection, raw
+yield/ingredient alternatives, context diagnostics and separate open-merchant
+purchase quotes. No catalog completeness or ingredient-source policy is assumed.
+The [runtime report](../../../probes/recipes/REPORT.md) and native UI comparison
+checklist are ready. All acceptance items await actual-client observations;
+repository checks do not pass this capability gate.
 
 2026-11-14: Published using to-tickets after the owner approved the 23-slice
 breakdown and requested tickets small enough for a single fresh context.

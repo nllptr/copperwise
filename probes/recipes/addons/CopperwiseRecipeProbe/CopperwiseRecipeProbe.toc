@@ -1,0 +1,5 @@
+## Interface: 16001
+## Title: Copperwise Recipe Probe
+## Notes: Read-only recipe discovery, schematic and merchant metadata probe
+## SavedVariables: CopperwiseRecipeEvidence
+Probe.lua
