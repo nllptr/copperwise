@@ -4,12 +4,12 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** in-progress — sample-data addon probe implemented; awaiting actual client observations
+**Status:** completed — target-client capability gate passed for the tested sample paths
 
-- [ ] Render two aligned sample graphs with local time labels and record actual client/platform builds.
-- [ ] Demonstrate a window accessible away from the auction house, a configurable open-window keybinding, and item-name lookup.
-- [ ] Check readable tooltip additions and hovered-item or modifier-click capabilities while preserving existing game interactions.
-- [ ] Record reproducible steps, outcomes, limitations, and evidence; do not treat installed addon source as runtime proof.
+- [x] Render two aligned sample graphs with local time labels and record actual client/platform builds.
+- [x] Demonstrate a window accessible away from the auction house, a configurable open-window keybinding, and item-name lookup.
+- [x] Check readable tooltip additions and hovered-item or modifier-click capabilities while preserving existing game interactions.
+- [x] Record reproducible steps, outcomes, limitations, and evidence; do not treat installed addon source as runtime proof.
 
 ## Comments
 
@@ -23,4 +23,15 @@ client acceptance. The pre-agreed testing seam remains actual in-client
 capability checks; no simulated runtime proof was substituted. All acceptance
 checkboxes remain pending actual client/platform observations and verification
 that normal game interactions are preserved.
+
+2026-11-14: Completed from direct owner-reported runtime observations and saved
+probe build evidence: client 1.60.1 (70938), interface 16001, local macOS 26.6.2
+(25G83), x86_64. The owner confirmed graph changes and alignment, local time and
+timezone, no-match behavior, opening away from the auction house, both bindings
+persisting through `/reload`, Sharp Arrow tooltip and hover-open, and normal
+Shift-link/stack/Ctrl-preview actions. Binding registration initially failed;
+the manifest/category fix was retested successfully. See the report for the
+exact evidence and remaining limits. Modifier-click shortcuts, combat behavior,
+and exhaustive tooltip/other-addon combinations are not validated or promised.
+Ticket 05 still depends on the other Phase 0 tickets.
 

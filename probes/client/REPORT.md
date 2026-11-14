@@ -1,9 +1,9 @@
 # Target-client capability evidence
 
-Ticket 03 is **partially verified in-client**, not passed. This report separates
-owner-reported runtime observations from remaining checks. Exact running client
-build, platform details, bindings, tooltips and preserved interactions still need
-evidence.
+Ticket 03's **capability gate passed for the tested sample paths**. This report
+separates direct owner-reported runtime observations, recorded build/platform
+evidence, and untested edge cases. It does not establish production rendering,
+every interaction path or complete Phase 0 feasibility.
 
 ## Implemented probe
 
@@ -19,8 +19,9 @@ evidence.
   supported legacy item-tooltip hook. Errors are diagnostic outcomes, not passes.
 - Secure post-hook observation of supported sample items through Alt-modified
   item clicks. It does not claim a new click shortcut, replace the existing
-  handler or change its return value. Preservation of normal actions still
-  requires testing.
+  handler or change its return value. Normal Shift-link, stack movement/splitting
+  and Ctrl-preview actions were owner-confirmed; modifier observation itself
+  remains unverified.
 - Bounded SavedVariables evidence: five sessions, 120 events per session, 320
   characters per event. Build information and operator notes are recorded; no
   character/account names or real auction snapshots are collected automatically.
@@ -55,19 +56,19 @@ provides expected outcomes at that seam; no fake frame API harness or private
 helper test seam was introduced. Automated red/green runtime checks are not
 available here. Owner-reported runtime results are recorded separately below.
 
-## Acceptance record — fill from an actual run
+## Acceptance record
 
-| Capability | Result | Evidence needed |
+| Capability | Result | Evidence and limits |
 | --- | --- | --- |
-| Client/platform | Partial — saved probe evidence | client 1.60.1, build 70938, interface 16001, macOS reported by the addon. Actual macOS version and Intel architecture remain to be recorded. |
-| Graph rendering | Partial — owner observed | Both graphs visible; selecting Copper Ore changes both; time positions align and labels/timezone match the computer. Scale/resolution not recorded. |
-| Access away from AH | Pending | Location context and successful window opening |
-| Configurable binding | Partial — owner confirmed working after fix | Window binding works after correcting binding registration. Assigned key, away-from-AH use and saved-key persistence across a subsequent reload remain unrecorded. |
-| Name lookup | Partial — owner observed | Copper Ore selection updates both graphs; an unknown query hides both with a no-match message. Localized names and ambiguous queries remain unchecked. |
-| Tooltip additions | Pending | GameTooltip/ItemRefTooltip, legibility, repeated builds, no duplicates |
-| Hovered-item access | Pending | Supported tooltip/key opens matching sample; absent/unsupported feedback |
-| Modified-item observation | Pending | Hook path actually invoked; no claimed Alt-click shortcut |
-| Original interactions | Pending | Normal clicks, Shift-link, Ctrl-preview, existing addon/AH shortcuts, combat |
+| Client/platform | Recorded | Saved probe evidence: client 1.60.1, build 70938, interface 16001. Local host `sw_vers`: macOS 26.6.2 (25G83); `uname -m`: x86_64 (Intel). |
+| Graph rendering | Pass — owner observed | Both graphs visible; selecting Copper Ore changes both; time positions align and labels/timezone match the computer. Scale/resolution not recorded. |
+| Access away from AH | Pass — owner confirmed | Owner confirmed the window opens with its binding away from the auction house. Exact location not recorded. |
+| Configurable binding | Pass — owner confirmed after fix | Both window-toggle and hovered-item bindings work after `/reload` without reassignment. Exact chosen keys not recorded. |
+| Name lookup | Pass — sample lookup | Copper Ore selection updates both graphs; an unknown query hides both with a no-match message. Localized names and ambiguous queries remain unchecked. |
+| Tooltip additions | Pass — Sharp Arrow sample | Owner confirmed the Sharp Arrow addition after reloading the updated probe. Repeated hovers/rebuilds, duplicate suppression and ItemRefTooltip were not separately confirmed. |
+| Hovered-item access | Pass — Sharp Arrow sample | Hovered-item binding opens the sample successfully. Absent/unsupported-tooltip feedback remains unchecked. |
+| Modified-item observation | Not validated; no shortcut promised | Hook observation is optional research. The ticket's hovered-item-or-modifier criterion is satisfied by hovered-item access. |
+| Original interactions | Pass — tested normal actions | Owner confirmed Shift-click linking, stack movement/splitting and Ctrl-click equipment preview work with the probe enabled. Existing addon/AH shortcuts and combat remain unchecked. |
 
 ### Owner observations, 2026-11-14
 
@@ -80,7 +81,7 @@ directory. The owner then reported seeing the graphs and confirmed:
 - Time positions align across the graphs; labels and timezone match the computer.
 
 These are direct owner reports, not screenshots or automatically captured logs.
-Opening away from the auction house has not yet been explicitly confirmed.
+Opening away from the auction house was confirmed later in the same session.
 
 The owner subsequently reported that the keybinding does not work. The installed
 Bindings.xml matches the repository version. No saved Copperwise key assignments
@@ -94,14 +95,28 @@ listed in the TOC and was parsed as ordinary UI XML. Removed the TOC entry so
 the dedicated binding loader can handle it; added explicit settings categories
 matching the installed OneForAll binding pattern. This fixes an observed loading
 error. The owner subsequently confirmed "now it works", establishing successful
-window-binding use after the fix. The assigned key and persistence across a
-subsequent reload were not explicitly reported; hovered-item access remains
-unchecked.
+window-binding use after the fix. Later confirmations of persistence and
+hovered-item access are recorded below; the assigned keys were not reported.
 
 At the owner's request, Sharp Arrow was added as a third synthetic sample so
 tooltip and hovered-item checks can use ammunition already in their bags.
 Search, graphs and item interactions share the same sample catalog. Its tooltip
-and hovered-item behavior still require the owner's in-client observations.
+behavior was subsequently confirmed working by the owner. The owner also
+explicitly confirmed that the tooltip and hover-open both work. Repeated-tooltip
+duplicate suppression was not separately confirmed; absent/unsupported-tooltip
+binding behavior remains unchecked.
+
+The owner further confirmed that Shift-click linking Sharp Arrow into chat,
+normal stack movement/splitting and Ctrl-click equipment dressing-room preview
+work with the probe enabled. No errors or blocked actions were reported for
+these checks. This does not establish combat behavior or every other addon's
+shortcuts.
+
+Finally, the owner answered "yes" to both remaining checks: opening with the
+window binding away from the auction house, and both bindings working after
+`/reload` without reassignment. These confirmations complete the ticket's core
+capability checks. They do not imply exhaustive testing of the remaining cases
+listed in the table.
 
 Use `/cwclient note <outcome>` and preserve relevant SavedVariables lines after
 logging out. Record errors, unavailable APIs and protected-action/taint failures.
@@ -111,7 +126,15 @@ do not bypass client protections to force a pass.
 
 ## Verdict
 
-The owner has confirmed basic graph rendering, time alignment and sample/no-match
-lookup behavior. Remaining client/platform and interaction checks keep ticket 03
-open. Ticket 05 and dependent full implementation remain gated by the Phase 0
-feasibility requirements.
+**Pass for ticket 03's tested capability scope:** aligned sample rendering with
+local time, sample-name lookup and no-match feedback, configurable window access
+away from the auction house, binding persistence across reload, readable sample
+tooltip additions and hovered-item opening, with the tested normal game actions
+preserved. Client/platform builds are recorded above. Evidence consists of direct
+owner confirmations, saved probe build output and local platform commands.
+
+Untested limits remain explicit: combat, modifier-click shortcuts, exhaustive
+tooltip rebuilding/comparison paths, localized/ambiguous searches, unsupported
+hover feedback, and interactions with other addons/AH shortcuts. No modifier-click
+shortcut or universal compatibility is promised. Ticket 03 is complete; ticket 05
+and full implementation still require the other Phase 0 feasibility gates.
