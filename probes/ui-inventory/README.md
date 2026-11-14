@@ -170,3 +170,32 @@ These browser checks establish prototype behavior, not client capabilities.
 (“this looks good .approved”), including the green/red per-craft margins. S02
 is complete. Queue persistence, sorting behavior and production bank subtraction
 remain open; this approval covers the synthetic journey and revised presentation.
+
+## Sidebar iteration (S06)
+
+The latest iteration supersedes the earlier fixed-order and destination-fallback
+notes above. Open `index.html` and switch Inventory/Crafting to review:
+
+- Inventory rows: icon, name (owned quantity), total best sale asking value,
+  AH/Vendor button. Highest total first. No list heading or color legend.
+- Both prices are required for an action and comparable ranking amount. Missing
+  comparisons retain the row with a dash and no recommendation button. Ties
+  choose Vendor. Existing marked intent retains its destination/removal action.
+- Crafting rows: learned/unlearned icon, name, estimated margin per craft, and
+  a diamond when owned ingredients reduce additional cost. Hover the row or
+  diamond for the reason; the row's accessible name includes the explanation.
+  There is no sidebar heading. Positive/negative colors remain.
+- Both lists sort descending, unknowns last, then by name for equal values.
+  These are prototype ordering choices awaiting visual review.
+- Outside the addon surface, **AH warning after** defaults to 60 minutes.
+  Try 30 to show the warning beside AH actions (the fixture is 38 minutes old).
+  **Simulate ingredients used up** removes fixture ownership credit from costs
+  and shopping requirements, recalculating and re-sorting recipes. It does not
+  execute a craft. Refresh restores all synthetic settings and holdings.
+
+2026-11-14 verification: 26 Chromium checks passed for row contents/fit, missing
+headings, missing prices, Vendor ties, configurable age warning, mark/unmark,
+ownership indicator and depletion (Practice Tonic 110c → 60c/craft), and unlearned
+visibility. Crafting screenshot inspected at 960px. JS syntax, Go suite and diff
+whitespace checks passed. This is browser behavior only; visual owner review
+remains pending. Inventory amounts are sale asking values, not recorded profit.

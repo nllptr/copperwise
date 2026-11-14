@@ -59,3 +59,12 @@ AH or vendor price is missing; both values are necessary to compare. Keep
 the row visible. Default the stale-AH warning threshold to one hour and expose
 it as an easily changed setting. Updated the decision table; remaining open
 items are exact labels and numeric tie/missing-row ordering, not these policies.
+
+2026-11-14 sidebar iteration requested: implemented compact Inventory rows
+(icon, name with quantity, total best sale value, destination action), and
+Crafting rows (icon, name, margin/craft, owned-input calculation indicator),
+without sidebar headings. Browser study now exercises chosen ranking defaults,
+missing-price action suppression and editable 60-minute AH warning threshold.
+Added synthetic ingredient-depletion control. See the prototype README's S06
+section for verification and review instructions. Owner visual review pending;
+this does not establish production sorting or client transaction behavior.
