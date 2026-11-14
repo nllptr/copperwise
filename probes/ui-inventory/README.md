@@ -166,6 +166,7 @@ checks also passed. Screenshots were inspected at 960px viewport width. JavaScri
 syntax and the Go suite are checked separately; this HTML has no typechecker.
 These browser checks establish prototype behavior, not client capabilities.
 
-The revised design awaits owner review. Queue persistence, sorting behavior and
-production bank subtraction remain open; the owner's quantity and display
-feedback above is recorded rather than treated as approval of those policies.
+2026-11-14 acceptance: the owner approved the revised Crafting prototype
+(“this looks good .approved”), including the green/red per-craft margins. S02
+is complete. Queue persistence, sorting behavior and production bank subtraction
+remain open; this approval covers the synthetic journey and revised presentation.

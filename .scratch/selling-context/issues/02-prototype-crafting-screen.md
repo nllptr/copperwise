@@ -4,16 +4,16 @@
 
 **Blocked by:** S01: Explore the Inventory screen.
 
-**Status:** awaiting-owner-review
+**Status:** completed — owner approved the revised Crafting browser prototype
 
-**Labels:** ready-for-agent
+**Labels:** completed
 
 **Type:** prototype
 
 - [x] Show known recipes and an Include unlearned recipes option, with unlearned clearly distinguished from currently craftable.
 - [x] For one sample recipe, show output buyout, vendor sell value, separate per-output crafting cost and estimated margin; include an incomplete-input state.
 - [x] Demonstrate entering craft intent and seeing required materials, bag/bank locations and shopping needs without executing purchases or crafts.
-- [ ] Record feedback on the recipe-to-shopping journey and quantity terminology; do not silently finalize sorting units, persistence or bank-subtraction rules.
+- [x] Record feedback on the recipe-to-shopping journey and quantity terminology; do not silently finalize sorting units, persistence or bank-subtraction rules.
 
 ## Scope and verification
 
@@ -52,3 +52,11 @@ are not settled by these display changes.
 2026-11-14 owner feedback: revised Crafting screen is much better; requested
 green positive per-craft margins and red negative margins in the sidebar.
 Implemented with neutral zero/unknown values and retained negative signs.
+
+2026-11-14 acceptance: owner said “this looks good .approved” after reviewing
+the simplified Crafting screen and green/red per-craft margins. S02 is complete.
+The approved prototype uses the owner's revised per-craft additional-cost and
+output-total presentation described above, superseding the initial per-output
+acceptance wording. Feedback on quantity terminology and recipe-to-shopping
+presentation is recorded. This approves the synthetic journey, not production
+capabilities, queue persistence, sorting behavior or cached-bank eligibility.
