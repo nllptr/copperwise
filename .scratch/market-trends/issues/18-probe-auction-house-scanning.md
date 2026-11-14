@@ -107,3 +107,8 @@ active-Auctionator search coexistence still require runtime evidence.
 23:00:20 CET after one request, with no accepted results, unavailable price/stock
 and full=false. Immediate local cancellation passes; late-response stability and
 close/reopen recovery remain to be confirmed.
+
+2026-11-14: Owner confirms the cancelled observation stays cancelled after
+waiting, and closing/reopening the AH permits a normal successful scan.
+Cancellation stability and close/reopen recovery pass. Active-search Auctionator
+coexistence remains the main outstanding runtime check.

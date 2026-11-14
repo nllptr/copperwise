@@ -101,8 +101,9 @@ only Peacebloom's price has owner confirmation.
 Owner cancellation-macro screenshot: Peacebloom 2447, started 2026-11-14
 23:00:20 CET, state cancelled after one request, no observed result timestamp,
 rows/stock/price unavailable, full=false. This verifies immediate local
-cancellation without inventing an empty result. Persistence after the late
-response and successful scan after close/reopen still await owner confirmation.
+cancellation without inventing an empty result. Owner confirms it remains
+cancelled after waiting and a normal scan succeeds after closing/reopening the
+AH. Cancellation stability and close/reopen recovery pass for this run.
 
 2026-11-14 owner screenshot after the updated one-click Rough Stone instructions:
 item 2835, state complete, one request, 16 covered rows, 1,615 covered units,
@@ -131,6 +132,8 @@ These changes still need actual-client testing; no mocked runtime is substituted
 
 Remaining unverified paths: initial-highlight fix, new metadata continuation,
 independent stock/Copper Ore price comparison, noncommodity stack normalization,
-bid-only stock, empty/partial results, More on partial results, cooldowns, cancellation,
-timeouts/errors, late responses, bounds and Auctionator coexistence.
+bid-only stock, empty/partial results, More on partial results, cooldowns,
+timeouts/errors, bounds and active-search Auctionator coexistence. Explicit
+AH closure during an outstanding search remains unexercised; cancellation then
+close/reopen recovery is verified above.
 No M18 runtime acceptance is claimed by repository checks or installation.
