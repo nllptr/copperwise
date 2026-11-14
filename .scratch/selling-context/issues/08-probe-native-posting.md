@@ -4,14 +4,14 @@
 
 **Blocked by:** M18: Probe native auction-house scanning.
 
-**Status:** in-progress — reopened; direct posting from Copperwise required, native Sell handoff is insufficient
+**Status:** completed — direct commodity posting from Copperwise verified in the actual client
 
-**Labels:** ready-for-agent
+**Labels:** completed
 
 **Type:** prototype
 
 - [x] Investigate supported AH tab and posting APIs on the actual client; record required user actions, bag eligibility, quantity and price semantics.
-- [ ] With an operator-supplied sample and operator-selected terms, perform one deliberate post and record the confirmed result rather than treating a button click as success.
+- [x] With an operator-supplied sample and operator-selected terms, perform one deliberate post and record the confirmed result rather than treating a button click as success.
 - [x] Observe an invalid/unavailable-item or cancelled attempt and show honest feedback without repeated or unintended submissions.
 - [x] Record coexistence limitations and any native integration failure. Investigate Auctionator only as an evidenced fallback, not an assumed dependency or sell-list API.
 
@@ -90,3 +90,14 @@ stale handoff-only wording was corrected. Spec review's exception-feedback issue
 was addressed with expected-readiness refusals and deferred consumed-state UI
 rendering; no protected-call wrapper surrounds transaction dispatch. Direct
 posting acceptance remains unchecked pending an actual listing and bag change.
+
+2026-11-15 direct-post completion: after installing revision d709cdb, the owner
+followed the Post once test for Rough Stone ×1 at 15 copper and duration index 2
+(8 hours), with instructions to check a new native listing and one fewer bag
+item, and reported “this time it worked.” This is successful direct Copperwise
+posting evidence; the earlier native Sell handoff is not the completion basis.
+The revision combined named XML-button wiring, retention/revalidation of the
+reviewed ItemLocation, and removing pre-call button/UI changes. It establishes
+a working call path, not a uniquely isolated cause of prior blocks. S08 closes
+as a bounded one-commodity capability probe; other paths remain limitations
+in the runtime report. No completed sale or production readiness is claimed.

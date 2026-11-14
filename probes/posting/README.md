@@ -1,11 +1,10 @@
 # Native posting probe (S08)
 
-Standalone investigation for the Forever modern auction house. **S08 is reopened:**
-posting must complete directly from Copperwise's own surface. A native Sell
-handoff worked, but the owner explicitly rejected it as the solution. Existing
-direct-call attempts were blocked; the current revision is a controlled direct
-call-path comparison with the installed, owner-verified Auctionator seller.
-See [REPORT.md](REPORT.md) for evidence and limitations.
+Standalone capability probe for the Forever modern auction house. **S08 is
+complete for one direct commodity post from Copperwise Post once.** Earlier
+native Sell handoff success was insufficient; the subsequent direct revision
+was verified by the owner. See [REPORT.md](REPORT.md) for evidence, failed
+experiments and unexercised limitations. This is not a production seller.
 
 ## Current direct-post revision
 
@@ -15,7 +14,8 @@ item link/count and current deposit, then consumes the Lua attempt allowance.
 It calls PostCommodity/PostItem directly, without pcall, pre-call rendering,
 chat output or disabling the clicked button. The original implementation
 disabled that button before the API call. Neither this difference nor XML
-wiring is established as the cause; this revision requires runtime evidence.
+wiring is uniquely established as the cause; the combined revision passed
+one actual-client direct posting run.
 Shared native events never imply an attributed successful listing. Inspect
 native Auctions and bags after one deliberate click; do not retry a failed or
 unknown result blindly. Extra native confirmation remains unverified and is
@@ -92,7 +92,8 @@ native event stacks. Log out to persist SavedVariables; omit personal data in no
 
 Use [REPORT.md](REPORT.md) for actual observations. No mocked runtime/private
 helper test replaces this seam. Direct-custom-post failures remain limitations;
-the current direct-call revision remains unverified until tested in-client.
+the direct revision is verified for the reported sample only; other paths
+remain unverified.
 
 ## Repository checks and source basis
 

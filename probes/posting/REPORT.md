@@ -1,10 +1,33 @@
 # S08 posting evidence
 
-Status: reopened — direct posting from Copperwise remains unverified and
-required by the owner. Successful native Sell handoff is diagnostic evidence
-only and does not satisfy S08. The earlier completion was premature.
+Status: complete — direct commodity posting from Copperwise Post once
+verified in the actual client. The native Sell fallback is not the acceptance
+basis. Prior failed paths and unexercised limitations remain recorded below.
 
-## Capability conclusion
+## Direct posting acceptance (2026-11-15)
+
+After installing revision d709cdb, the owner followed the direct Post once
+run for Rough Stone ×1, buyout 15 copper, duration index 2 (8 hours), with
+instructions to inspect a new owned listing and one fewer bag item. The owner
+reported “this time it worked.” Native control and handoff success preceded
+this run but do not substitute for it. This is posting, not completed-sale evidence.
+
+The working revision uses Auctionator-style named XML OnClick -> parent PostItem
+-> direct native transaction API, retains the reviewed ItemLocation with current
+link/count/deposit checks, and avoids disabling/rendering the button before
+dispatch. Multiple differences changed together: no unique root cause of the
+earlier restriction is proven. The one-attempt guard is consumed in Lua state
+before dispatch, and deferred rendering covers API exceptions without pcall.
+
+The successful direct run is owner-reported; no auction ID or final stack total
+was supplied. One commodity sample does not establish noncommodity, cross-stack,
+batch, concurrent-addon, confirmation-dialog or production behavior. Prior
+preview cancellation and idle native/Auctionator coexistence observations
+remain supporting evidence. Keep final transaction terms under operator review.
+
+## Earlier handoff/control investigation (historical)
+
+### Handoff/control result
 
 On client 1.60.1/build 70938/interface 16001, Copperwise can prepare a selected
 bag commodity and hand its quantity, unit price and duration to visible native
@@ -26,8 +49,8 @@ handoff; visible 8 Hours is verified, transition-specific refresh is not.
 ## Limits and unexercised paths
 
 - Earlier direct PostCommodity calls were repeatedly blocked; root cause is
-  unresolved. Only the native Sell fallback has succeeded so far. The current
-  direct-call candidate remains pending and is required for completion.
+  unresolved. At this stage only native Sell had succeeded. Direct posting later passed
+  in revision d709cdb, as recorded above.
 - The successful handoff-only revision submitted no transaction itself. The
   current direct-post candidate invokes the transaction API from Post once;
   its outcome is unverified and must be checked in native Auctions/bags.
