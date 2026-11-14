@@ -29,6 +29,19 @@ the agreed selling and crafting decisions. This is not TradeSkillMaster feature
 parity. Use plain labels, useful defaults, explainable estimates and explicit
 queues; do not require pricing expressions or complex rules before basic use.
 
+Shared design guideline: Copperwise should feel integrated with the target
+client's native World of Warcraft UI, following the quality the owner values
+in Auctionator. Use supported native frames, controls, fonts, item icons, coin
+presentation and tab conventions where suitable. Match familiar spacing,
+selection/disabled states, window behavior and UI scaling; preserve normal game
+shortcuts and existing auction-house interactions. Apply this consistently to
+the main Inventory/Crafting window and the Copperwise AH tab. Custom graphs and
+queue views should extend that visual and interaction language. Evaluate the
+result in the actual target client at the owner's normal UI scale; a standalone
+browser mockup does not establish native fit. Auctionator is a reference for
+integration quality, not a required dependency or an instruction to reproduce
+its layout. This is a shared product guideline, not repeated ticket boilerplate.
+
 The main addon window has two tabs sharing selected-item market detail:
 
 - **Inventory:** list the current character's bag items, with bank holdings as an

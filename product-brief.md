@@ -31,6 +31,13 @@ The player should be able to select an item and understand its observed price ra
 
 ## 2. Product principles
 
+- Integrate with the native game UI, following the quality the owner values in
+  Auctionator: familiar frames, controls, typography, item/coin presentation,
+  tabs, window behavior and UI scaling. Preserve normal game interactions and
+  assess the result in the target client. The integrated workflow spec contains
+  the shared design guideline; it applies across screens rather than being
+  repeated in individual tickets.
+
 - Owner clarification (2026-11-14): aim for Auctionator's simplicity with the
   decision-making depth sought in TradeSkillMaster. This is not feature parity:
   use plain labels, useful defaults and clear queues instead of mandatory
