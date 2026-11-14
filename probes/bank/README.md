@@ -1,7 +1,8 @@
 # Bank observations and freshness (S04)
 
 Standalone, read-only current-character capability probe. No backend, credentials,
-Auctionator dependency or transactions. **Actual-client acceptance is pending.**
+Auctionator dependency or transactions. **Sample first-tab capability checks
+passed in the target client; see REPORT.md for evidence and limitations.**
 
 With the game closed, copy `addons/CopperwiseBankProbe` to
 `/Applications/World of Warcraft/_forever_/Interface/AddOns/`, enable it and log in.

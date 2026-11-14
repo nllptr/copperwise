@@ -1,6 +1,6 @@
 # S04 evidence
 
-Status: bank/keyring mapping identified; corrected scoped probe runtime retest pending.
+Status: complete — sample bank observations and freshness verified for CharacterBankTab_1.
 
 ## Repository evidence
 
@@ -30,8 +30,8 @@ aborting startup. Subsequent owner-provided output verifies startup now succeeds
   bank counts/time. Owner then switched characters to perform the bank checks.
 - Second character at 1794674798–1794674815: bank still unknown; bags contain
   one Peacebloom (2447) in 0:15 and two Bogling Roots (5206) in 2:3.
-- Opening at 1794674856 reports main-bank container -1 with 32 slots. Bank bag
-  6 initially reports zero slots, then 48 at 1794674857. Other bank bag IDs
+- Opening at 1794674856 reports container -1 with 32 slots (later identified as
+  keyring). Container 6 initially reports zero slots, then 48 at 1794674857. Other container IDs
   5 and 7–11 report zero. NUM_BANKBAGSLOTS is nil. This establishes delayed
   capacity availability: an early `confirmed` read is not proof of full coverage.
 - After closing at 1794674859, manual output at 1794674864 retains cached bank
@@ -51,20 +51,40 @@ aborting startup. Subsequent owner-provided output verifies startup now succeeds
   1794675083 refreshes observation time to 1794675083, still bags 1 / bank 0
   for Peacebloom. No new Lua error is present in these excerpts.
 
-### Remaining checks and limitations
+### Corrected probe runtime verification
+
+- At 1794675586 the corrected probe discards its legacy mixed-coverage cache
+  and displays unknown bank counts/time. Enum lookup reports CharacterBankTab_1=6.
+- Open at 1794675599 and manual snapshot 1794675604 report only `6:48`, matching
+  the owner's visible 48-slot bank, with Peacebloom bags 1 / bank 0.
+- Deposit: BAG_UPDATE_DELAYED 1794675663 and manual 1794675671 show bags 0 /
+  bank 1 in 6:1. Closing at 1794675729 and manual 1794675735 retain count 1
+  as cached with observation time 1794675671.
+- After reload, login 1794675757 and manual 1794675760 preserve count 1,
+  coverage `6:48` and observation time 1794675671. A further login at 1794675861
+  also retains those values. No legacy-cache discard recurs.
+- Reopening at 1794675864 confirms count 1 with a fresh observation time.
+  After withdrawal, BAG_UPDATE_DELAYED 1794675868 shows bags 1 in 0:15 /
+  bank 0. Closing at 1794675869 and manual 1794675873 preserve cached zero
+  and observation time 1794675868. The last manual snapshot was after closing,
+  so its cached state is expected; the preceding event captured open-bank refresh.
+- No new Lua error is supplied. These observations establish the selected sample's
+  settled location changes and persistent freshness states, not atomic inventory.
+
+### Limitations and checks not exercised
 
 - Owner confirms Peacebloom is visibly in bags and absent from bank after the
   withdrawal. The visible bank has 48 main slots, no unlocked bank bag slots
   and no equipped 32-slot bank bag. The API's -1:32 container is invisible in
   that UI. Container 6:48 matches the visible capacity and held the moved sample,
-  but its mapping and the meaning of -1 remain unresolved. The assumed classic
-  main-bank/bank-bag mapping is contradicted; summing both is not validated.
+  and subsequent enum output resolves the mapping. The assumed classic
+  main-bank/bank-bag mapping was wrong; summing both is invalid.
   Do not claim 80 visible slots or confirmed combined bank holdings.
 - Follow-up owner enum output identifies `CharacterBankTab_1 6` and `Keyring -1`.
   This resolves the invisible 32-slot container as the keyring. The probe now
   excludes it and all other unverified containers, explicitly covering only
   the first character bank tab. Zero-slot bank tab reads are rejected. The
-  corrected scope and cache invalidation require runtime retesting; prior
+  corrected scope and cache invalidation are verified above; prior
   mixed totals must not be reused as correctly scoped bank observations.
 - Open-bank event reads can precede capacity loading, and unlocked item reads
   are not atomic. The `confirmed` label means an open-access API observation,
@@ -77,9 +97,10 @@ aborting startup. Subsequent owner-provided output verifies startup now succeeds
 
 ## Acceptance boundary
 
-The supplied runtime output establishes the tested deposit/withdrawal refresh and
-closed-bank/reload/reopen freshness cycle and the owner confirms the final
-Peacebloom location. Bank/keyring mapping is now identified; corrected first-tab
-coverage and cache round trip remain to be retested before closing S04. No atomicity, complete
-coverage or production readiness claim follows. Cached-bank subtraction policy,
+S04 is complete as a read-only capability investigation for the selected samples
+in the visible first character bank tab. Corrected runtime output establishes
+deposit/withdrawal refresh and the closed-bank/reload/reopen freshness cycle;
+the owner independently confirmed the bank capacity and an earlier withdrawal's
+visible Peacebloom location. No claim of all-tab coverage, atomicity or production
+readiness follows. Cached-bank subtraction policy,
 automatic withdrawals/transfers and cross-character tracking remain out of scope.

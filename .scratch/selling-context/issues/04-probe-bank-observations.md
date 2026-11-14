@@ -4,14 +4,14 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** in-progress — bank/keyring mapping identified; corrected scoped probe retest pending
+**Status:** completed — sample first-bank-tab observations and freshness verified; limitations recorded
 
 **Labels:** ready-for-agent
 
 **Type:** prototype
 
-- [ ] Display sample bank counts separately from bag counts and record the client/platform build and bank-access conditions.
-- [ ] Observe a sample deposit/withdrawal and document when the bank count can actually be refreshed.
+- [x] Display sample bank counts separately from bag counts and record the client/platform build and bank-access conditions.
+- [x] Observe a sample deposit/withdrawal and document when the bank count can actually be refreshed.
 - [x] After leaving bank access and after a user reload where applicable, distinguish confirmed, cached and unknown counts and expose the last observation time.
 - [x] Record limitations without selecting a subtraction policy or claiming access to unseen or other-character holdings.
 
@@ -57,3 +57,13 @@ closing S04 or treating these summed counts as confirmed visible holdings.
 Corrected the probe to read only the named first character bank tab, exclude
 keyring and other tabs, reject zero-slot loading reads and discard prior
 mixed-coverage cached snapshots. Corrected runtime verification remains pending.
+
+2026-11-14: Corrected probe verified in client 1.60.1/build 70938 on macOS:
+legacy cache discarded, only CharacterBankTab_1=6 with 48 slots observed,
+Peacebloom deposit gives bags 0 / bank 1, close/reload preserves cached count 1
+and timestamp 1794675671, reopen refreshes confirmation, and withdrawal gives
+bags 1 / bank 0 at 1794675868. Closing preserves the new timestamp and cached
+zero. S04 is complete as a bounded sample capability investigation. Other tabs,
+atomic/loading guarantees, cross-character aggregation and cached-bank
+subtraction eligibility are not established or selected. See the report for
+the exact runtime evidence and unexercised checks.
