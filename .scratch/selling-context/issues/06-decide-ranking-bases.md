@@ -45,3 +45,11 @@ owned ingredients are consumed. Updated the decision table with chosen orders
 and a holdings-depletion reversal. Exact labels, ties, missing estimates and
 alternative sorts remain explicitly pending; neither default approval settles
 those secondary rules. No production sorting code changed.
+
+2026-11-14 owner follow-up: equal destination totals select Vendor to avoid
+AH deposit risk for no additional asking value. If neither value is known,
+retain the row without an action button. AH buttons require a warning icon
+when the AH observation exceeds a configurable age threshold. S03 runtime
+evidence confirms vendor metadata can be temporarily unavailable; handling
+exactly one known destination, threshold default and exact presentation remain
+pending. Recorded in the decision table; no production UI change claimed.

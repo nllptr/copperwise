@@ -93,7 +93,7 @@ ranking basis. Include bank changes the counted holdings when enabled.
 | Amber | 1 | 100 | 20 | 100 | AH |
 | Bark | 20 | 600 | 200 | 600 | AH |
 | Clay | 2 | 100 | 20 | 100 | AH |
-| Dust | 5 | 50 | 50 | 50 | Vendor (provisional tie rule) |
+| Dust | 5 | 50 | 50 | 50 | Vendor |
 | Ember | 3 | 15 | 30 | 30 | Vendor |
 
 Chosen order: Bark, Amber/Clay (equal ranking value), Dust, Ember. For an
@@ -101,6 +101,23 @@ additional distinction from uplift, an item with AH total 500c and vendor total
 490c ranks above one with AH total 400c and vendor total 0c: 500c beats 400c,
 even though its auction uplift is smaller. No sale, fees or recorded profit
 is established by these asking values.
+
+Owner approved Vendor on equal totals: immediate sale avoids risking an AH
+deposit for no greater asking value. When neither destination value is known,
+keep the item in the list and omit its action button; no recommendation is
+possible. A known numeric zero is distinct from unavailable metadata.
+
+An AH button must carry an extra warning icon when the age of its underlying
+AH observation exceeds a configurable threshold. Use observation age, not import
+age. This warning does not itself change the chosen ranking formula. The default
+threshold and configuration location remain to be chosen.
+
+Vendor value is not guaranteed to be available: the S03 actual-client probe
+observed initial unavailable metadata for all three samples, followed by cache
+notifications resolving their sell values (including a known zero). See
+[S03 evidence](../../probes/bags/REPORT.md). S05 also recorded missing sell
+metadata for a recipe ingredient. Missing vendor data must remain supported;
+we cannot limit missing-price handling to AH data alone.
 
 ### Crafting: estimated margin per craft
 
@@ -120,11 +137,12 @@ that holdings-driven re-sort.
 
 Proposed visible labels: **Best sale value · owned quantity** for Inventory,
 **Estimated margin · per craft** for Crafting. Alternative sorts, exact labels,
-numeric tie ordering and missing-estimate handling have not been explicitly
-approved. In particular, a missing AH or vendor estimate cannot establish which
-destination is highest; do not silently treat missing values as zero. Observed
-empty buyouts versus missing observations must remain distinguishable. S01's
-Vendor-on-equal and observed-empty fallback remain provisional behavior.
+numeric tie ordering and handling when exactly one destination value is known
+have not been explicitly approved. Equal destination totals use Vendor; neither
+value known means no button. A missing value must not silently become zero.
+Observed empty buyouts versus missing observations remain distinguishable;
+S01's observed-empty fallback remains provisional behavior. The stale-AH warning
+is approved, but its default age threshold/configuration location are pending.
 
 S06 remains open for these secondary decisions. The historical proposals above
 remain comparison context, not approval of alternatives or uplift sorting.
