@@ -48,3 +48,7 @@ README records updated arithmetic examples and browser checks. This explicitly
 revises the earlier replacement-cost/per-output prototype presentation. Revised
 screen review remains pending; production sorting, persistence and bank rules
 are not settled by these display changes.
+
+2026-11-14 owner feedback: revised Crafting screen is much better; requested
+green positive per-craft margins and red negative margins in the sidebar.
+Implemented with neutral zero/unknown values and retained negative signs.

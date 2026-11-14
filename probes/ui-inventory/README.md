@@ -107,7 +107,8 @@ are invented fixtures. Inventory behavior is unchanged.
 The owner's follow-up replaces the initial verbose per-output presentation:
 
 - Sidebar rows show recipe name and estimated **margin per craft**, accounting
-  for output yield. Colored icons mean learned; grayscale icons mean unlearned.
+  for output yield. Positive margins are green and negative margins red; zero
+  and unavailable margins stay neutral. The minus sign remains visible. Colored icons mean learned; grayscale icons mean unlearned.
   Accessible labels and hover titles also identify learning status. Unknown
   margins show a dash. Include unlearned recipes controls their visibility.
 - Three detail metrics show **Cost / craft**, **AH value**, and **Vendor value**.
