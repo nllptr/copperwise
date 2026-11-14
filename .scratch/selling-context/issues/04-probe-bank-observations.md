@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** in-progress — runtime freshness cycle observed; visible/API bank coverage mismatch unresolved
+**Status:** in-progress — bank/keyring mapping identified; corrected scoped probe retest pending
 
 **Labels:** ready-for-agent
 
@@ -52,3 +52,8 @@ the visible bank has 48 main slots and no unlocked bank bag slots. API container
 sample. This contradicts the assumed classic container mapping. The combined
 bank coverage remains unverified; investigate the target-client mapping before
 closing S04 or treating these summed counts as confirmed visible holdings.
+
+2026-11-14: Owner enum output identifies CharacterBankTab_1=6 and Keyring=-1.
+Corrected the probe to read only the named first character bank tab, exclude
+keyring and other tabs, reject zero-slot loading reads and discard prior
+mixed-coverage cached snapshots. Corrected runtime verification remains pending.

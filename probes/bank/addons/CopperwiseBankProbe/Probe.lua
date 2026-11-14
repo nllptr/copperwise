@@ -14,7 +14,7 @@ local function record(message)
     end
 end
 
-local function readContainers(ids)
+local function readContainers(ids, requireSlots)
     local api = C_Container
     if not api or not api.GetContainerNumSlots or not api.GetContainerItemInfo then
         error("required C_Container API unavailable")
@@ -26,7 +26,7 @@ local function readContainers(ids)
         if type(size) ~= "number" or size < 0 or size ~= math.floor(size) then
             error("invalid slot count container=" .. bag)
         end
-        if bag == -1 and size == 0 then error("main bank slots unavailable") end
+        if requireSlots and size == 0 then error("bank tab slots unavailable; loading or inaccessible") end
         table.insert(coverage, bag .. ":" .. size)
         for slot = 1, size do
             local info = api.GetContainerItemInfo(bag, slot)
@@ -50,6 +50,14 @@ local function readContainers(ids)
     return {rows = rows, observedAt = time(), coverage = table.concat(coverage, ",")}
 end
 
+local function readBank()
+    local tab = Enum and Enum.BagIndex and Enum.BagIndex.CharacterBankTab_1
+    if type(tab) ~= "number" then error("CharacterBankTab_1 identifier unavailable") end
+    local bank = readContainers({tab}, true)
+    bank.scope = "CharacterBankTab_1"
+    return bank
+end
+
 local function show(location, observation, state)
     record(location .. " state=" .. state .. " observed-at="
         .. tostring(observation and observation.observedAt or "unknown")
@@ -65,12 +73,13 @@ end
 local function snapshot(reason)
     if not session then return end
     record("snapshot=" .. reason .. " bank-access=" .. (bankOpen and "open-event" or "closed/unobserved")
-        .. "; excludes cursor/equipment/guild-bank/other-characters; no atomic-count guarantee")
+        .. "; bank-scope=CharacterBankTab_1 only; excludes keyring/other-bank-tabs/"
+        .. "cursor/equipment/guild-bank/other-characters; no atomic-count guarantee")
     local ok, bags = pcall(readContainers, {0, 1, 2, 3, 4})
     if not ok then record("bags read failed: " .. tostring(bags)) end
     show("bags", ok and bags or nil, ok and "observed" or "unknown")
     if bankOpen then
-        local success, bank = pcall(readContainers, {-1, 5, 6, 7, 8, 9, 10, 11})
+        local success, bank = pcall(readBank)
         confirmed = success
         if success then
             CopperwiseBankEvidence.bank = bank
@@ -112,13 +121,16 @@ frame:SetScript("OnEvent", function(_, event)
         session = {events = {}}
         table.insert(CopperwiseBankEvidence.sessions, session)
         while #CopperwiseBankEvidence.sessions > 5 do table.remove(CopperwiseBankEvidence.sessions, 1) end
+        if CopperwiseBankEvidence.bank and CopperwiseBankEvidence.bank.scope ~= "CharacterBankTab_1" then
+            CopperwiseBankEvidence.bank = nil
+            record("discarded legacy bank cache: coverage included non-bank containers; reopen bank")
+        end
         local version, build, _, interface = GetBuildInfo()
         record("client=" .. tostring(version) .. " build=" .. tostring(build)
             .. " interface=" .. tostring(interface) .. " platform="
             .. (IsMacClient and IsMacClient() and "macOS" or "other/unknown"))
-        record("APIs=C_Container.GetContainerNumSlots/GetContainerItemInfo; assumed classic bank=-1,5-11"
-            .. "; NUM_BAG_SLOTS=" .. tostring(NUM_BAG_SLOTS)
-            .. " NUM_BANKBAGSLOTS=" .. tostring(NUM_BANKBAGSLOTS)
+        record("APIs=C_Container.GetContainerNumSlots/GetContainerItemInfo; bank=Enum.BagIndex.CharacterBankTab_1="
+            .. tostring(Enum and Enum.BagIndex and Enum.BagIndex.CharacterBankTab_1)
             .. "; verify IDs/coverage against visible bank; reopen bank after reload")
         for _, missing in ipairs(unavailableEvents) do
             record("event unavailable=" .. missing .. "; use /cwbank for manual observations")

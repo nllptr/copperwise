@@ -1,6 +1,6 @@
 # S04 evidence
 
-Status: runtime freshness cycle observed; visible/API bank coverage mismatch unresolved.
+Status: bank/keyring mapping identified; corrected scoped probe runtime retest pending.
 
 ## Repository evidence
 
@@ -10,8 +10,9 @@ Status: runtime freshness cycle observed; visible/API bank coverage mismatch unr
   unconfirmed; successful open-bank reads distinguish observed zero from unknown.
 - Installed Forever Auctionator uses the namespaced container API for bag slots.
   Source inspection does not verify bank IDs, events, completeness or freshness.
-- Classic bank coverage (-1 and 5–11) remains a hypothesis requiring visible
-  main-bank and equipped-bank-bag comparison. Slot coverage is printed explicitly.
+- The initial classic bank coverage hypothesis (-1 and 5–11) was wrong in the
+  target client. Corrected code uses Enum.BagIndex.CharacterBankTab_1 only;
+  old mixed-coverage snapshots are discarded while evidence logs are retained.
 
 ## Runtime evidence
 
@@ -59,6 +60,12 @@ aborting startup. Subsequent owner-provided output verifies startup now succeeds
   but its mapping and the meaning of -1 remain unresolved. The assumed classic
   main-bank/bank-bag mapping is contradicted; summing both is not validated.
   Do not claim 80 visible slots or confirmed combined bank holdings.
+- Follow-up owner enum output identifies `CharacterBankTab_1 6` and `Keyring -1`.
+  This resolves the invisible 32-slot container as the keyring. The probe now
+  excludes it and all other unverified containers, explicitly covering only
+  the first character bank tab. Zero-slot bank tab reads are rejected. The
+  corrected scope and cache invalidation require runtime retesting; prior
+  mixed totals must not be reused as correctly scoped bank observations.
 - Open-bank event reads can precede capacity loading, and unlocked item reads
   are not atomic. The `confirmed` label means an open-access API observation,
   not a completeness/stability guarantee. Production must handle loading states.
@@ -72,7 +79,7 @@ aborting startup. Subsequent owner-provided output verifies startup now succeeds
 
 The supplied runtime output establishes the tested deposit/withdrawal refresh and
 closed-bank/reload/reopen freshness cycle and the owner confirms the final
-Peacebloom location. Visible/API coverage mismatch remains unresolved before
-closing S04. No atomicity, complete
+Peacebloom location. Bank/keyring mapping is now identified; corrected first-tab
+coverage and cache round trip remain to be retested before closing S04. No atomicity, complete
 coverage or production readiness claim follows. Cached-bank subtraction policy,
 automatic withdrawals/transfers and cross-character tracking remain out of scope.

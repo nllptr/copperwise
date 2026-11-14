@@ -15,13 +15,15 @@ avoid character/account names. Bank and bag events also produce snapshots.
 
 The probe uses `C_Container.GetContainerNumSlots/GetContainerItemInfo`, numeric
 item IDs, and `stackCount`. Installed Auctionator corroborates the container API
-shape for bags, **not bank availability or event timing**. Bank IDs -1 and 5–11
-are a classic-client hypothesis to verify against the actual bank. Each output
+shape for bags, **not bank availability or event timing**. Runtime enum output
+identifies `CharacterBankTab_1=6` and `Keyring=-1`. The probe reads only the named
+first character bank tab; additional tabs are excluded. Each output
 records container slot coverage, sample slot coordinates and observation time.
 A zero-slot main bank, locked slot, invalid quantity or missing occupied-item
 identity rejects the whole location read. A failed bank read retains the last
-observation as cached. Zero-slot bank bags are recorded and assumed unequipped;
-verify this against purchased/equipped bank bags before accepting coverage.
+observation as cached. Zero-slot bank tab reads are rejected as loading or
+inaccessible, not accepted as empty. Nonzero capacity alone still cannot prove
+that all item data has finished loading.
 There is no fallback to `GetItemCount` or unseen client-cached bank totals.
 
 Bank labels mean:
@@ -42,6 +44,8 @@ Only the latest bank snapshot (at most six sample rows) and five sessions of 180
 bounded evidence entries are retained. Saved data is flushed by normal client
 logout/reload. Extra sample selections reset on reload; re-add an ID to inspect a
 cached row if it was included in the last successful bank snapshot.
+Legacy snapshots that included the keyring are discarded on first login with
+the corrected probe. Reopen the bank to establish the new scoped observation.
 
 ## Actual-client checks
 
@@ -53,9 +57,9 @@ pre-agreed public UI/API tests; repository checks cannot pass them.
    with unknown counts/time, separately from observed bag counts. Choose an owned
    sample and one visibly absent sample; add IDs as needed.
 2. Open the ordinary personal bank. Capture the open-event and settled manual
-   snapshot. Compare sample totals and slot lines against the visible main bank
-   and every equipped bank bag. Record bank-bag count/capacities and whether empty
-   or unavailable containers are distinguished correctly. An absent sample may
+   snapshot. Compare sample totals and slot lines against the visible first bank
+   tab. Record its capacity and any additional tabs outside probe coverage.
+   Distinguish loading/unavailable reads from empty slots. An absent sample may
    now have confirmed count zero only within verified coverage.
 3. Manually deposit a known quantity, wait for movement to settle, then `/cwbank`.
    Record before/after bag and bank counts, observation times, event order and
@@ -78,7 +82,8 @@ pre-agreed public UI/API tests; repository checks cannot pass them.
 
 No withdrawal, transfer, other-character inventory, subtraction eligibility or
 production persistence policy is selected. Numeric IDs collapse instance variants;
-coverage excludes cursor, equipment, guild/shared banks and all other characters.
+coverage excludes keyring, other bank tabs, cursor, equipment, guild/shared banks
+and all other characters.
 Disable the probe after verification.
 
 Repository validation: LuaJIT `loadfile` syntax compilation, `go vet ./...` and
