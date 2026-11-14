@@ -1,0 +1,5 @@
+## Interface: 16001
+## Title: Copperwise Bank Probe
+## Notes: Read-only current-character bank freshness capability probe
+## SavedVariablesPerCharacter: CopperwiseBankEvidence
+Probe.lua
