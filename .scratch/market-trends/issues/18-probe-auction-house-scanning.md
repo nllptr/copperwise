@@ -1,8 +1,8 @@
 # 18: Probe native auction-house scanning
 
 Type: prototype
-Status: in-progress — implementing bounded native query probe; runtime acceptance pending
-Labels: ready-for-agent
+Status: completed — bounded commodity query capability and coexistence verified; limitations recorded
+Labels: completed
 Blocked by: None — requires target-client runtime access, not upstream API credentials.
 
 ## Purpose
@@ -117,3 +117,13 @@ coexistence remains the main outstanding runtime check.
 to query because the AH was recently active, explicitly reporting no new request
 sent. Guard refusal is verified; confirmation that Auctionator's work completed
 normally is still pending.
+
+2026-11-14: Owner confirms Auctionator's scan finished normally while Copperwise
+refused its own request. Active-scan coexistence passes for this observed refusal
+path. M18 is complete as a bounded capability probe: real selected-item commodity
+queries, visible stock/unit prices and timestamps, native comparison, local
+cancellation/recovery and installed-Auctionator coexistence are evidenced in the
+[runtime report](../../../probes/auction-house/REPORT.md). Noncommodity/bid-only,
+empty/partial/More, metadata-continuation-specific and other unexercised paths
+remain explicit limitations, not passed production guarantees. Native posting
+and purchasing still require their own S08/S09 runtime evidence.

@@ -1,7 +1,24 @@
 # M18 native scan evidence
 
-Status: partial runtime evidence — native tab, full Peacebloom/Copper Ore queries
-and build/context recorded; remaining acceptance checks pending.
+Status: complete — bounded commodity scanning capability verified on the target
+client, including sample comparison, cancellation/recovery and Auctionator
+coexistence. Unexercised paths remain limitations below.
+
+## Capability conclusion
+
+The native modern query path is viable for the tested ordinary trade goods in
+a standalone Copperwise AH tab. Real queries display selected-key completeness,
+covered stock, unit buyout and observation time. The owner independently verified
+Rough Stone's 1,615 units at 9 copper/unit and Peacebloom's 38 copper/unit price.
+Cancellation remains cancelled and closing/reopening restores scanning.
+Copperwise refused a query during recent Auctionator activity, and the owner
+confirms Auctionator finished normally. No other addon's scan was aborted in
+this observed coexistence test.
+
+This concludes M18's bounded capability investigation. It does not establish
+full-market scans, all possible result/error paths, transaction APIs or production
+readiness. S08/S09 must verify posting/purchasing separately; imported-history
+feasibility gates remain unchanged.
 
 ## Repository and research evidence
 
@@ -102,7 +119,9 @@ Owner screenshot following the active-Auctionator coexistence instructions shows
 the quiet-start guard refusing the scan: **AH recently active; wait two quiet
 seconds**, with **No new request sent**, and no new scan observation. This
 verifies refusal after detected AH traffic. The screenshot alone does not
-establish continued/completed Auctionator work; owner confirmation remains pending.
+establish continued/completed Auctionator work. Owner subsequently confirms
+Auctionator's scan finished normally, completing the observed refusal-path
+coexistence check. Mid-request competing-query interruption remains unexercised.
 
 Owner cancellation-macro screenshot: Peacebloom 2447, started 2026-11-14
 23:00:20 CET, state cancelled after one request, no observed result timestamp,
@@ -137,9 +156,9 @@ game build/market context and result classification for operator evidence.
 These changes still need actual-client testing; no mocked runtime is substituted.
 
 Remaining unverified paths: initial-highlight fix, new metadata continuation,
-independent stock/Copper Ore price comparison, noncommodity stack normalization,
+independent Copper Ore price/stock comparison, noncommodity stack normalization,
 bid-only stock, empty/partial results, More on partial results, cooldowns,
-timeouts/errors, bounds and active-search Auctionator coexistence. Explicit
+timeouts/errors, bounds and mid-request competing-query interruption. Explicit
 AH closure during an outstanding search remains unexercised; cancellation then
 close/reopen recovery is verified above.
 No M18 runtime acceptance is claimed by repository checks or installation.
