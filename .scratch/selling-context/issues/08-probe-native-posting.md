@@ -4,14 +4,14 @@
 
 **Blocked by:** M18: Probe native auction-house scanning.
 
-**Status:** completed — commodity posting verified through Copperwise preparation and native Sell; direct-call limitations recorded
+**Status:** in-progress — reopened; direct posting from Copperwise required, native Sell handoff is insufficient
 
-**Labels:** completed
+**Labels:** ready-for-agent
 
 **Type:** prototype
 
 - [x] Investigate supported AH tab and posting APIs on the actual client; record required user actions, bag eligibility, quantity and price semantics.
-- [x] With an operator-supplied sample and operator-selected terms, perform one deliberate post and record the confirmed result rather than treating a button click as success.
+- [ ] With an operator-supplied sample and operator-selected terms, perform one deliberate post and record the confirmed result rather than treating a button click as success.
 - [x] Observe an invalid/unavailable-item or cancelled attempt and show honest feedback without repeated or unintended submissions.
 - [x] Record coexistence limitations and any native integration failure. Investigate Auctionator only as an evidenced fallback, not an assumed dependency or sell-list API.
 
@@ -72,3 +72,21 @@ S08 closes as a bounded commodity capability investigation via native Sell
 handoff. Direct addon posting remains blocked; a fully custom-tab transaction,
 noncommodity posting, batch semantics and broad coexistence remain unverified.
 Earlier pending notes above are superseded for this verified sample only.
+
+2026-11-15 reopened by owner: native Sell handoff is not a satisfactory
+implementation of the Copperwise posting workflow. The prior completion
+was premature. Retain handoff/control evidence as diagnostic evidence only;
+S08 requires a deliberate post directly from Copperwise's own surface.
+Compare the installed Auctionator direct call path and isolate the exact
+restricted-action failure before another posting trial.
+
+Direct-post revision: owner confirms Auctionator's own Selling tab posts on this
+client. Current candidate matches its named XML-button -> parent PostItem ->
+direct PostCommodity/PostItem shape, retains reviewed ItemLocation and rechecks
+link/count/deposit. Unlike the original probe, the clicked button is not disabled
+before the restricted call. No root cause is claimed before runtime evidence.
+Lua/XML parsing, whitespace, Go vet and full Go suite pass. Standards review's
+stale handoff-only wording was corrected. Spec review's exception-feedback issue
+was addressed with expected-readiness refusals and deferred consumed-state UI
+rendering; no protected-call wrapper surrounds transaction dispatch. Direct
+posting acceptance remains unchecked pending an actual listing and bag change.

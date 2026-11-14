@@ -1,8 +1,9 @@
 local frame = CreateFrame("Frame")
-local panel, output, tab, postButton, session, preview
+local panel, output, tab, postButton, handoffButton, session, preview
 local houseOpen, attempted, surfaceReady = false, false, false
 local state = "No item prepared."
 local pendingChat = {}
+local postPendingRender = false
 local mode = {"CopperwisePostingProbePanel"}
 
 local function record(message)
@@ -20,6 +21,7 @@ end
 local function render()
     if output then output:SetText(state) end
     if postButton then postButton:SetEnabled(preview ~= nil and not attempted) end
+    if handoffButton then handoffButton:SetEnabled(preview ~= nil and not attempted) end
 end
 
 local function invalidate(reason)
@@ -42,13 +44,21 @@ local function api(name, ...)
     return fn(...)
 end
 
-local function ready()
-    if not houseOpen or not panel or not panel:IsShown() then error("open /cwpost at an auctioneer first") end
-    if attempted then error("one handoff used; inspect native Sell/Auctions and close/reopen AH before another") end
-    if not surfaceReady then error("native posting surface unavailable") end
-    if not api("IsThrottledMessageSystemReady") then error("AH busy/throttled") end
+local function readinessFailure()
+    if not houseOpen or not panel or not panel:IsShown() then return "open /cwpost at an auctioneer first" end
+    if attempted then return "one action used; inspect native Auctions and close/reopen AH before another" end
+    if not surfaceReady then return "native posting surface unavailable" end
+    if not C_AuctionHouse or type(C_AuctionHouse.IsThrottledMessageSystemReady) ~= "function" then
+        return "native AH readiness unavailable"
+    end
+    if not C_AuctionHouse.IsThrottledMessageSystemReady() then return "AH busy/throttled" end
     local queue = Auctionator and Auctionator.AH and Auctionator.AH.Queue
-    if queue and type(queue.queue) == "table" and #queue.queue > 0 then error("wait for Auctionator work to finish") end
+    if queue and type(queue.queue) == "table" and #queue.queue > 0 then return "wait for Auctionator work to finish" end
+end
+
+local function ready()
+    local reason = readinessFailure()
+    if reason then error(reason) end
 end
 
 local function inspect(bag, slot, quantity, price, duration)
@@ -92,10 +102,48 @@ local function prepare(arguments)
         .. "\n" .. (preview.commodity and "Unit buyout" or "Single item buyout") .. ": " .. price .. " copper"
         .. "\nTotal buyout: " .. price * quantity .. " copper\nDuration index: " .. duration
         .. " (1=2h, 2=8h, 3=24h)\nReported deposit: " .. preview.deposit
-        .. " copper\n\nReview native Sell transfers these terms without posting.\nReview native fields, then click Blizzard's Post button yourself."
+        .. " copper\n\nPost once creates a real listing at these terms.\nNative Sell fallback only prepares Blizzard's controls; it does not post."
     record("prepared item=" .. preview.itemID .. " bag=" .. bag .. " slot=" .. slot .. " quantity=" .. quantity
         .. " copper-price=" .. price .. " commodity=" .. tostring(preview.commodity)
         .. " duration=" .. duration .. " deposit=" .. preview.deposit)
+    render()
+end
+
+local function post()
+    local reason = readinessFailure()
+    if reason then invalidate("Refused: " .. reason .. "; no post sent."); return end
+    local p = preview
+    if not p then invalidate("Prepare and review an item first; no post sent."); return end
+    -- Use the reviewed ItemLocation, as Auctionator does. Recheck its current
+    -- contents and deposit without creating a second location or touching UI.
+    if not C_Item.DoesItemExist(p.location) or C_Item.GetItemLink(p.location) ~= p.link
+        or C_Item.GetStackCount(p.location) ~= p.count then
+        invalidate("Selected item/stack changed; prepare again. No post sent.")
+        return
+    end
+    local deposit
+    if p.commodity then deposit = C_AuctionHouse.CalculateCommodityDeposit(p.itemID, p.duration, p.quantity)
+    else deposit = C_AuctionHouse.CalculateItemDeposit(p.location, p.duration, p.quantity) end
+    if deposit ~= p.deposit or type(deposit) ~= "number" or GetMoney() < deposit then
+        invalidate("Deposit or available money changed; prepare again. No post sent.")
+        return
+    end
+    -- Consume in Lua state before dispatch, but do not disable the clicked
+    -- button, render, print or enter pcall before the restricted API call.
+    attempted, preview = true, nil
+    postPendingRender = true
+    state = "Posting attempted; outcome unconfirmed. Inspect native Auctions."
+    local needsConfirmation
+    if p.commodity then
+        needsConfirmation = C_AuctionHouse.PostCommodity(p.location, p.duration, p.quantity, p.price)
+    else
+        needsConfirmation = C_AuctionHouse.PostItem(p.location, p.duration, p.quantity, nil, p.price)
+    end
+    record("direct-call returned item=" .. p.itemID .. " quantity=" .. p.quantity .. " price=" .. p.price
+        .. " duration=" .. p.duration .. " needsConfirmation=" .. tostring(needsConfirmation))
+    if needsConfirmation then
+        invalidate("Native confirmation required; not confirmed by probe. Inspect native UI before another action.")
+    end
     render()
 end
 
@@ -163,8 +211,15 @@ local function setup()
         b:SetScript("OnClick", guard(action))
         return b
     end
-    postButton = button("Review native Sell", 12, handoff)
-    button("Cancel preview", 192, function() invalidate("Preview cancelled. Native Sell must be cleared separately after a handoff.") end)
+    panel.PostItem = post
+    postButton = CreateFrame("Button", "CopperwisePostOnceButton", panel, "CopperwisePostingButtonTemplate")
+    postButton:SetSize(140, 24)
+    postButton:SetPoint("TOPLEFT", 12, -10)
+    postButton:SetText("Post once")
+    -- XML OnClick mirrors Auctionator's parent:PostItem() call. Never replace
+    -- this with guard()/pcall or programmatically click it from slash commands.
+    handoffButton = button("Native Sell fallback", 162, handoff)
+    button("Cancel preview", 342, function() invalidate("Preview cancelled. Native Sell must be cleared separately after a handoff.") end)
     tab = CreateFrame("Button", "CopperwisePostingProbeTab", ah, "AuctionHouseFrameDisplayModeTabTemplate")
     tab:SetText("CW posting")
     PanelTemplates_TabResize(tab, 20, nil, 70)
@@ -204,7 +259,7 @@ SlashCmdList.COPPERWISEPOSTINGPROBE = guard(function(message)
             .. " realm=" .. tostring(GetRealmName()) .. " faction=" .. tostring(UnitFactionGroup("player"))
             .. " region=" .. tostring(GetCurrentRegion()) .. " open=" .. tostring(houseOpen) .. " attempted=" .. tostring(attempted))
         record(state)
-    else error("use /cwpost, prepare, cancel, status, note <observed outcome>; native preparation requires the button") end
+    else error("use /cwpost, prepare, cancel, status, note <observed outcome>; posting requires the button") end
 end)
 
 frame:SetScript("OnEvent", guard(function(_, event, ...)
@@ -223,7 +278,7 @@ frame:SetScript("OnEvent", guard(function(_, event, ...)
     elseif event == "ADDON_ACTION_BLOCKED" or event == "ADDON_ACTION_FORBIDDEN" then
         if attempted then
             local _, blockedFunction = ...
-            invalidate("Client blocked action: " .. tostring(blockedFunction) .. "; native action blocked; no probe transaction or retry sent.")
+            invalidate("Client blocked action: " .. tostring(blockedFunction) .. "; posting blocked; no retry sent.")
         end
     elseif event == "BAG_UPDATE" or event == "ITEM_LOCK_CHANGED" or event == "PLAYER_MONEY" then
         if preview then invalidate("Inventory/lock/money changed; prepare again after updates settle.") end
@@ -243,6 +298,11 @@ for _, event in ipairs({"PLAYER_LOGIN", "AUCTION_HOUSE_SHOW", "AUCTION_HOUSE_CLO
 end
 
 frame:SetScript("OnUpdate", function()
+    if postPendingRender then
+        postPendingRender = false
+        render()
+        record("Post action consumed; " .. state)
+    end
     if #pendingChat == 0 then return end
     local messages = pendingChat
     pendingChat = {}

@@ -1,0 +1,7 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <Button name="CopperwisePostingButtonTemplate" inherits="UIPanelButtonTemplate" virtual="true">
+        <Scripts>
+            <OnClick>self:GetParent():PostItem()</OnClick>
+        </Scripts>
+    </Button>
+</Ui>

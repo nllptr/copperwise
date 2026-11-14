@@ -1,8 +1,8 @@
 # S08 posting evidence
 
-Status: complete — one commodity posting verified through Copperwise
-preparation and Blizzard's native Sell button. Direct custom posting remains
-a recorded integration failure. This is a bounded capability investigation.
+Status: reopened — direct posting from Copperwise remains unverified and
+required by the owner. Successful native Sell handoff is diagnostic evidence
+only and does not satisfy S08. The earlier completion was premature.
 
 ## Capability conclusion
 
@@ -25,10 +25,12 @@ handoff; visible 8 Hours is verified, transition-specific refresh is not.
 
 ## Limits and unexercised paths
 
-- Direct PostCommodity calls were repeatedly blocked; root cause is unresolved.
-  Final execution therefore remains on native Sell, outside Copperwise's tab.
-- The revised probe submits no transaction itself and does not infer completion
-  from events. The operator must inspect native fields and the owned listing.
+- Earlier direct PostCommodity calls were repeatedly blocked; root cause is
+  unresolved. Only the native Sell fallback has succeeded so far. The current
+  direct-call candidate remains pending and is required for completion.
+- The successful handoff-only revision submitted no transaction itself. The
+  current direct-post candidate invokes the transaction API from Post once;
+  its outcome is unverified and must be checked in native Auctions/bags.
 - Native search can change price after handoff; immediate readback is not a
   promise that terms remain fixed. Final visible review is required.
 - Noncommodity handoff refuses. Cross-stack quantities, multisell, batch posting,
@@ -43,8 +45,9 @@ handoff; visible 8 Hours is verified, transition-specific refresh is not.
 
 ## Repository evidence
 
-- Standalone native tab and operator-selected preview; current button only
-  prepares native Sell. Failed direct-dispatch experiments are recorded below.
+- Standalone native tab and operator-selected preview. Current Post once
+  calls the posting API; Native Sell fallback prepares native controls only.
+  Failed direct-dispatch experiments are recorded below.
 - Lua 5.1 syntax compilation passed; Go validation recorded in ticket comments.
 - No fake runtime/private-helper tests; acceptance uses the owner-approved client seam.
 
@@ -118,3 +121,16 @@ handoff; visible 8 Hours is verified, transition-specific refresh is not.
   8 Hours and deposit 1 silver. Owner then clicked native Create Auction and
   explicitly confirmed a new owned listing and one fewer bag item, no errors.
   This supersedes handoff-pending notes above for this commodity sample.
+
+## Reopened direct-post investigation (2026-11-15)
+
+Owner confirms Auctionator's own Selling tab also posts successfully on this
+client, so a native-only limitation is not established. Installed Auctionator's
+SaleItem.xml uses a named UIPanelButtonTemplate with XML OnClick invoking its
+parent PostItem method; that method calls PostCommodity/PostItem directly.
+Unlike the first Copperwise implementation, it does not disable the clicked
+button before calling the transaction API. Current candidate matches this
+shape: named XML button, retained reviewed location and current link/count/
+deposit checks, consume Lua attempt state then direct API call before rendering.
+Root cause remains unconfirmed; runtime comparison is required. Native handoff
+remains available as a diagnostic fallback and does not complete the ticket.

@@ -1,11 +1,28 @@
 # Native posting probe (S08)
 
-Standalone investigation for the Forever modern auction house. Direct posting
-from Copperwise was blocked by the client. Native manual Sell succeeded for the
-same sample/terms with the probe disabled. The current probe investigates a
-**preparation-only handoff to native Sell**; it never calls transaction APIs or
-clicks a native button. One commodity handoff and posting is verified in the actual client. See
-[REPORT.md](REPORT.md) for evidence and remaining limitations.
+Standalone investigation for the Forever modern auction house. **S08 is reopened:**
+posting must complete directly from Copperwise's own surface. A native Sell
+handoff worked, but the owner explicitly rejected it as the solution. Existing
+direct-call attempts were blocked; the current revision is a controlled direct
+call-path comparison with the installed, owner-verified Auctionator seller.
+See [REPORT.md](REPORT.md) for evidence and limitations.
+
+## Current direct-post revision
+
+**Post once** uses a named XML button whose OnClick calls its parent's PostItem
+method, matching Auctionator's wiring. It rechecks the reviewed ItemLocation's
+item link/count and current deposit, then consumes the Lua attempt allowance.
+It calls PostCommodity/PostItem directly, without pcall, pre-call rendering,
+chat output or disabling the clicked button. The original implementation
+disabled that button before the API call. Neither this difference nor XML
+wiring is established as the cause; this revision requires runtime evidence.
+Shared native events never imply an attributed successful listing. Inspect
+native Auctions and bags after one deliberate click; do not retry a failed or
+unknown result blindly. Extra native confirmation remains unverified and is
+reported without automatically confirming. No event/timer posts or retries.
+
+**Native Sell fallback** only prepares native Sell and remains diagnostic. It
+does not pass direct Copperwise posting acceptance, even if its native post works.
 
 ## Install and prepare
 
@@ -15,7 +32,8 @@ cp -R probes/posting/addons/CopperwisePostingProbe '/Applications/World of Warcr
 
 Enable Copperwise Posting Probe, reload and visit an auctioneer. Disable the
 scanning probe for the first run; let other AH addons finish their work.
-Run `/cwpost` to open the CW posting tab. No login/slash-command action posts.
+Run `/cwpost` to open the CW posting tab. No login/slash-command action posts. The only direct transaction action is
+the Post once button.
 
 Use `/cwpost prepare <bag> <slot> <quantity> <price copper> <duration>`.
 Bags are 0–4; slots start at 1. Native duration indices 1/2/3 mean 2/8/24 hours,
@@ -30,7 +48,7 @@ Quantity may not exceed the selected stack. Commodity handoff is supported for
 investigation; noncommodity handoff refuses. No cross-stack or batch policy,
 automatic pricing, purchase or cancellation of existing auctions is implemented.
 
-**Cancel preview** discards the Copperwise preparation. **Review native Sell**
+**Cancel preview** discards the Copperwise preparation. **Native Sell fallback**
 revalidates the item/count/deposit, transfers the item to the visible native Sell
 surface, populates quantity/price/duration, and reads them back. It sends no post
 request. This consumes one handoff allowance for that AH visit, even on an error.
@@ -41,7 +59,7 @@ clear that in native Sell yourself. No event or timer submits anything.
 After handoff, review **all native fields and deposit again**, allowing startup
 search results to settle. Native selection/search can change the displayed price;
 readback immediately after handoff is not a guarantee of later unchanged terms.
-Only your click on Blizzard's native **Post** button posts. Do not invoke the
+In this fallback path, only your click on Blizzard's native **Post** button posts. Do not invoke the
 button from a macro/script or via Copperwise. Native confirmation dialogs remain
 entirely under native control. Inspect native Auctions afterwards; a click,
 API return or shared event is never counted as confirmed success.
@@ -57,25 +75,24 @@ native event stacks. Log out to persist SavedVariables; omit personal data in no
 
 1. Capture version/build/interface, OS/architecture, realm/faction/region and
    enabled AH addons. Verify away-from-AH refusal, tab/native navigation and scale.
-2. Prepare a chosen commodity and cancel. Confirm disabled handoff button,
+2. Prepare a chosen commodity and cancel. Confirm disabled action buttons,
    unchanged bag quantity and no listing. Exercise empty/invalid slot and moving
    the selected item: refusal/invalidation, no automatic action.
-3. Prepare, compare native duration/deposit, then click Review native Sell.
-   Confirm the native item/quantity/price/duration/deposit. Start with a different
-   native duration to verify the dropdown label updates. **Stop here on the
-   first revised run** and record whether the handoff fields are correct.
-4. With the operator's deliberate transaction terms reviewed in native Sell,
-   use native Post once. Compare the actual owned listing and bag decrement.
-   Record auction ID if visible. A native control run without Copperwise does
-   not establish this integrated handoff. A listing is not a completed sale.
-5. Confirm a second handoff cannot be initiated that visit and AH lifecycle
+3. Prepare chosen terms in Copperwise, compare duration/deposit and click
+   **Post once** once. Do not use Native Sell fallback for this acceptance run.
+   Compare the new native owned listing and bag decrement; record any blocked
+   event or confirmation dialog. A returned call or click is not success.
+4. Record item, quantity, price, duration, deposit and actual outcome, with an
+   auction ID if visible. A native control or fallback success does not pass
+   direct Copperwise posting. A listing is not a completed sale.
+5. Confirm a second action cannot be initiated that visit and AH lifecycle
    changes never submit. Record errors/blocked actions as failures, not success.
    Check native browsing and Auctionator idle coexistence; repeat without it if
    feasible. Do not run concurrent transactions or abort another addon's work.
 
 Use [REPORT.md](REPORT.md) for actual observations. No mocked runtime/private
 helper test replaces this seam. Direct-custom-post failures remain limitations;
-this handoff does not establish a fully integrated custom-tab posting solution.
+the current direct-call revision remains unverified until tested in-client.
 
 ## Repository checks and source basis
 

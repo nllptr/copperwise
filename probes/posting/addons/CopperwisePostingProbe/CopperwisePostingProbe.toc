@@ -3,3 +3,4 @@
 ## Notes: S08 deliberate single native posting capability probe
 ## SavedVariables: CopperwisePostingEvidence
 Probe.lua
+PostingButton.xml
