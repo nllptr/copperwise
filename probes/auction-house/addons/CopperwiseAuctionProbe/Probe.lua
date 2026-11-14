@@ -1,5 +1,5 @@
 local frame = CreateFrame("Frame")
-local session, panel, output, tab, active, result
+local session, panel, output, tab, active, result, notice
 local houseOpen, ownRequest, hooksReady, reopenRequired = false, false, false, false
 local lastTraffic = 0
 local samples = {{2447, "Peacebloom"}, {2770, "Copper Ore"}, {2835, "Rough Stone"}}
@@ -38,15 +38,16 @@ end
 
 local function render()
     if not output then return end
+    local prefix = notice and (notice .. "\n\n") or ""
     if not result then
-        output:SetText("Selected: " .. selected[2] .. " (" .. selected[1]
+        output:SetText(prefix .. "Selected: " .. selected[2] .. " (" .. selected[1]
             .. ")\nScan starts a new observation.\n\nLocal scan only; imported history is separate.\nWait for other searches to finish before scanning.")
         return
     end
     local r = result
     local units = r.units and tostring(r.units) or "unavailable"
     local price = r.minimum and string.format("%.4f copper/unit", r.minimum) or "unavailable"
-    output:SetText("Item: " .. r.itemID .. " (" .. r.name .. ")\nState: " .. r.state
+    output:SetText(prefix .. "Item: " .. r.itemID .. " (" .. r.name .. ")\nState: " .. r.state
         .. "\n" .. r.reason .. "\n\nRequests: " .. r.requests .. "/" .. MAX_REQUESTS
         .. "   Rows covered: " .. value(r.rows) .. "\nCovered stock: " .. units
         .. " units\nLowest covered buyout: " .. price
@@ -74,11 +75,17 @@ local function fail(reason)
     finish("incomplete", reason)
 end
 
-local function guard(fn)
+local function guard(fn, eventFailure)
     return function(...)
         local ok, err = pcall(fn, ...)
         if not ok then
-            if active then fail(tostring(err)) else record("refused/error: " .. tostring(err)) end
+            if active and eventFailure then fail(tostring(err)) else
+                record("refused/error: " .. tostring(err))
+                notice = "Refused/error: " .. tostring(err) .. (active
+                    and "\nNo new request sent; existing request still waiting."
+                    or "\nNo new request sent; any result below is the prior observation.")
+                render()
+            end
         end
     end
 end
@@ -132,6 +139,7 @@ local function request(more)
         argument = r.commodity and r.itemID or r.key
     end
     r.requests = r.requests + 1
+    notice = nil
     r.state, r.reason = "waiting", "Waiting for matching results; cancel stops local collection."
     r.full = false
     active = {deadline=GetTime() + TIMEOUT, sentAt=GetTime()}
@@ -282,6 +290,7 @@ local function setupPanel()
             cancel("Sample selection changed; previous partial observation stopped.")
             selected = choice
             result = nil
+            notice = nil
             record("selected=" .. selected[1] .. "; Scan starts a new observation")
             render()
         end)
@@ -297,6 +306,7 @@ local function setupPanel()
     tab:SetPoint("BOTTOMRIGHT", ah, "TOPRIGHT", -35, 0)
     tab:SetScript("OnClick", guard(function()
         ah:SetDisplayMode(mode)
+        for _, nativeTab in ipairs(ah.Tabs) do PanelTemplates_DeselectTab(nativeTab) end
         ah:SetTitle("Copperwise — local scan probe")
         PanelTemplates_SelectTab(tab)
     end))
@@ -334,7 +344,7 @@ end)
 
 frame:SetScript("OnUpdate", guard(function()
     if active and GetTime() >= active.deadline then fail("Timed out waiting for attributable, usable results; not observed empty.") end
-end))
+end, true))
 
 frame:SetScript("OnEvent", guard(function(_, event, ...)
     if event == "PLAYER_LOGIN" then
@@ -370,7 +380,7 @@ frame:SetScript("OnEvent", guard(function(_, event, ...)
             fail(event .. " code=" .. value(code) .. "; scope/result uncertain")
         else record("event=" .. event .. "; waiting within deadline") end
     end
-end))
+end, true))
 
 for _, event in ipairs({"PLAYER_LOGIN", "AUCTION_HOUSE_SHOW", "AUCTION_HOUSE_CLOSED",
     "ITEM_SEARCH_RESULTS_UPDATED", "ITEM_SEARCH_RESULTS_ADDED", "COMMODITY_SEARCH_RESULTS_UPDATED",

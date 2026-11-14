@@ -21,6 +21,13 @@ result has been supplied or observed yet.
 Development host: macOS 26.6.2, build 25G83, x86_64 (from `sw_vers`, `uname -m`).
 This is not a measurement of the running game's build or runtime behavior.
 
+## Repository validation
+
+2026-11-14: LuaJIT `loadfile` syntax compilation passed; `env CGO_ENABLED=1 go
+vet ./...` and `env CGO_ENABLED=0 go test ./...` passed for the existing Go probes.
+Installed the standalone addon into the local Forever AddOns folder for operator
+testing. No actual-client acceptance follows from these checks or installation.
+
 ## Runtime observations
 
 Pending operator run using the [acceptance checklist](README.md#actual-client-acceptance-pre-agreed-test-seam).
