@@ -177,19 +177,23 @@ not change the login/user-initiated `/reload` boundary for companion imports.
   recipe metadata is a complete list. Unlearned recipes are planning references,
   not proof of executable crafting. Recipe acquisition instructions and costs
   are not established by the include-unlearned option.
-- Sale selections and craft selections are distinct intent. Selections must
-  carry between the main window and AH workflow. Quantity editing, cancellation,
-  persistence across logout/reload, stack policy and completion bookkeeping need
-  design; no automatic posting, buying or crafting follows from selecting a row.
-- Expand a selected recipe and craft count using required input quantities and
-  known output yield. Show total required materials, owned by location and
-  remaining to buy. Aggregate common ingredient needs without crediting the same
-  owned unit more than once; a specific allocation/reservation policy is open.
-- Automatically subtract eligible owned materials, with visible flags for bag
-  versus bank counts and any withdrawals needed. Remaining shopping need cannot
-  be negative. Cached-bank subtraction eligibility is unresolved; counts used in
-  an estimate must be explicit, dated and distinguishable from confirmed bags.
-  Do not assume automatic withdrawal or inter-character transfer.
+- Sale and craft intent follow the owner-approved [S07 queue rules](queue-rules.md).
+  Quantities are whole crafts or sale units; duplicate additions increase intent.
+  Queues persist per character across reload/logout, retaining intended quantities
+  while revalidating holdings. Completion reduces only confirmed quantities and
+  removes entries at zero; selection never automatically buys, posts or crafts.
+- Allocate materials once in queue order, prioritizing sale intent before craft
+  intent and bags before eligible bank holdings. Manually queued earlier crafts
+  contribute guaranteed projected outputs to later entries; allow reordering.
+  Only covered crafts supply current coverage. Shopping for the whole queue
+  accounts for earlier producers after their missing inputs are supplied.
+  Automatic subcraft discovery/insertion remains excluded.
+- Show full/partial/no coverage with green/yellow/red borders plus a concise count,
+  with ingredient breakdowns in tooltips. Include bank starts unchecked and is
+  remembered per character. When enabled, dated cached first-tab observations
+  count for planning; dependent rows warn that withdrawal is required. Preserve
+  observation age and unknown/loading states, and never duplicate moved units.
+  Bank coverage is planning supply, not immediately craftable bag inventory.
 - Keep vendor-sourced shopping requirements distinct from AH requirements.
   The AH workflow purchases queued AH inputs through supported user actions;
   automatic vendor purchases and craft execution are not included. Recheck
@@ -290,7 +294,7 @@ not change the login/user-initiated `/reload` boundary for companion imports.
   over-supply, inventory changes and multiple queued crafts sharing ingredients.
   A proposed counted total must be traceable by location, never count the same
   unit twice and never produce negative shopping need. Apply a confirmed cached-
-  bank eligibility policy once chosen; do not invent one inside a test fixture.
+  bank eligibility policy from S07; do not invent one inside a test fixture.
 - Check queued versus executable quantity, bank-withdrawal flags, changed prices,
   insufficient AH stock, partial shopping, failed/cancelled posts and repeated
   actions. Only confirmed outcomes change completed quantities; do not infer a
@@ -341,10 +345,9 @@ no further fee interview is needed for the proposed UX. No design approval of
 ranking defaults, exact layout or transaction policy is implied by agreement on
 product direction.
 
-Remaining decisions: inventory and recipe ranking units; quantity selection,
-queue persistence and cancellation; shared-material allocation; cached-bank
-subtraction policy; recipe/vendor catalog access, dual-source inputs and variable
-yields; scan scope/cadence and source priority; precise buy/post interaction and
+Ranking defaults are settled in S06; queue and ownership policies are settled
+in S07. Remaining decisions: recipe/vendor catalog access, dual-source inputs and
+variable yields; scan scope/cadence and source priority; precise buy/post interaction and
 price/stack/duration choices; temporal alignment and evidence thresholds.
 Resolve these in focused design/capability work before locking their contracts.
 Do not silently choose them as if already approved. Domain-modeling follow-up

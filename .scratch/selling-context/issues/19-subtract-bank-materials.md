@@ -29,3 +29,8 @@ status does not bypass blockers or turn unverified capabilities into facts.
 2026-11-14: Published using to-tickets after the owner approved the 23-slice
 breakdown and requested tickets small enough for a single fresh context.
 Testing follows the owner-confirmed public pipeline and actual-client boundaries.
+
+2026-11-14: Apply [S07 rules](../queue-rules.md): remembered Include bank checkbox,
+initially off, bag-first allocation, dated cached counts when enabled, and warning
+icons plus withdrawal/age tooltips on bank-dependent rows, including dependencies
+through projected craft outputs. Never count moved units twice.
