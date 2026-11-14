@@ -4,16 +4,16 @@
 
 **Blocked by:** M18: Probe native auction-house scanning.
 
-**Status:** in-progress — direct posting blocked in client; native Sell handoff implemented, awaiting runtime verification
+**Status:** completed — commodity posting verified through Copperwise preparation and native Sell; direct-call limitations recorded
 
-**Labels:** ready-for-agent
+**Labels:** completed
 
 **Type:** prototype
 
-- [ ] Investigate supported AH tab and posting APIs on the actual client; record required user actions, bag eligibility, quantity and price semantics.
-- [ ] With an operator-supplied sample and operator-selected terms, perform one deliberate post and record the confirmed result rather than treating a button click as success.
+- [x] Investigate supported AH tab and posting APIs on the actual client; record required user actions, bag eligibility, quantity and price semantics.
+- [x] With an operator-supplied sample and operator-selected terms, perform one deliberate post and record the confirmed result rather than treating a button click as success.
 - [x] Observe an invalid/unavailable-item or cancelled attempt and show honest feedback without repeated or unintended submissions.
-- [ ] Record coexistence limitations and any native integration failure. Investigate Auctionator only as an evidenced fallback, not an assumed dependency or sell-list API.
+- [x] Record coexistence limitations and any native integration failure. Investigate Auctionator only as an evidenced fallback, not an assumed dependency or sell-list API.
 
 ## Scope and verification
 
@@ -61,3 +61,14 @@ Integrated posting and coexistence acceptance remain pending.
 Follow-up review: standards found no actionable findings. Spec review found
 a stale native duration-dropdown label risk; fixed by regenerating its menu
 after changing duration. Actual-client test must include a changed duration.
+
+2026-11-15 completion: the owner supplied a screenshot after Review native
+Sell showing Rough Stone ×1, unit/total buyout 15 copper, duration 8 Hours and
+deposit 1 silver. After clicking native Create Auction, the owner explicitly
+confirmed both the new owned listing and one fewer bag item, with no errors.
+The screenshot also shows native tabs and Auctionator tabs present; this is
+one successful idle-coexistence sample, not concurrent-operation validation.
+S08 closes as a bounded commodity capability investigation via native Sell
+handoff. Direct addon posting remains blocked; a fully custom-tab transaction,
+noncommodity posting, batch semantics and broad coexistence remain unverified.
+Earlier pending notes above are superseded for this verified sample only.

@@ -4,7 +4,8 @@ Standalone investigation for the Forever modern auction house. Direct posting
 from Copperwise was blocked by the client. Native manual Sell succeeded for the
 same sample/terms with the probe disabled. The current probe investigates a
 **preparation-only handoff to native Sell**; it never calls transaction APIs or
-clicks a native button. Runtime acceptance remains pending. See [REPORT.md](REPORT.md).
+clicks a native button. One commodity handoff and posting is verified in the actual client. See
+[REPORT.md](REPORT.md) for evidence and remaining limitations.
 
 ## Install and prepare
 

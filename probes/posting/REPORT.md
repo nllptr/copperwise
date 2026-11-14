@@ -1,8 +1,45 @@
 # S08 posting evidence
 
-Status: direct Copperwise posting blocked in actual client. Native manual
-control posted successfully with the probe disabled. Revised preparation-only
-handoff awaits actual-client verification; S08 is not complete.
+Status: complete — one commodity posting verified through Copperwise
+preparation and Blizzard's native Sell button. Direct custom posting remains
+a recorded integration failure. This is a bounded capability investigation.
+
+## Capability conclusion
+
+On client 1.60.1/build 70938/interface 16001, Copperwise can prepare a selected
+bag commodity and hand its quantity, unit price and duration to visible native
+Sell. The owner screenshot shows Rough Stone ×1, unit/total buyout 15 copper,
+8 Hours and a 1-silver calculated deposit. After the native Create Auction
+click, the owner confirms a new owned listing and one fewer Rough Stone in bags,
+with no errors. This is posting evidence, not evidence of a completed sale.
+
+The earlier cancelled Copperwise preview disabled the action and left the
+item in bags. Away-from-AH refusal, native tab opening and matching native
+deposit were also observed. Duration indices are 2/8/24 hours in this client.
+Deposits continue to use native calculation, not a fixed fee formula.
+
+The successful handoff screenshot shows native and Auctionator tabs present.
+No Auctionator API is used. This establishes one idle-coexistence sample only.
+The owner did not explicitly change a previous native duration before this
+handoff; visible 8 Hours is verified, transition-specific refresh is not.
+
+## Limits and unexercised paths
+
+- Direct PostCommodity calls were repeatedly blocked; root cause is unresolved.
+  Final execution therefore remains on native Sell, outside Copperwise's tab.
+- The revised probe submits no transaction itself and does not infer completion
+  from events. The operator must inspect native fields and the owned listing.
+- Native search can change price after handoff; immediate readback is not a
+  promise that terms remain fixed. Final visible review is required.
+- Noncommodity handoff refuses. Cross-stack quantities, multisell, batch posting,
+  concurrent-addon transactions, extra confirmation dialogs and server failures
+  are unverified. No fallback dependency or restriction bypass is established.
+- Repeated-handoff guard and lifecycle automation checks were source-reviewed;
+  a full runtime matrix was not exercised. Empty-slot and moved-item paths were
+  not independently observed. Cancellation supplies the ticket's negative case.
+- No auction ID, final stack total or new local OS/architecture output was
+  supplied for the successful handoff. Evidence is owner confirmation plus
+  the native Sell screenshot, not an automated transaction ledger.
 
 ## Repository evidence
 
@@ -10,25 +47,6 @@ handoff awaits actual-client verification; S08 is not complete.
   prepares native Sell. Failed direct-dispatch experiments are recorded below.
 - Lua 5.1 syntax compilation passed; Go validation recorded in ticket comments.
 - No fake runtime/private-helper tests; acceptance uses the owner-approved client seam.
-
-## Runtime record (fill from actual observation)
-
-- Client/version/build/interface, OS/architecture:
-- Realm/faction/region, AH addons enabled:
-- Sample item, bag/slot and initial stack:
-- Invalid/unavailable or cancelled preview; unchanged holdings/listings:
-- Chosen quantity, price in copper, duration index/native hours, deposit:
-- Post call/event lines (supporting evidence only):
-- Native Auctions listing item/quantity/price/duration and visible auction ID:
-- Bag quantity afterwards:
-- Outcome: confirmed listing / failed / cancelled before send / unknown:
-- Repeated-click lock and no automatic dispatch on lifecycle changes:
-- Native and Auctionator coexistence, scale/readability:
-- Confirmation dialog requirements or other limitations:
-
-Do not mark acceptance complete without visible native listing evidence and
-an invalid/unavailable or cancelled attempt. Partial/unexercised paths must be
-identified explicitly. A posted listing is not a completed sale.
 
 ## Owner runtime observations
 
@@ -94,3 +112,9 @@ identified explicitly. A posted listing is not a completed sale.
   Handoff behavior remains unverified. Native search may update price after
   handoff; final visible review is required. Custom-tab direct posting remains
   a recorded integration failure, with no bypass or Auctionator dependency.
+
+- 2026-11-15 integrated success: owner screenshot after Copperwise Review native
+  Sell shows Rough Stone, quantity 1, unit/total price 15 copper, duration
+  8 Hours and deposit 1 silver. Owner then clicked native Create Auction and
+  explicitly confirmed a new owned listing and one fewer bag item, no errors.
+  This supersedes handoff-pending notes above for this commodity sample.
