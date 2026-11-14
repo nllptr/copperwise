@@ -1,0 +1,7 @@
+## Interface: 16001
+## Title: Copperwise Client Probe
+## Notes: Phase 0 synthetic graphs, item lookup, bindings and tooltip capability probe
+## SavedVariables: CopperwiseClientEvidence
+Graphs.lua
+Probe.lua
+Bindings.xml
