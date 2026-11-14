@@ -14,8 +14,8 @@ cp -R probes/auction-house/addons/CopperwiseAuctionProbe '/Applications/World of
 ```
 
 1. Visit an auctioneer. Let native/Auctionator startup searches finish.
-2. Run `/cwah`. This opens the independent **Copperwise probe** tab above the
-   native window. Select Peacebloom, Copper Ore or Rough Stone.
+2. Run `/cwah`. This opens **Copperwise probe** beside Buy/Sell/Auctions on the
+   native bottom tab row. Select Peacebloom, Copper Ore or Rough Stone.
 3. Wait at least two quiet seconds, then click **Scan sample**. A refusal for
    cooldown/busy state sends no request; retry manually after other work ends.
 4. If metadata is uncached, inspect the sample in native browse first, return
@@ -66,7 +66,7 @@ health; no history import code, data addon or automatic reload is used.
 
 ## Coexistence
 
-The probe uses native display modes and its own tab above the usual tab row,
+The probe uses native display modes and its own tab after the native Auctions tab,
 without modifying Auctionator or using its query queue. Read-only secure
 post-hooks observe native browse/search/refresh/more/replicate/owned/bid queries.
 Another observed query interrupts an outstanding or partial Copperwise scan;

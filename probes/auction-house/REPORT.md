@@ -30,7 +30,17 @@ testing. No actual-client acceptance follows from these checks or installation.
 
 ## Runtime observations
 
-Pending operator run using the [acceptance checklist](README.md#actual-client-acceptance-pre-agreed-test-seam).
+Owner screenshot confirms the Copperwise panel opens inside the native auction
+window with Auctionator enabled, with sample selection and scan controls visible.
+It shows no scan result, so query/quantity/completeness acceptance remains pending.
+Owner reports addon tabs belong beside Buy/Sell/Auctions at the bottom: the probe
+incorrectly anchored above the window and Auctionator's row followed it rightward.
+Native Classic tab XML establishes `parentArray="Tabs"`; LibAHTab anchors its
+row to the last native tab. Corrected Copperwise to follow `AuctionsTab` with
+native spacing and registered its index/display mode. Corrected layout and tab
+switching remain pending another actual-client check.
+
+Continue the [acceptance checklist](README.md#actual-client-acceptance-pre-agreed-test-seam).
 Record game build, market context, enabled addons, sample IDs, actions, raw
 results, coverage and outcomes. Do not copy account paths or unrelated saves.
 

@@ -58,3 +58,9 @@ Read-only query hooks stop Copperwise on competing requests; no other scan is
 aborted. Added a public target-client acceptance checklist and bounded evidence.
 [Runtime report](../../../probes/auction-house/REPORT.md) remains pending; M18 is
 not complete until actual-client query and coexistence evidence is recorded.
+
+2026-11-14: Owner screenshot confirms native panel opens with Auctionator enabled
+but exposes incorrect upper/rightward tab placement. Corrected the probe's native
+tab anchor to follow Auctions at the bottom; template parentArray registration
+had made Auctionator follow the misplaced probe. Layout retest and scan runtime
+evidence remain pending; screenshot contains no query result.

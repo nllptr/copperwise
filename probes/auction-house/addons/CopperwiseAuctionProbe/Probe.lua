@@ -298,15 +298,18 @@ local function setupPanel()
     button(panel, "Scan sample", 12, -48, start)
     button(panel, "More results", 152, -48, more)
     button(panel, "Cancel", 292, -48, function() cancel() end)
-    -- Independent native display-mode tab, positioned above the normal tab row
-    -- to avoid colliding with Auctionator/LibAHTab's appended tabs.
+    -- This template appends to ah.Tabs via parentArray. LibAHTab anchors its
+    -- addon row to the last entry, so Copperwise must stay on the native row.
     tab = CreateFrame("Button", "CopperwiseAuctionProbeTab", ah, "AuctionHouseFrameDisplayModeTabTemplate")
     tab:SetText("Copperwise probe")
     PanelTemplates_TabResize(tab, 20, nil, 70)
-    tab:SetPoint("BOTTOMRIGHT", ah, "TOPRIGHT", -35, 0)
+    tab:SetPoint("LEFT", ah.AuctionsTab, "RIGHT", -15, 0)
+    tab.displayMode = mode
+    tab:SetID(#ah.Tabs)
+    ah.tabsForDisplayMode[mode] = #ah.Tabs
+    PanelTemplates_SetNumTabs(ah, #ah.Tabs)
     tab:SetScript("OnClick", guard(function()
         ah:SetDisplayMode(mode)
-        for _, nativeTab in ipairs(ah.Tabs) do PanelTemplates_DeselectTab(nativeTab) end
         ah:SetTitle("Copperwise — local scan probe")
         PanelTemplates_SelectTab(tab)
     end))
