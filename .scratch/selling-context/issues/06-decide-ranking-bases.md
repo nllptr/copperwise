@@ -53,3 +53,9 @@ when the AH observation exceeds a configurable age threshold. S03 runtime
 evidence confirms vendor metadata can be temporarily unavailable; handling
 exactly one known destination, threshold default and exact presentation remain
 pending. Recorded in the decision table; no production UI change claimed.
+
+2026-11-14 owner clarification: omit the destination button whenever either
+AH or vendor price is missing; both values are necessary to compare. Keep
+the row visible. Default the stale-AH warning threshold to one hour and expose
+it as an easily changed setting. Updated the decision table; remaining open
+items are exact labels and numeric tie/missing-row ordering, not these policies.

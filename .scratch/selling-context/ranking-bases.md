@@ -105,12 +105,17 @@ is established by these asking values.
 Owner approved Vendor on equal totals: immediate sale avoids risking an AH
 deposit for no greater asking value. When neither destination value is known,
 keep the item in the list and omit its action button; no recommendation is
-possible. A known numeric zero is distinct from unavailable metadata.
+possible. Owner subsequently clarified: omit the button if either value is
+missing, even when the other is known; both are required for comparison.
+A known numeric zero is distinct from unavailable metadata.
 
 An AH button must carry an extra warning icon when the age of its underlying
 AH observation exceeds a configurable threshold. Use observation age, not import
 age. This warning does not itself change the chosen ranking formula. The default
-threshold and configuration location remain to be chosen.
+threshold is **1 hour (60 minutes)**, owner-approved. Expose it as an easily
+changed user setting, not a source-code constant requiring edits. A warning
+appears when age is greater than the threshold; exactly one hour does not
+exceed it. The exact settings placement remains an implementation detail.
 
 Vendor value is not guaranteed to be available: the S03 actual-client probe
 observed initial unavailable metadata for all three samples, followed by cache
@@ -137,12 +142,12 @@ that holdings-driven re-sort.
 
 Proposed visible labels: **Best sale value · owned quantity** for Inventory,
 **Estimated margin · per craft** for Crafting. Alternative sorts, exact labels,
-numeric tie ordering and handling when exactly one destination value is known
-have not been explicitly approved. Equal destination totals use Vendor; neither
-value known means no button. A missing value must not silently become zero.
-Observed empty buyouts versus missing observations remain distinguishable;
-S01's observed-empty fallback remains provisional behavior. The stale-AH warning
-is approved, but its default age threshold/configuration location are pending.
+numeric tie ordering have not been explicitly approved. Equal destination totals
+use Vendor. Either price missing means no button, including when no AH buyout
+price is available from an observed empty market. This supersedes S01's
+observed-empty Vendor fallback. A missing value must not silently become zero.
+Observed empty buyouts versus missing observations remain distinguishable.
+The stale-AH warning uses an easily changed setting defaulting to one hour.
 
 S06 remains open for these secondary decisions. The historical proposals above
 remain comparison context, not approval of alternatives or uplift sorting.
