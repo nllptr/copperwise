@@ -75,3 +75,7 @@ Owner subsequently confirms the requested split/merge comparison: with the AH
 closed, splitting the 18 Rough Stone into two stacks and merging them again
 both settle at 18 total in Copperwise. Settled split/merge aggregation passes
 for this sample, alongside the previously confirmed cursor-held withholding.
+
+Owner confirms the native vendor sell tooltip matches Copperwise for Rough
+Stone: 2 copper/unit and 36 copper for 18 units. The sample's vendor unit and
+owned-quantity total comparison passes.
