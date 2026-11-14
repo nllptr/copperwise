@@ -1,6 +1,7 @@
 # S06 ranking decision table
 
-Status: awaiting owner decision. All amounts below are synthetic copper values.
+Status: owner selected both defaults; secondary presentation rules pending.
+All amounts below are synthetic copper values.
 S02 and S05 are complete; neither approved a ranking formula. This document
 provides inspectable orders, not a pricing engine or a personal cost ledger.
 
@@ -77,8 +78,53 @@ adjustment or proof that crafting is executable.
 
 ## Owner decision
 
-Pending: Inventory default and alternative, Crafting default and alternative,
-visible basis labels, and shared tie/missing-estimate handling above. Approval
-of S02's presentation or the ticket breakdown does not approve these proposals.
-Once the owner responds, record the exact decisions here and link them from
-S06. Until then, production ranking remains unselected and S06 remains open.
+The following owner decisions supersede the proposed defaults above.
+
+### Inventory: highest total destination value
+
+For each item kind, aggregate counted owned units across stacks. Calculate total
+AH asking value and total vendor sell value for that same quantity. Rank rows
+highest first by the larger total. That same comparison selects the AH or Vendor
+button. This replaces the auction-uplift proposal; uplift is not the default
+ranking basis. Include bank changes the counted holdings when enabled.
+
+| Item | Owned units | AH total | Vendor total | Ranking value | Button |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Amber | 1 | 100 | 20 | 100 | AH |
+| Bark | 20 | 600 | 200 | 600 | AH |
+| Clay | 2 | 100 | 20 | 100 | AH |
+| Dust | 5 | 50 | 50 | 50 | Vendor (provisional tie rule) |
+| Ember | 3 | 15 | 30 | 30 | Vendor |
+
+Chosen order: Bark, Amber/Clay (equal ranking value), Dust, Ember. For an
+additional distinction from uplift, an item with AH total 500c and vendor total
+490c ranks above one with AH total 400c and vendor total 0c: 500c beats 400c,
+even though its auction uplift is smaller. No sale, fees or recorded profit
+is established by these asking values.
+
+### Crafting: estimated margin per craft
+
+Owner approved the per-craft default described above: Twin Tonic (110c) before
+Single Salve (80c), then Quiet Oil (0c), Bitter Brew (−10c), Cloud Elixir
+(unavailable under the proposed missing-value rule).
+
+Recalculate costs and margins when actual owned ingredients change, and re-sort
+the sidebar. Consuming owned materials can increase additional cost and move a
+recipe down. Example: Twin Tonic's full input cost is 80c/craft. With ownership
+covering 50c, its margin is 140 − 30 = 110c; with no owned ingredients left,
+its margin becomes 140 − 80 = 60c. Single Salve at 80c then moves above it.
+Changing the detail preview count alone does not consume ingredients or cause
+that holdings-driven re-sort.
+
+### Remaining decisions
+
+Proposed visible labels: **Best sale value · owned quantity** for Inventory,
+**Estimated margin · per craft** for Crafting. Alternative sorts, exact labels,
+numeric tie ordering and missing-estimate handling have not been explicitly
+approved. In particular, a missing AH or vendor estimate cannot establish which
+destination is highest; do not silently treat missing values as zero. Observed
+empty buyouts versus missing observations must remain distinguishable. S01's
+Vendor-on-equal and observed-empty fallback remain provisional behavior.
+
+S06 remains open for these secondary decisions. The historical proposals above
+remain comparison context, not approval of alternatives or uplift sorting.

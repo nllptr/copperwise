@@ -4,7 +4,7 @@
 
 **Blocked by:** S02: Explore the Crafting screen; S05: Verify recipe metadata and discovery.
 
-**Status:** awaiting-owner — comparison tables prepared; ranking policies unapproved
+**Status:** awaiting-owner — defaults approved; labels and tie/missing rules pending
 
 **Labels:** awaiting-owner
 
@@ -13,7 +13,7 @@
 - [x] Use small examples where per-unit versus whole-owned-quantity inventory ranking gives a different order; distinguish auction uplift over vendor value from recorded profit.
 - [x] Compare per-output versus per-craft margin rankings, including multi-output recipes, zero/negative margin and unavailable estimates.
 - [ ] Record the owner-approved default, visible labels and tie/missing-estimate handling for each tab; do not equate approval of the ticket breakdown with approval of a formula.
-- [ ] Demonstrate the chosen order on examples through visible behavior or an inspectable decision table; carry unresolved choices forward explicitly if feedback is pending.
+- [x] Demonstrate the chosen order on examples through visible behavior or an inspectable decision table; carry unresolved choices forward explicitly if feedback is pending.
 
 ## Scope and verification
 
@@ -36,3 +36,12 @@ multi-output recipes, ties, zero/negative and unavailable estimates. Proposed
 defaults and labels are explicitly unapproved; owner feedback is required to
 settle them. No production pricing or sorting code changed. The last two
 acceptance items remain open until the owner's decisions are recorded.
+
+2026-11-14 owner decisions: Inventory ranks by max(total AH asking value,
+total vendor sell value) for all counted units of each item kind; the same
+comparison selects the AH/Vendor button. This replaces proposed uplift sorting.
+Crafting ranks by estimated margin per craft, recalculating and re-sorting when
+owned ingredients are consumed. Updated the decision table with chosen orders
+and a holdings-depletion reversal. Exact labels, ties, missing estimates and
+alternative sorts remain explicitly pending; neither default approval settles
+those secondary rules. No production sorting code changed.
