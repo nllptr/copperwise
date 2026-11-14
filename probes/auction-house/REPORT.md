@@ -98,6 +98,12 @@ only Peacebloom's price has owner confirmation.
 
 ## Unverified paths
 
+Owner screenshot following the active-Auctionator coexistence instructions shows
+the quiet-start guard refusing the scan: **AH recently active; wait two quiet
+seconds**, with **No new request sent**, and no new scan observation. This
+verifies refusal after detected AH traffic. The screenshot alone does not
+establish continued/completed Auctionator work; owner confirmation remains pending.
+
 Owner cancellation-macro screenshot: Peacebloom 2447, started 2026-11-14
 23:00:20 CET, state cancelled after one request, no observed result timestamp,
 rows/stock/price unavailable, full=false. This verifies immediate local

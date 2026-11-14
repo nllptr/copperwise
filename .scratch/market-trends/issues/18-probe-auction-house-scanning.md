@@ -112,3 +112,8 @@ close/reopen recovery remain to be confirmed.
 waiting, and closing/reopening the AH permits a normal successful scan.
 Cancellation stability and close/reopen recovery pass. Active-search Auctionator
 coexistence remains the main outstanding runtime check.
+
+2026-11-14: Owner screenshot from the coexistence check shows Copperwise refusing
+to query because the AH was recently active, explicitly reporting no new request
+sent. Guard refusal is verified; confirmation that Auctionator's work completed
+normally is still pending.
