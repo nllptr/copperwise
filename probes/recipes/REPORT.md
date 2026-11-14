@@ -52,8 +52,38 @@ change native filters and compare totals; second profession where available.
 
 ## Ingredient sources and merchant prices
 
-Pending: ingredient ID matched to a merchant offer, bundle price/count,
-normalized copper/unit, stock, extended costs and native UI comparison.
+Owner-provided run at t=1794679275 again reports client 1.60.1/build 70938,
+interface 16001, macOS. MERCHANT_SHOW observed at t=1794679293.
+At t=1794679330 the open merchant returned these offers (all bundle-count=1,
+extended-cost=false, available=-1, purchasable=true; copper/unit equals bundle
+price):
+
+| Item ID | Item | Copper/unit |
+| --- | --- | ---: |
+| 7005 | Skinning Knife | 9 |
+| 4289 | Salt | 45 |
+| 2320 | Coarse Thread | 9 |
+| 2321 | Fine Thread | 90 |
+| 4291 | Silken Thread | 450 |
+| 8343 | Heavy Silken Thread | 1800 |
+| 14341 | Rune Thread | 4500 |
+| 2325 | Black Dye | 900 |
+| 6260 | Blue Dye | 45 |
+| 2604 | Red Dye | 45 |
+| 2605 | Green Dye | 90 |
+| 4340 | Gray Dye | 315 |
+| 4341 | Yellow Dye | 450 |
+| 6261 | Orange Dye | 900 |
+| 4342 | Purple Dye | 2250 |
+
+These are observed purchase quotes, not inferred from vendor sell metadata.
+The run does not independently identify which vendor modifiers apply; prices
+must not become universal constants. Only the first 15 offers were supplied.
+Multi-item bundles and extended-cost offers were not exercised.
+
+Pending: ingredient ID matched to an inspected recipe and native merchant UI
+price comparison. Salt (4289) is a candidate to compare with recipe 3817's
+schematic; that recipe's ingredients have not yet been supplied as evidence.
 Vendor sell metadata does not establish purchase cost. Unmatched ingredients
 have unknown sources and purchase prices; dual-source selection is unresolved.
 

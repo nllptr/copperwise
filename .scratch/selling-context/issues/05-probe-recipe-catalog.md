@@ -26,6 +26,14 @@ status does not bypass blockers or turn unverified capabilities into facts.
 
 ## Comments
 
+2026-11-14: Owner supplied open-merchant runtime output at t=1794679330:
+15 offers with purchase prices, bundle count 1, no extended costs, available=-1
+and purchasable=true. Examples: Salt (4289) 45 copper/unit and Coarse Thread
+(2320) 9 copper/unit. Full sample recorded in the report. This verifies the
+merchant query path, not universal prices, ingredient-source exclusivity or
+dual-source policy. Recipe matching, native UI comparison and unlearned
+schematic evidence remain pending.
+
 2026-11-14: Owner runtime output confirms client 1.60.1/70938/interface 16001
 on macOS, own Leatherworking context (skill 65), and GetAllRecipeIDs returning
 592 recipes (13 learned, 579 unlearned, 0 unknown). Learned recipe 2881 exposes
