@@ -18,6 +18,8 @@ Sources: [S07](issues/07-decide-queue-and-ownership-rules.md),
   newly marked item to its currently observed bag quantity; allow explicit edits.
   Bank-held units require withdrawal before posting. Posting stack sizes and
   terms remain S08/S16 decisions.
+  For a bank-only row, require an explicit sale quantity rather than silently
+  marking zero; show the dated holding and withdrawal requirement before adding.
 - Adding the same recipe/item adds to its existing intended quantity; editing
   replaces that quantity. Require positive whole numbers; removal is explicit.
   Changing detail-preview quantity alone does not edit an existing queue entry.
@@ -53,6 +55,8 @@ shopping list away from the bank.
 ## Shared materials — proposed default
 
 Aggregate requirements by comparable ingredient identity across the craft queue.
+Only units verified as the same supported ingredient may share credit; ambiguous
+variants or alternative ingredients remain unresolved rather than interchangeable.
 Subtract eligible bag units once, then eligible bank units once, clamping remaining
 need at zero. Keep vendor and AH shopping destinations distinct; unresolved source
 selection remains explicitly unresolved. Do not subtract ownership once per recipe.
@@ -63,10 +67,18 @@ puts it last. These are planning allocations, not physical reservations.
 Independent recipe-list estimates retain S06's one-craft comparison and do not
 reserve materials across alternative recipes.
 
-Pending sale intent excludes its allocated bag units from craft-material credit,
+Pending sale intent excludes its allocated owned units from craft-material credit,
 so the plan cannot promise those same units for sale and crafting. Sale intent
-takes precedence, capped at observed bags; show any sale shortage separately.
+takes precedence: allocate observed bags first, then valid bank holdings when
+bank planning is enabled; show any uncovered sale quantity separately. Only the
+bag allocation is immediately postable. When bank planning is off, bank sale
+intent retains its withdrawal warning but supplies no counted bank allocation.
 This cross-queue priority is a proposal requiring owner approval.
+
+For example, with zero bag herbs and three eligible bank herbs, marking two
+herbs for sale leaves one bank herb eligible for crafting and two requiring
+withdrawal for sale. With bank planning off, neither queue receives bank credit;
+sale intent still records two units awaiting withdrawal and revalidation.
 
 ## Walkthrough — synthetic units
 
