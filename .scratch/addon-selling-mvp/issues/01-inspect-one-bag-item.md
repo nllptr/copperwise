@@ -22,3 +22,9 @@ Use the addon-only selling MVP specification and its approved ranking and sale-i
 ## Comments
 
 Published after owner approval of the seven-ticket breakdown. This MVP series replaces the broader selling-context implementation order for the first release; the older roadmap remains historical and later-release scope. No parent specification or older ticket is closed or modified.
+
+Implementation prepared in `addons/Copperwise/` with standalone `/cw` Inventory,
+settled bag snapshots, explicit native commodity queries and separate attempt /
+last-complete observation display. Target-client acceptance remains pending;
+see `addons/Copperwise/README.md` for the production workflow checklist and limits.
+The ticket remains open until actual client evidence verifies the acceptance list.

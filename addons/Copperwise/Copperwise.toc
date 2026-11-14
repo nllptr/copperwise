@@ -1,0 +1,5 @@
+## Interface: 16001
+## Title: Copperwise
+## Notes: Inspect current bag commodities and native auction asking values
+Inventory.lua
+Scan.lua
