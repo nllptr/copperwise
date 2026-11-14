@@ -1,8 +1,8 @@
 <Bindings>
-    <Binding name="COPPERWISE_CLIENT_TOGGLE" header="COPPERWISE_CLIENT_PROBE">
+    <Binding name="COPPERWISE_CLIENT_TOGGLE" header="COPPERWISE_CLIENT_PROBE" category="BINDING_HEADER_COPPERWISE_CLIENT_PROBE">
         CopperwiseClientProbeToggle()
     </Binding>
-    <Binding name="COPPERWISE_CLIENT_HOVERED">
+    <Binding name="COPPERWISE_CLIENT_HOVERED" category="BINDING_HEADER_COPPERWISE_CLIENT_PROBE">
         CopperwiseClientProbeHovered()
     </Binding>
 </Bindings>

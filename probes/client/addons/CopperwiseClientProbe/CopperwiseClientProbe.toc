@@ -4,4 +4,3 @@
 ## SavedVariables: CopperwiseClientEvidence
 Graphs.lua
 Probe.lua
-Bindings.xml
