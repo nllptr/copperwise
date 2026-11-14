@@ -46,3 +46,8 @@ client metadata/access and crafting bank-subtraction policy remain separate work
 2026-11-14 owner feedback implemented: small sale-intent buttons on sidebar rows
 move items into a separate Marked for sale section. Unmarking returns them to
 Inventory; row selection remains independent of marking.
+
+2026-11-14 owner feedback implemented: sale buttons show a destination and color
+from the higher AH/vendor value (gold AH, green Vendor); scheduled rows retain
+the chosen destination. Unknown comparisons remain neutral/disabled. Equal
+values provisionally choose Vendor; all choices remain synthetic sale intent.

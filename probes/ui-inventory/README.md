@@ -18,10 +18,10 @@ The earlier `../ui-history` study is preserved independently.
    listed stock and no price; missing observations break both series. Neither
    draws an absent buyout as a zero price. No history keeps values unknown.
 5. Inspect Vendor metadata unavailable: no invented vendor baseline is drawn.
-6. Use the small Sell button on a sidebar row: it moves from Inventory to
-   Marked for sale. Select it there to inspect details; use × to move it back.
+6. Use the small AH or Vendor button on a sidebar row: it moves from Inventory to
+   Marked for sale. Select it there to inspect details; use the destination × button to move it back.
    Marking does not change the selected detail. Both sections share the filter. The mark
-   carries item identity only. Quantity policy, persistence and AH handoff are
+   carries item identity and the chosen destination. Quantity policy, persistence and AH handoff are
    separate tickets; marks reset on page refresh. No transaction is possible.
 
 ## Design choices
@@ -55,7 +55,8 @@ Headless Chromium checked the complete bag list, bank-only inclusion, bag/bank
 quantity changes, total AH/vendor arithmetic, currency denominations, cached-bank
 age, selection when bank is excluded, sidebar mark/unmark movement, independent
 detail selection, keyboard focus after moving rows, shared filtering, all ranges
-and missing-value scenarios. All 29 browser checks passed. The compact addon surface was checked to remain under 760px tall. Desktop rendering was inspected at a
+and missing-value scenarios. All 38 browser checks passed, including destination comparison, distinct button
+colors, ties, unknown metadata and retained scheduling. The compact addon surface was checked to remain under 760px tall. Desktop rendering was inspected at a
 960px viewport with a 900px addon surface. JavaScript syntax and the repository's
 Go suite were checked; there is no TypeScript/build step for this HTML study.
 The browser check is disposable verification, not a new production test seam.
@@ -83,3 +84,15 @@ sidebar row buttons. Marked items occupy a separate sidebar section; removing a
 mark returns the item to Inventory. All included items appear exactly once across
 the two sections. Filtering and Include bank apply to both; hidden bank-only
 marks remain intent and reappear when bank inclusion is enabled again.
+
+2026-11-14 destination feedback: sidebar actions are gold AH when lowest unit
+buyout exceeds unit vendor sell value, green Vendor when vendor is at least as
+high, and neutral/disabled Review when a comparison is unknown. A successfully
+observed market with no buyout listings uses known vendor value. Equal values
+use Vendor as the provisional tie choice. Small Egg illustrates the vendor-best
+case; the Equal AH and vendor value scenario illustrates ties. Labels accompany
+colors. Both totals use the same owned count, so unit comparison yields the same
+destination as comparing owned totals. Marking remembers the selected destination
+until unmarked; later scenario changes do not silently rewrite scheduled intent.
+Revalidation before an actual sale remains future work; no vendor sale or AH
+post is executed by this prototype.
