@@ -97,3 +97,8 @@ CET: 16 rows, 1,615 units, minimum 9 copper/unit, no bid-only units, one request
 More is correctly disabled after completion. Initial cache state and independent
 price/stock comparison are not established by this screenshot. Remaining
 cancellation and active-search coexistence checks stay open.
+
+2026-11-14: Owner confirms Rough Stone completed with one click and no errors,
+and native AH price/stock match: 9 copper/unit and 1,615 units. This passes the
+sample commodity price/covered-stock comparison. Cancellation, close/reopen and
+active-Auctionator search coexistence still require runtime evidence.

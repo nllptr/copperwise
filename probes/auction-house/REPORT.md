@@ -104,8 +104,10 @@ minimum 9 copper/unit, bid-only units 0, full=true. Start and observation both
 display 22:57:25 CET. More results is visibly disabled after completion.
 This verifies another full sample result and the completed-state button fix.
 The screenshot does not establish whether metadata was initially uncached or
-whether loading continuation was exercised. Price and stock have not yet been
-independently compared with native results.
+whether loading continuation was exercised. Owner subsequently confirms this
+scan completed with one click and no errors, and the native AH shows the same
+price and stock: 9 copper/unit and 1,615 units. Rough Stone price and covered
+stock comparison therefore pass for this observation.
 
 Owner subsequently reports Copper Ore initially refused due to uncached metadata,
 then returned a good result on another click a few seconds later. Saved probe
