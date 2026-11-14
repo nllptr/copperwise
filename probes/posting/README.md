@@ -1,88 +1,82 @@
 # Native posting probe (S08)
 
-Standalone capability probe for the Forever modern auction house. Runtime
-acceptance is pending. No dependency on Auctionator, scan data or imported history.
-It posts real items only from the **Post once** button; no slash command posts.
+Standalone investigation for the Forever modern auction house. Direct posting
+from Copperwise was blocked by the client. Native manual Sell succeeded for the
+same sample/terms with the probe disabled. The current probe investigates a
+**preparation-only handoff to native Sell**; it never calls transaction APIs or
+clicks a native button. Runtime acceptance remains pending. See [REPORT.md](REPORT.md).
 
-## Run
+## Install and prepare
 
 ```sh
 cp -R probes/posting/addons/CopperwisePostingProbe '/Applications/World of Warcraft/_forever_/Interface/AddOns/'
 ```
 
-Enable Copperwise Posting Probe and reload. Visit an auctioneer, let other AH
-work finish, then `/cwpost`. The **CW posting** native bottom tab contains the
-preview, Post once and Cancel preview buttons. Use an operator-supplied ordinary
-trade-good sample and operator-selected terms. Disable the scanning probe for
-this first run to isolate native tab/coexistence behavior.
+Enable Copperwise Posting Probe, reload and visit an auctioneer. Disable the
+scanning probe for the first run; let other AH addons finish their work.
+Run `/cwpost` to open the CW posting tab. No login/slash-command action posts.
 
-Prepare with `/cwpost prepare <bag> <slot> <quantity> <price copper> <duration>`.
-Bags are 0–4, slots start at 1; duration indices 1/2/3 are expected to mean
-12/24/48 hours (confirm against native Sell in this client). For example,
-`/cwpost prepare 0 1 1 123 1` previews one unit in backpack slot 1 at 123 copper;
-this is syntax illustration, not a suggested price or item selection.
+Use `/cwpost prepare <bag> <slot> <quantity> <price copper> <duration>`.
+Bags are 0–4; slots start at 1. Native duration indices 1/2/3 mean 2/8/24 hours,
+as observed on client 1.60.1/build 70938. For example,
+`/cwpost prepare 0 1 1 15 2` previews one unit in backpack slot 1 at 15 copper
+for 8 hours. Use an operator-selected item and terms, not this example blindly.
 
-Read the actual item link, stack count, quantity, unit/single-item buyout, total,
-duration and native calculated deposit. Commodity prices are per unit;
-noncommodity samples are restricted to quantity 1 with a buyout and no bid.
-Quantity may not exceed the selected stack. No cross-stack aggregation,
-multisell policy, automatic price selection or duration recommendation is implied.
-Changing inventory, locks, money or tabs discards the preview. Reprepare once
-updates settle. Item eligibility, identity, count and deposit are rechecked on
-Post once. A changed stack or deposit refuses dispatch.
+The preview shows item link, selected stack count, quantity, unit/total buyout,
+duration and native calculated deposit. Deposits use the client calculation,
+not a hardcoded formula. Inventory/lock/money/tab changes discard the preview.
+Quantity may not exceed the selected stack. Commodity handoff is supported for
+investigation; noncommodity handoff refuses. No cross-stack or batch policy,
+automatic pricing, purchase or cancellation of existing auctions is implemented.
 
-Click **Post once** only after reviewing the chosen terms. Every dispatch,
-including an API exception, consumes the one-attempt allowance for that AH visit.
-A return value is not success: inspect the native **Auctions** tab and compare
-item, quantity, price and duration, alongside bag changes. Record the actual
-outcome with `/cwpost note <short observation>` and `/cwpost status`. Closing
-and reopening permits another deliberate attempt but does not resolve an
-uncertain previous outcome. Inspect before retrying. No timed or event-driven
-submission, queue, purchase or auction cancellation is implemented.
+**Cancel preview** discards the Copperwise preparation. **Review native Sell**
+revalidates the item/count/deposit, transfers the item to the visible native Sell
+surface, populates quantity/price/duration, and reads them back. It sends no post
+request. This consumes one handoff allowance for that AH visit, even on an error.
+Close/reopen AH for another deliberate handoff after inspecting current native
+state. Cancel preview cannot clear an already transferred native Sell item;
+clear that in native Sell yourself. No event or timer submits anything.
 
-If the API requires an extra native confirmation, the probe reports it without
-calling ConfirmPost APIs or modifying native sell-frame pending state. Record
-that limitation; inspect any native dialog/owned listing before continuing.
-Cancel preview never cancels a request already sent or an existing auction.
-Native event logs are supporting evidence only: they have no reliable per-probe
-request identity. Another observed Post/ConfirmPost invalidates the preview and
-locks this visit; the probe does not block or alter the other caller.
+After handoff, review **all native fields and deposit again**, allowing startup
+search results to settle. Native selection/search can change the displayed price;
+readback immediately after handoff is not a guarantee of later unchanged terms.
+Only your click on Blizzard's native **Post** button posts. Do not invoke the
+button from a macro/script or via Copperwise. Native confirmation dialogs remain
+entirely under native control. Inspect native Auctions afterwards; a click,
+API return or shared event is never counted as confirmed success.
 
-## Actual-client acceptance (agreed public UI/API seam)
+Do not transact with another addon while preparing. There are no hooks on
+restricted posting functions or claims of exclusive transaction ownership.
+`/cwpost status` repeats build/context/state; `/cwpost note <observation>` records
+a short operator note. Evidence is bounded to five sessions, 200 lines/session,
+900 characters/line. Chat output is deferred to OnUpdate outside synchronous
+native event stacks. Log out to persist SavedVariables; omit personal data in notes.
 
-Record evidence in [REPORT.md](REPORT.md). Do not replace it with fake-client
-or private helper tests. Keep all ticket checkboxes open until observed.
+## Actual-client checklist (agreed public UI/API seam)
 
-1. Capture `/cwpost status`, client/build/interface, realm/faction/region,
-   `sw_vers`, `uname -m`, enabled AH addons and sample item/slot/stack.
-2. Away from AH, opening/preparing must refuse. At AH, verify the tab, labels,
-   normal UI scale and native Buy/Sell/Auctions navigation. First prepare and
-   cancel: no listing or bag change. Switching tabs must discard the preview.
-3. Attempt preparation for an empty or invalid slot (or an ineligible item).
-   Record refusal and unchanged bags/owned auctions. Prepare a valid item, move
-   it, verify invalidation and no later automatic post. Do not intentionally
-   post on invalid terms to create an error.
-4. Compare the chosen duration and calculated deposit with native Sell. Return
-   to CW posting, prepare and review again, then click Post once. Capture call
-   and native event lines. Compare native Auctions item/quantity/buyout/duration
-   and bag decrement; record an auction ID if visible. An observed listing is
-   posting evidence, never evidence of a completed sale. If results are delayed
-   or ambiguous, record unknown; do not infer completion from a click/event.
-5. A second click or new prepare in the same visit must not send another post.
-   Verify close/reopen and tab changes never submit anything. Exercise failure
-   or cancellation via step 2/3; record server failure only if encountered.
-6. Repeat native tab/browsing checks with Auctionator enabled and idle, and with
-   it disabled if feasible. Never run simultaneous transactions or interrupt
-   its work. Record unsupported API/frame behavior and UI overlap. Native tab
-   placement follows the M18 pattern; simultaneous probe load ordering has not
-   been validated. Auctionator is not used as a fallback without evidence.
+1. Capture version/build/interface, OS/architecture, realm/faction/region and
+   enabled AH addons. Verify away-from-AH refusal, tab/native navigation and scale.
+2. Prepare a chosen commodity and cancel. Confirm disabled handoff button,
+   unchanged bag quantity and no listing. Exercise empty/invalid slot and moving
+   the selected item: refusal/invalidation, no automatic action.
+3. Prepare, compare native duration/deposit, then click Review native Sell.
+   Confirm the native item/quantity/price/duration/deposit. Start with a different
+   native duration to verify the dropdown label updates. **Stop here on the
+   first revised run** and record whether the handoff fields are correct.
+4. With the operator's deliberate transaction terms reviewed in native Sell,
+   use native Post once. Compare the actual owned listing and bag decrement.
+   Record auction ID if visible. A native control run without Copperwise does
+   not establish this integrated handoff. A listing is not a completed sale.
+5. Confirm a second handoff cannot be initiated that visit and AH lifecycle
+   changes never submit. Record errors/blocked actions as failures, not success.
+   Check native browsing and Auctionator idle coexistence; repeat without it if
+   feasible. Do not run concurrent transactions or abort another addon's work.
 
-SavedVariables `CopperwisePostingEvidence` retains five sessions of 200 lines,
-900 characters per line. Log out to persist. Notes must omit personal data.
-Disable the probe after investigation. Evidence is bounded diagnostics, not a
-market history or a production transaction ledger.
+Use [REPORT.md](REPORT.md) for actual observations. No mocked runtime/private
+helper test replaces this seam. Direct-custom-post failures remain limitations;
+this handoff does not establish a fully integrated custom-tab posting solution.
 
-## Checks and source basis
+## Repository checks and source basis
 
 ```sh
 luajit -e 'assert(loadfile("probes/posting/addons/CopperwisePostingProbe/Probe.lua"))'
@@ -90,13 +84,11 @@ env CGO_ENABLED=1 go vet ./...
 env CGO_ENABLED=0 go test ./...
 ```
 
-Lua compilation checks syntax only; no typed addon code was added. Go checks
-cover the existing pipeline, not posting behavior. Runtime acceptance remains
-pending even when all repository checks pass.
+Compilation checks Lua syntax only. Existing Go tests cover the pipeline, not
+posting. No typed addon code is added. Acceptance requires actual-client evidence.
 
-[Forever native API definitions](https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_APIDocumentationGenerated/AuctionHouseDocumentation.lua)
-provide eligibility, commodity classification, deposit, PostItem/PostCommodity
-and confirmation signatures. Installed Auctionator 346
-`Source_ModernAH/Tabs/Selling/Mixins/SaleItem.lua` corroborates price arguments
-and the extra-confirmation return path. Sources are hypotheses until tested
-against the actual client; no legacy fallback or unsupported bypass is included.
+The Forever [native frame implementation](https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseFrame.lua)
+provides SetPostItem; the [native Sell controls](https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseSellFrame.lua)
+provide quantity/price/duration preparation. Source inspection supports the
+candidate handoff only; it does not establish target-client behavior. No legacy
+fallback, restriction bypass or Auctionator dependency is included.

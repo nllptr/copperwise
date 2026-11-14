@@ -4,7 +4,7 @@
 
 **Blocked by:** M18: Probe native auction-house scanning.
 
-**Status:** in-progress — runnable probe implemented; awaiting actual-client posting and cancellation evidence
+**Status:** in-progress — direct posting blocked in client; native Sell handoff implemented, awaiting runtime verification
 
 **Labels:** ready-for-agent
 
@@ -12,7 +12,7 @@
 
 - [ ] Investigate supported AH tab and posting APIs on the actual client; record required user actions, bag eligibility, quantity and price semantics.
 - [ ] With an operator-supplied sample and operator-selected terms, perform one deliberate post and record the confirmed result rather than treating a button click as success.
-- [ ] Observe an invalid/unavailable-item or cancelled attempt and show honest feedback without repeated or unintended submissions.
+- [x] Observe an invalid/unavailable-item or cancelled attempt and show honest feedback without repeated or unintended submissions.
 - [ ] Record coexistence limitations and any native integration failure. Investigate Auctionator only as an evidenced fallback, not an assumed dependency or sell-list API.
 
 ## Scope and verification
@@ -43,3 +43,21 @@ Repository validation: Lua 5.1 syntax compilation, `go vet ./...` with CGO
 and the full `go test ./...` suite without CGO passed. Whitespace check passed.
 Standards review found no actionable violations; spec review checked dispatch
 and lifecycle behavior separately. These checks do not pass runtime acceptance.
+
+Runtime follow-up: owner verified native tab opening, preview/cancellation with
+item retained, 2/8/24-hour duration choices and matching 1-silver client deposit.
+Repeated direct PostCommodity attempts were addon-blocked, including after
+removing wrappers/hooks and deferring chat. Native Sell posted the same chosen
+Rough Stone ×1 at 15 copper for 8 hours with the probe disabled. Replaced the
+failed direct posting button with a preparation-only native Sell handoff; final
+review and posting remain on Blizzard's native button. Handoff runtime evidence
+is pending; native control success does not complete Copperwise acceptance.
+
+Validation after handoff revision: Lua syntax, whitespace check, Go vet and
+full Go suite passed. Preview cancellation acceptance is supported by the
+owner's explicit observation that the button disabled and the item remained.
+Integrated posting and coexistence acceptance remain pending.
+
+Follow-up review: standards found no actionable findings. Spec review found
+a stale native duration-dropdown label risk; fixed by regenerating its menu
+after changing duration. Actual-client test must include a changed duration.
