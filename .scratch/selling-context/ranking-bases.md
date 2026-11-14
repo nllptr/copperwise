@@ -1,6 +1,6 @@
 # S06 ranking decision table
 
-Status: owner selected both defaults; secondary presentation rules pending.
+Status: completed — owner approved both defaults and the sidebar prototype.
 All amounts below are synthetic copper values.
 S02 and S05 are complete; neither approved a ranking formula. This document
 provides inspectable orders, not a pricing engine or a personal cost ledger.
@@ -138,16 +138,24 @@ its margin becomes 140 − 80 = 60c. Single Salve at 80c then moves above it.
 Changing the detail preview count alone does not consume ingredients or cause
 that holdings-driven re-sort.
 
-### Remaining decisions
+### Final presentation and ordering (owner-approved prototype)
 
-Proposed visible labels: **Best sale value · owned quantity** for Inventory,
-**Estimated margin · per craft** for Crafting. Alternative sorts, exact labels,
-numeric tie ordering have not been explicitly approved. Equal destination totals
+Owner approved the S06 prototype (“prototype looked good”). No list heading or
+repeated basis label is required. Inventory rows show icon, name (quantity),
+total best sale asking value and destination button. Crafting rows show icon,
+name, margin with `/craft`, and an extra indicator when owned ingredients reduce
+additional cost, explained on hover and in the accessible row name.
+
+Both lists sort descending numerically, unavailable comparisons last, with
+alphabetical names for ties. Stable identity can resolve duplicate names as an
+implementation detail. Zero/negative margins retain their numeric position.
+Alternative sort controls are not required by this approval. Equal destination totals
 use Vendor. Either price missing means no button, including when no AH buyout
 price is available from an observed empty market. This supersedes S01's
 observed-empty Vendor fallback. A missing value must not silently become zero.
 Observed empty buyouts versus missing observations remain distinguishable.
 The stale-AH warning uses an easily changed setting defaulting to one hour.
 
-S06 remains open for these secondary decisions. The historical proposals above
-remain comparison context, not approval of alternatives or uplift sorting.
+S06 is complete as a policy/UX decision. Production sorting and configuration
+remain downstream implementation work. Historical proposals above remain
+comparison context, not approval of alternatives or uplift sorting.

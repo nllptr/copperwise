@@ -186,7 +186,7 @@ notes above. Open `index.html` and switch Inventory/Crafting to review:
   diamond for the reason; the row's accessible name includes the explanation.
   There is no sidebar heading. Positive/negative colors remain.
 - Both lists sort descending, unknowns last, then by name for equal values.
-  These are prototype ordering choices awaiting visual review.
+  These ordering choices were accepted with the S06 prototype review.
 - Outside the addon surface, **AH warning after** defaults to 60 minutes.
   Try 30 to show the warning beside AH actions (the fixture is 38 minutes old).
   **Simulate ingredients used up** removes fixture ownership credit from costs
@@ -197,5 +197,9 @@ notes above. Open `index.html` and switch Inventory/Crafting to review:
 headings, missing prices, Vendor ties, configurable age warning, mark/unmark,
 ownership indicator and depletion (Practice Tonic 110c → 60c/craft), and unlearned
 visibility. Crafting screenshot inspected at 960px. JS syntax, Go suite and diff
-whitespace checks passed. This is browser behavior only; visual owner review
-remains pending. Inventory amounts are sale asking values, not recorded profit.
+whitespace checks passed. This is browser behavior only. Inventory amounts are
+sale asking values, not recorded profit.
+
+2026-11-14 acceptance: owner said “prototype looked good” after reviewing this
+iteration. S06 is complete; this approves the sidebar presentation and ranking
+policies, not production client behavior or transaction capabilities.

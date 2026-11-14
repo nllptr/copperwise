@@ -4,15 +4,15 @@
 
 **Blocked by:** S02: Explore the Crafting screen; S05: Verify recipe metadata and discovery.
 
-**Status:** awaiting-owner — defaults approved; labels and tie/missing rules pending
+**Status:** completed — owner approved ranking defaults and sidebar prototype
 
-**Labels:** awaiting-owner
+**Labels:** completed
 
 **Type:** task
 
 - [x] Use small examples where per-unit versus whole-owned-quantity inventory ranking gives a different order; distinguish auction uplift over vendor value from recorded profit.
 - [x] Compare per-output versus per-craft margin rankings, including multi-output recipes, zero/negative margin and unavailable estimates.
-- [ ] Record the owner-approved default, visible labels and tie/missing-estimate handling for each tab; do not equate approval of the ticket breakdown with approval of a formula.
+- [x] Record the owner-approved default, visible labels and tie/missing-estimate handling for each tab; do not equate approval of the ticket breakdown with approval of a formula.
 - [x] Demonstrate the chosen order on examples through visible behavior or an inspectable decision table; carry unresolved choices forward explicitly if feedback is pending.
 
 ## Scope and verification
@@ -68,3 +68,12 @@ missing-price action suppression and editable 60-minute AH warning threshold.
 Added synthetic ingredient-depletion control. See the prototype README's S06
 section for verification and review instructions. Owner visual review pending;
 this does not establish production sorting or client transaction behavior.
+
+2026-11-14 acceptance: owner said “prototype looked good” after reviewing the
+S06 sidebar iteration. Approved the compact rows without list headings,
+per-craft suffix and owned-input indicator, together with the previously
+selected defaults and missing-price/age-warning policies. The reviewed lists
+use descending numeric order, unavailable estimates last and names for ties.
+S06 is complete as a policy/UX decision; production behavior remains work for
+the downstream implementation tickets. Alternative sort controls are not
+required by this approval. See the ranking decision table for the final policy.
