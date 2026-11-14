@@ -1,8 +1,10 @@
 # Native auction-house scanning probe (M18)
 
 Standalone, read-only addon for the Forever modern auction house. No backend,
-companion, Auctionator dependency, posting, bidding or purchases. Actual-client
-acceptance is pending; this implements the probe, not a production scanner.
+companion, Auctionator dependency, posting, bidding or purchases. The bounded
+commodity capability investigation is complete; see the [runtime report](REPORT.md)
+for verified sample paths and unexercised limitations. This is a probe, not a
+production scanner.
 
 ## Install and first run
 
