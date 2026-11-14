@@ -70,3 +70,8 @@ stack splitting works as expected with Inventory open when the AH is closed;
 Shift-click has another function while the AH is open. The reported splitting
 issue is therefore not a Copperwise defect. No explicit split/merge aggregate
 quantity comparison was supplied, so that quantity acceptance remains pending.
+
+Owner subsequently confirms the requested split/merge comparison: with the AH
+closed, splitting the 18 Rough Stone into two stacks and merging them again
+both settle at 18 total in Copperwise. Settled split/merge aggregation passes
+for this sample, alongside the previously confirmed cursor-held withholding.
