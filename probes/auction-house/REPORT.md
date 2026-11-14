@@ -98,6 +98,12 @@ only Peacebloom's price has owner confirmation.
 
 ## Unverified paths
 
+Owner cancellation-macro screenshot: Peacebloom 2447, started 2026-11-14
+23:00:20 CET, state cancelled after one request, no observed result timestamp,
+rows/stock/price unavailable, full=false. This verifies immediate local
+cancellation without inventing an empty result. Persistence after the late
+response and successful scan after close/reopen still await owner confirmation.
+
 2026-11-14 owner screenshot after the updated one-click Rough Stone instructions:
 item 2835, state complete, one request, 16 covered rows, 1,615 covered units,
 minimum 9 copper/unit, bid-only units 0, full=true. Start and observation both

@@ -102,3 +102,8 @@ cancellation and active-search coexistence checks stay open.
 and native AH price/stock match: 9 copper/unit and 1,615 units. This passes the
 sample commodity price/covered-stock comparison. Cancellation, close/reopen and
 active-Auctionator search coexistence still require runtime evidence.
+
+2026-11-14: Owner cancellation-macro screenshot shows Peacebloom cancelled at
+23:00:20 CET after one request, with no accepted results, unavailable price/stock
+and full=false. Immediate local cancellation passes; late-response stability and
+close/reopen recovery remain to be confirmed.
