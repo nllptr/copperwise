@@ -64,3 +64,9 @@ Owner subsequently confirms recovery after the requested close/reopen and scan
 sequence ("it recovers"). AH close/reopen recovery after cancellation passes
 for this run. No separate confirmation of the cancelled state's stability during
 the waiting interval was supplied, so that check remains pending.
+
+Owner confirms cursor-held quantity withholding works. Owner also clarifies
+stack splitting works as expected with Inventory open when the AH is closed;
+Shift-click has another function while the AH is open. The reported splitting
+issue is therefore not a Copperwise defect. No explicit split/merge aggregate
+quantity comparison was supplied, so that quantity acceptance remains pending.
