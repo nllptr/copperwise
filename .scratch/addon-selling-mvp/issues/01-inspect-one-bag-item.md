@@ -59,3 +59,8 @@ and preservation of the preceding successful observation without assigning a
 new observation time to the cancelled attempt. The screenshot alone does not
 establish elapsed waiting or late-response stability; confirmation after waiting
 and AH close/reopen recovery remain pending.
+
+Owner subsequently confirms recovery after the requested close/reopen and scan
+sequence ("it recovers"). AH close/reopen recovery after cancellation passes
+for this run. No separate confirmation of the cancelled state's stability during
+the waiting interval was supplied, so that check remains pending.
