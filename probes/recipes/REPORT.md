@@ -2,6 +2,17 @@
 
 Status: pending — probe implemented; no target-client recipe observations yet.
 
+## Repository verification (2026-11-14)
+
+- LuaJIT `loadfile` syntax compilation: passed.
+- `go vet ./...`: passed.
+- Full `env CGO_ENABLED=0 go test ./...`: passed outside the sandbox; the
+  sandboxed run could not bind local HTTP test ports.
+- `git diff --check`: passed.
+- Separate code-review axes against pre-work commit `2a83cf7`: Standards 0
+  findings; Spec 0 actionable defects. Runtime acceptance remains pending.
+- Installed `CopperwiseRecipeProbe` into the local Forever AddOns directory.
+
 ## Environment
 
 - Client/build/interface: pending login output.
