@@ -77,3 +77,17 @@ failure-path checks remain pending; M18 stays in progress.
 Recorded the 38 copper/unit comparison. More-after-complete screenshot confirms
 no extra request was sent; disabled that button outside eligible partial results
 and clarified the local request-cap label. Remaining runtime checks stay open.
+
+2026-11-14: Owner reports Copper Ore succeeds after an initial uncached-metadata
+refusal. Replaced the refusal with bounded, cancellable item-information loading
+that continues the same user-initiated scan once ready, without retrying an AH
+search. Added build/market/result diagnostics to status for remaining evidence.
+Updated the acceptance checklist; actual-client loading/cancellation, independent
+stock comparison and active-Auctionator coexistence checks remain outstanding.
+
+2026-11-14: Inspected only dedicated saved probe evidence. Recorded actual client
+1.60.1/build70938/interface16001/macOS, native realm/faction/region context and
+Auctionator-loaded=true. Both samples are commodities; Copper Ore full results
+show 33 rows, 5,396 units and 88 copper/unit. Build/context evidence is no longer
+missing; independent stock/Copper Ore price comparisons and cancellation/active
+scan coexistence remain pending. No upstream-market mapping claim follows.

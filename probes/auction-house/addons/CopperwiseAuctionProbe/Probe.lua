@@ -1,5 +1,5 @@
 local frame = CreateFrame("Frame")
-local session, panel, output, tab, active, result, notice, moreButton
+local session, panel, output, tab, active, result, notice, moreButton, scanButton, metadata
 local houseOpen, ownRequest, hooksReady, reopenRequired = false, false, false, false
 local lastTraffic = 0
 local samples = {{2447, "Peacebloom"}, {2770, "Copper Ore"}, {2835, "Rough Stone"}}
@@ -38,8 +38,9 @@ end
 
 local function render()
     if not output then return end
+    if scanButton then scanButton:SetEnabled(not active and not metadata) end
     if moreButton then
-        moreButton:SetEnabled(not active and not reopenRequired and result ~= nil
+        moreButton:SetEnabled(not active and not metadata and not reopenRequired and result ~= nil
             and result.state == "partial" and result.requests < MAX_REQUESTS)
     end
     local prefix = notice and (notice .. "\n\n") or ""
@@ -63,6 +64,7 @@ end
 
 local function finish(state, reason)
     active = nil
+    metadata = nil
     if result then
         result.state, result.reason = state, reason
         record("state=" .. state .. " item=" .. result.itemID .. " requests=" .. result.requests
@@ -75,7 +77,7 @@ local function finish(state, reason)
 end
 
 local function fail(reason)
-    reopenRequired = true
+    if active then reopenRequired = true end
     finish("incomplete", reason)
 end
 
@@ -83,7 +85,7 @@ local function guard(fn, eventFailure)
     return function(...)
         local ok, err = pcall(fn, ...)
         if not ok then
-            if active and eventFailure then fail(tostring(err)) else
+            if (active or metadata) and eventFailure then fail(tostring(err)) else
                 record("refused/error: " .. tostring(err))
                 notice = "Refused/error: " .. tostring(err) .. (active
                     and "\nNo new request sent; existing request still waiting."
@@ -96,10 +98,10 @@ end
 
 local function externalRequest(name)
     lastTraffic = GetTime()
-    if not ownRequest and (active or (result and result.state == "partial")) then
+    if not ownRequest and (active or metadata or (result and result.state == "partial")) then
         -- Results are shared caches: a competing request invalidates attribution.
         result.full = false
-        reopenRequired = true
+        if active or result.state == "partial" then reopenRequired = true end
         finish("interrupted", "Another AH request (" .. name .. "); do not treat cached results as this scan.")
     end
 end
@@ -158,28 +160,44 @@ local function request(more)
     render()
 end
 
+local function advanceMetadata()
+    if not metadata then return end
+    if GetTime() >= metadata.deadline then
+        finish("not-sent", "Item information did not load in time. No auction search sent; try again.")
+        return
+    end
+    metadata.nextCheck = GetTime() + 0.25
+    local info = api("GetItemKeyInfo", result.key)
+    if not info or type(info.isCommodity) ~= "boolean" then return end
+    result.name = info.itemName or result.name
+    result.commodity = info.isCommodity
+    record("metadata-ready item=" .. result.itemID .. " commodity=" .. tostring(result.commodity))
+    metadata = nil
+    -- Recheck readiness: metadata loading does not grant ownership of the AH.
+    local ok, err = pcall(request, false)
+    if not ok then finish("not-sent", "Item information loaded; search not sent: " .. tostring(err)) end
+end
+
 local function start()
-    if active then error("scan already waiting; cancel or wait") end
+    if active or metadata then error("scan already waiting; cancel or wait") end
     ready()
     local key = api("MakeItemKey", selected[1], 0, 0, 0)
-    local info = api("GetItemKeyInfo", key)
-    if not info or type(info.isCommodity) ~= "boolean" then
-        error("sample metadata uncached; inspect it in native browse, wait, then retry")
-    end
-    result = {itemID=selected[1], name=info.itemName or selected[2], key=key,
-        commodity=info.isCommodity, started=time(), requests=0, state="starting", reason=""}
+    notice = nil
+    result = {itemID=selected[1], name=selected[2], key=key,
+        started=time(), requests=0, state="loading", reason="Loading item information; scan will continue when ready."}
+    metadata = {deadline=GetTime() + TIMEOUT, nextCheck=0}
     record("market-context realm=" .. value(GetRealmName and GetRealmName())
         .. " faction=" .. value(UnitFactionGroup("player"))
         .. " region=" .. value(GetCurrentRegion and GetCurrentRegion())
         .. "; context only, upstream market mapping unverified")
     record("key item=" .. key.itemID .. " level=" .. value(key.itemLevel) .. " suffix="
-        .. value(key.itemSuffix) .. " pet=" .. value(key.battlePetSpeciesID)
-        .. " commodity=" .. tostring(result.commodity))
-    request(false)
+        .. value(key.itemSuffix) .. " pet=" .. value(key.battlePetSpeciesID))
+    render()
+    advanceMetadata()
 end
 
 local function more()
-    if active then error("already waiting for results") end
+    if active or metadata then error("already waiting for results or item information") end
     if not result or result.state ~= "partial" or result.requests >= MAX_REQUESTS then
         error("More is only available after partial results and within the request bound")
     end
@@ -253,10 +271,11 @@ local function readResults()
 end
 
 local function cancel(reason)
-    if active or (result and result.state == "partial") then
+    if active or metadata or (result and result.state == "partial") then
         if active then reopenRequired = true end
         result.full = false
-        finish("cancelled", reason or "Stopped locally; an already sent server request cannot be recalled.")
+        finish("cancelled", reason or (metadata and "Item loading cancelled; no auction search sent."
+            or "Stopped locally; an already sent server request cannot be recalled."))
     end
 end
 
@@ -299,7 +318,7 @@ local function setupPanel()
             render()
         end)
     end
-    button(panel, "Scan sample", 12, -48, start)
+    scanButton = button(panel, "Scan sample", 12, -48, start)
     moreButton = button(panel, "More results", 152, -48, more)
     button(panel, "Cancel", 292, -48, function() cancel() end)
     -- This template appends to ah.Tabs via parentArray. LibAHTab anchors its
@@ -338,10 +357,15 @@ SlashCmdList.COPPERWISEAUCTIONPROBE = guard(function(message)
     elseif command == "scan" then start()
     elseif command == "more" then more()
     elseif command == "status" then
+        local version, build, _, interface = GetBuildInfo()
+        record("client=" .. value(version) .. " build=" .. value(build) .. " interface=" .. value(interface)
+            .. " realm=" .. value(GetRealmName and GetRealmName()) .. " faction=" .. value(UnitFactionGroup("player"))
+            .. " region=" .. value(GetCurrentRegion and GetCurrentRegion()))
         record("AH-open=" .. tostring(houseOpen) .. " hooks=" .. tostring(hooksReady)
             .. " throttle-ready=" .. value(C_AuctionHouse and C_AuctionHouse.IsThrottledMessageSystemReady
                 and C_AuctionHouse.IsThrottledMessageSystemReady()) .. " selected=" .. selected[1])
-        if result then record("last-state=" .. result.state .. " reason=" .. result.reason) end
+        if result then record("last-state=" .. result.state .. " commodity=" .. value(result.commodity)
+            .. " covered-units=" .. value(result.units) .. " reason=" .. result.reason) end
         render()
     elseif command == "" then
         if not houseOpen then error("visit an auctioneer first") end
@@ -351,6 +375,7 @@ SlashCmdList.COPPERWISEAUCTIONPROBE = guard(function(message)
 end)
 
 frame:SetScript("OnUpdate", guard(function()
+    if metadata and GetTime() >= metadata.nextCheck then advanceMetadata() end
     if active and GetTime() >= active.deadline then fail("Timed out waiting for attributable, usable results; not observed empty.") end
 end, true))
 
@@ -375,6 +400,9 @@ frame:SetScript("OnEvent", guard(function(_, event, ...)
         houseOpen = false
         cancel("Auction house closed; local collection stopped.")
         reopenRequired = false
+    elseif event == "ITEM_KEY_ITEM_INFO_RECEIVED" then
+        local itemID = ...
+        if metadata and itemID == result.itemID then metadata.nextCheck = 0 end
     elseif active then
         if event == "ITEM_SEARCH_RESULTS_UPDATED" or event == "ITEM_SEARCH_RESULTS_ADDED" then
             local key = ...
@@ -391,6 +419,7 @@ frame:SetScript("OnEvent", guard(function(_, event, ...)
 end, true))
 
 for _, event in ipairs({"PLAYER_LOGIN", "AUCTION_HOUSE_SHOW", "AUCTION_HOUSE_CLOSED",
+    "ITEM_KEY_ITEM_INFO_RECEIVED",
     "ITEM_SEARCH_RESULTS_UPDATED", "ITEM_SEARCH_RESULTS_ADDED", "COMMODITY_SEARCH_RESULTS_UPDATED",
     "COMMODITY_SEARCH_RESULTS_ADDED", "AUCTION_HOUSE_THROTTLED_MESSAGE_DROPPED",
     "AUCTION_HOUSE_THROTTLED_MESSAGE_QUEUED", "AUCTION_HOUSE_THROTTLED_MESSAGE_SENT",

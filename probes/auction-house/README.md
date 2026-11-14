@@ -18,18 +18,29 @@ cp -R probes/auction-house/addons/CopperwiseAuctionProbe '/Applications/World of
    native bottom tab row. Select Peacebloom, Copper Ore or Rough Stone.
 3. Wait at least two quiet seconds, then click **Scan sample**. A refusal for
    cooldown/busy state sends no request; retry manually after other work ends.
-4. If metadata is uncached, inspect the sample in native browse first, return
-   to Copperwise, wait and retry. There is no automatic retry loop.
+4. If metadata is uncached, the panel shows **Loading item information**. The
+   same user-initiated scan continues once metadata arrives, with no second
+   click. Loading is limited to 15 seconds; no auction query has been sent yet.
+   Cancel, changing samples, leaving the tab, closing the AH or another search
+   stops the pending action. A timeout reports **not-sent**, not empty supply.
+   Search readiness is checked again before dispatch; a busy AH requires a new
+   manual scan. There are no automatic retries of an auction search.
 5. Inspect state, covered units, lowest covered buyout, bid-only units,
    timestamps and completeness. **More results** requests another cumulative
    result batch only after `partial`, at most three requests per observation.
 6. **Cancel** stops local collection, not a server request already sent. After
-   cancelling an outstanding request, timeout, error or competing query, close
-   and reopen the AH before starting again. Switching tabs stops collection.
+   a sent search times out, fails, is cancelled or interrupted by another query,
+   close and reopen the AH before starting again. Cancelling or timing out
+   metadata loading needs no reopen because no search was sent. Switching tabs
+   stops collection and pending metadata continuation.
 
 Commands: `/cwah status`, `/cwah scan`, `/cwah more`, `/cwah cancel`, and
 `/cwah note <short observed outcome>`. Scan/More require the Copperwise tab.
-The status command works away from the AH. There is no arbitrary/full-market
+The status command works away from the AH and repeats current build/market
+context plus the last result's commodity classification and covered units.
+The metadata cache is checked every quarter second, or sooner after a matching
+native metadata event; this is separate from the
+three-auction-request limit. There is no arbitrary/full-market
 query or automatic continuation. Requests and notes also print to chat.
 
 ## Coverage and result semantics
@@ -110,6 +121,9 @@ simulated client cannot pass these checks. Use read-only actions throughout.
    throttle refusal or errors must not appear as observed empty supply.
 7. Cancel while waiting, close/reopen and retry; late events must not complete
    the cancelled observation. Record timeout/error paths if encountered.
+   For an uncached sample, verify one click progresses from loading to a result.
+   If you cancel while loading, observe zero auction requests and no later
+   automatic scan. Changing samples or tabs must likewise stop pending loading.
 8. With Auctionator installed, first scan while it is idle. Then initiate a
    normal Auctionator search yourself and try Copperwise only while the other
    work is active: it must refuse or stop its own collection without aborting

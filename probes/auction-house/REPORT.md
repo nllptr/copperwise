@@ -1,7 +1,7 @@
 # M18 native scan evidence
 
-Status: partial runtime evidence — native tab and one full Peacebloom query
-observed; metadata/quantity verification and remaining acceptance checks pending.
+Status: partial runtime evidence — native tab, full Peacebloom/Copper Ore queries
+and build/context recorded; remaining acceptance checks pending.
 
 ## Repository and research evidence
 
@@ -74,10 +74,46 @@ Continue the [acceptance checklist](README.md#actual-client-acceptance-pre-agree
 Record game build, market context, enabled addons, sample IDs, actions, raw
 results, coverage and outcomes. Do not copy account paths or unrelated saves.
 
+### Saved probe evidence inspected during follow-up
+
+Read only the dedicated `CopperwiseAuctionProbe.lua` evidence, excluding account
+paths and unrelated saves. It records client **1.60.1/build 70938/interface
+16001/macOS**, Auctionator loaded, realm **CAMWOW EU5 Realm 10 RP**, faction
+**Alliance**, region **3**. This is native context, not verified upstream mapping.
+
+Both sample keys record `commodity=true`, suffix/pet zero; the generated keys
+report item levels 5 (Peacebloom) and 10 (Copper Ore). The tested path is commodity
+unit-price aggregation, not noncommodity stack-total division or bid-only rows.
+
+| Item | Observation epoch | Rows | Covered units | Minimum copper/unit | Full | Result elapsed |
+| --- | ---: | ---: | ---: | ---: | --- | ---: |
+| Peacebloom 2447 | 1794692437 | 23 | 2,457 | 38 | true | 0.19s |
+| Copper Ore 2770 | 1794692840 | 33 | 5,396 | 88 | true | 0.15s |
+
+Each used one `SendSearchQuery`. Copper Ore raw rows include 739 units at 88c,
+174 at 89c, 438 at 90c, 601 at 100c and 97 at 104c. These are the first five
+rows only, not the whole stock export. The recorded elapsed values are samples,
+not a latency guarantee. Independent stock comparison remains outstanding;
+only Peacebloom's price has owner confirmation.
+
 ## Unverified paths
 
-Remaining unverified paths: initial-highlight fix, commodity versus item rows,
-independent quantity/price comparison and stack normalization,
-bid-only stock, empty/partial results, full results for other samples, More, cooldowns, cancellation,
+Owner subsequently reports Copper Ore initially refused due to uncached metadata,
+then returned a good result on another click a few seconds later. Saved probe
+evidence subsequently supplies quantities/price/raw fields as recorded above;
+independent Copper Ore comparison remains outstanding.
+This establishes a metadata-loading usability issue and an owner-reported
+successful second-sample query, not a verified second-sample price/stock result.
+
+Implementation follow-up: added bounded cancellable metadata loading with one
+search dispatched after metadata becomes ready, rather than requiring another
+click. Metadata timeout is explicitly not-sent and does not require AH reopening;
+only uncertain outstanding searches require reopening. `/cwah status` now repeats
+game build/market context and result classification for operator evidence.
+These changes still need actual-client testing; no mocked runtime is substituted.
+
+Remaining unverified paths: initial-highlight fix, new metadata continuation,
+independent stock/Copper Ore price comparison, noncommodity stack normalization,
+bid-only stock, empty/partial results, Rough Stone results, More, cooldowns, cancellation,
 timeouts/errors, late responses, bounds and Auctionator coexistence.
 No M18 runtime acceptance is claimed by repository checks or installation.
