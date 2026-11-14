@@ -1,7 +1,7 @@
 # 18: Probe native auction-house scanning
 
 Type: prototype
-Status: ready-for-agent
+Status: in-progress — implementing bounded native query probe; runtime acceptance pending
 Labels: ready-for-agent
 Blocked by: None — requires target-client runtime access, not upstream API credentials.
 
@@ -46,3 +46,15 @@ queue execution remain separate work and retain their feasibility requirements.
 API/backend/companion accumulates market history during offline periods. See
 the selling-context specification for the broader UX direction. No scanning
 implementation or runtime acceptance is claimed by this ticket.
+
+## Comments
+
+2026-11-14: Implemented the standalone [native AH probe](../../../probes/auction-house/README.md)
+with a Copperwise tab, three sample trade goods, user-triggered bounded modern
+queries, covered stock/unit buyout, completeness/time diagnostics and explicit
+partial/empty/cancel/error states. Forever UI source selects the modern path;
+installed Auctionator's legacy files alone do not establish the active API.
+Read-only query hooks stop Copperwise on competing requests; no other scan is
+aborted. Added a public target-client acceptance checklist and bounded evidence.
+[Runtime report](../../../probes/auction-house/REPORT.md) remains pending; M18 is
+not complete until actual-client query and coexistence evidence is recorded.

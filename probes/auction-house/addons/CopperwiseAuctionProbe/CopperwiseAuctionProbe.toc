@@ -1,0 +1,5 @@
+## Interface: 16001
+## Title: Copperwise Auction Probe
+## Notes: Read-only bounded native auction search capability probe
+## SavedVariables: CopperwiseAuctionEvidence
+Probe.lua
