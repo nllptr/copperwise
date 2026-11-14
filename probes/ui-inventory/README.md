@@ -98,3 +98,62 @@ destination as comparing owned totals. Marking remembers the selected destinatio
 until unmarked; later scenario changes do not silently rewrite scheduled intent.
 Revalidation before an actual sale remains future work; no vendor sale or AH
 post is executed by this prototype.
+
+## Crafting journey (S02)
+
+The same page now includes a Crafting tab sharing the output market-detail
+renderer, ranges and review scenarios. Inventory selections and sale marks stay
+separate from recipe selection and craft intent. All recipes (including names,
+profession, yields, prices and ingredient holdings) are invented fixtures, not
+claims about the target client's recipe catalog.
+
+1. Select Crafting. Practice Tonic illustrates two vendor reagents at 10c plus
+   three AH herbs at 20c: 80c per craft, two outputs, 40c cost per output.
+   A 70c output buyout gives a 30c estimated margin. Vendor sell value is 5c,
+   separately labelled from vendor ingredient purchase cost. Owned inputs retain
+   replacement cost. The successful-sale deposit assumption and excluded failed
+   listings are disclosed. No separate sale cut is deducted.
+2. Select Unpriced Elixir to see an unknown ingredient price withhold complete
+   cost and margin. Empty/missing output observations also withhold margin.
+3. Enable Include unlearned recipes and select Study Draught. It is explicitly
+   unlearned and cannot currently be crafted; its negative margin is visible.
+   Adding its intent warns that learning is required. Hiding unlearned recipes
+   resets selection but retains any intent in the queue, visibly labelled unlearned.
+4. Enter **2 crafts** for Practice Tonic: the preview shows **4 output units**.
+   Add craft intent to open combined material requirements: four vendor reagents
+   and six AH herbs. One reagent and two herbs are in bags, so three reagents
+   and four herbs remain to buy with bank preview off.
+5. Toggle Preview subtracting cached bank. Three bank reagents and four bank
+   herbs now cover those needs, with explicit withdrawal counts. Bank counts are
+   synthetic, observed at 16:30 CET (90 minutes old); this toggle is a comparison
+   tool, not a selected bank-eligibility policy. Unknown bank holdings remain
+   unknown. Shared ingredient requirements aggregate before crediting ownership;
+   surplus never becomes a negative shopping quantity.
+6. Add another recipe to compare shared-material requirements; remove intents
+   individually. Tab switches retain intent; refreshing clears it. There are no
+   purchase/craft controls, storage, client APIs or working AH handoff.
+
+Historical crafting-cost lines are withheld because the fixture has no
+contemporaneous ingredient observations. The separate current per-output cost
+remains visible. This avoids projecting today's ingredient costs backward.
+Sorting stays in sample order with the ranking basis explicitly undecided.
+Craft count, additive intent, removal and page-only lifetime are disposable
+interaction proposals; they do not settle quantity, cancellation or persistence
+rules for production (S06/S07). Queue contents are not executable craft counts.
+
+### S02 verification and feedback
+
+44 disposable Chromium UI assertions passed for recipe inclusion/selection,
+worked-example economics, negative/incomplete margins, craft/output quantities,
+invalid counts, shared requirements, bag/bank subtraction previews, unknown bank
+counts, withdrawal needs, removal, and tab switching. The 38 existing Inventory
+checks also passed. JavaScript syntax and the full Go suite are checked separately;
+this HTML has no typechecker. Screenshots were inspected at a 960px viewport.
+Browser checks establish prototype behavior only, not native fit or capabilities.
+
+Owner review is **pending**. No owner feedback on this Crafting journey has yet
+been received. Review prompts: Is recipe → craft count → required materials →
+shopping understandable? Are “crafts” versus “output units” clear for multi-output
+recipes? Is the optional bank comparison useful? Should queue and shopping detail
+stay here or move to the AH context? Record answers here and in S02 before marking
+the feedback acceptance item complete. S01 approval does not approve these choices.
