@@ -4,16 +4,16 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** in-progress — read-only probe implemented; target-client evidence pending
+**Status:** completed — learned/unlearned sample schematics and vendor purchase quotes verified; catalog/source limitations recorded
 
-**Labels:** ready-for-agent
+**Labels:** completed
 
 **Type:** prototype
 
-- [ ] For one learned recipe, show ingredient identities and quantities, output identity and output yield, with actual-client evidence.
-- [ ] Determine whether supported client data provides unlearned recipes; show their learned state or explicitly record unavailable/incomplete catalog coverage.
-- [ ] Investigate metadata needed to distinguish vendor-sourced inputs from AH-sourced inputs; identify unavailable purchase prices, dual-source cases and recipe/yield ambiguity.
-- [ ] Record builds, public API behavior and failures; do not invent recipe catalogs, source rules or variable yields when metadata is missing.
+- [x] For one learned recipe, show ingredient identities and quantities, output identity and output yield, with actual-client evidence.
+- [x] Determine whether supported client data provides unlearned recipes; show their learned state or explicitly record unavailable/incomplete catalog coverage.
+- [x] Investigate metadata needed to distinguish vendor-sourced inputs from AH-sourced inputs; identify unavailable purchase prices, dual-source cases and recipe/yield ambiguity.
+- [x] Record builds, public API behavior and failures; do not invent recipe catalogs, source rules or variable yields when metadata is missing.
 
 ## Scope and verification
 
@@ -25,6 +25,15 @@ M identifiers refer to the existing market-trends series. A ready-for-agent
 status does not bypass blockers or turn unverified capabilities into facts.
 
 ## Comments
+
+2026-11-14 completion: Owner confirms native Light Leather recipe, unlearned
+Cured Medium Hide recipe and Salt/Coarse Thread merchant prices match the
+recorded observations. S05 closes as a bounded Leatherworking capability probe.
+Full catalog coverage, other professions, variable yields, source exclusivity
+and dual-source pricing policy remain unverified/unselected. Item 4232 is
+identified as Medium Hide by owner UI comparison; its API name/sell metadata
+was unavailable in the captured output. Earlier pending comparison notes below
+are superseded. See the runtime report for evidence and unexercised paths.
 
 2026-11-14: Owner runtime output at t=1794679416 confirms unlearned schematic
 access for recipe 3817 (Cured Medium Hide): output 4233, yield 1–1, required

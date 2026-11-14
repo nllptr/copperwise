@@ -1,7 +1,8 @@
 # S05 runtime evidence
 
-Status: in progress — owner supplied catalog and learned-recipe runtime output;
-native UI comparisons and merchant observations remain pending.
+Status: completed — owner confirmed native UI comparisons for the learned and
+unlearned sample recipes and Salt/Coarse Thread purchase prices. This is a
+bounded capability result; catalog completeness and source policies are open.
 
 ## Repository verification (2026-11-14)
 
@@ -11,7 +12,8 @@ native UI comparisons and merchant observations remain pending.
   sandboxed run could not bind local HTTP test ports.
 - `git diff --check`: passed.
 - Separate code-review axes against pre-work commit `2a83cf7`: Standards 0
-  findings; Spec 0 actionable defects. Runtime acceptance remains pending.
+  findings; Spec 0 actionable defects. Subsequent owner runtime evidence and
+  confirmations below pass the bounded S05 sample acceptance.
 - Installed `CopperwiseRecipeProbe` into the local Forever AddOns directory.
 
 ## Environment
@@ -33,9 +35,9 @@ craftable=true, disabled=false and unavailable recipe sourceType. Schematic:
   7 copper/unit. No currency ID supplied.
 - Ingredient acquisition source and vendor purchase price remain unknown.
 
-Pending: owner comparison against the native UI of the learned state, three
-Ruined Leather Scraps input and one Light Leather output. Optional, alternative,
-currency and variable-yield paths were not exercised by this sample.
+Owner confirmed the native Light Leather recipe matches: three Ruined Leather
+Scraps to one Light Leather. Optional, alternative, currency and variable-yield
+paths were not exercised by this sample.
 
 ## Unlearned discovery
 
@@ -62,9 +64,12 @@ handling. `craftable=true` coexists with `learned=false`; never use craftable
 alone to infer recipe ownership or executable crafting. The unavailable item
 name must not be filled from an assumed catalog.
 
-Pending: native UI learned-state and schematic comparison, filter-change totals
-and second profession where available. Rerun recipe 3817 after item metadata
-loads to investigate the unavailable name/sell value for item 4232.
+Owner confirmed the unlearned Cured Medium Hide recipe matches the native UI:
+one Medium Hide plus one Salt to one Cured Medium Hide. This supplies the
+operator identification of item 4232 as Medium Hide; its API name and sell value
+remain unavailable in the captured snapshot. Filter-change totals, a second
+profession and metadata-cache recovery were not exercised. Catalog coverage
+remains explicitly incomplete/unverified rather than a production guarantee.
 
 ## Ingredient sources and merchant prices
 
@@ -103,7 +108,8 @@ schematic item's vendor sell value of 12 copper/unit. This proves an observed
 vendor acquisition option for one recipe ingredient, not exclusivity or a
 universal price. Item 4232's acquisition source/purchase price remains unknown.
 
-Pending: owner comparison of merchant prices with the native UI.
+Owner confirmed native merchant prices: Salt 45 copper and Coarse Thread
+9 copper each. Other printed offers have no independent UI comparison.
 Vendor sell metadata does not establish purchase cost. Unmatched ingredients
 have unknown sources and purchase prices; dual-source selection is unresolved.
 
