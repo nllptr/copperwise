@@ -38,7 +38,8 @@ API-presence diagnostic alone does not pass a capability.
    item 2447 and both graphs to redraw. Enter `Copper Ore`: expect sample 2770
    with different values. Partial aliases and item IDs also work. Localized names
    are included once the client has cached them; use **Find sample** again after
-   `GET_ITEM_INFO_RECEIVED`. Only these two sample items have histories. A missing
+   `GET_ITEM_INFO_RECEIVED`. Sharp Arrow (2515) is also available for testing with
+   ammunition already in your bags. Only these three sample items have histories. A missing
    match must say so and hide the previous graphs. English aliases always work;
    Lua case folding is not a complete Unicode search implementation.
 4. In the game's Key Bindings interface, find **Copperwise Client Probe**. Assign
@@ -46,7 +47,7 @@ API-presence diagnostic alone does not pass a capability.
    controls, and close settings. Verify open/close away from the auction house,
    and persistence after a user-initiated `/reload`. Record the key and outcome.
    The addon never calls SetBinding/SaveBindings and never chooses keys for you.
-5. Hover a real Peacebloom or Copper Ore item (bag, chat link, or other ordinary
+5. Hover a real Peacebloom, Copper Ore or Sharp Arrow item (bag, chat link, or other ordinary
    item tooltip). Expect a clearly labelled synthetic Copperwise addition with
    sample median, spread, stock, and sample age. Check both ordinary GameTooltip
    and a clicked chat-link ItemRefTooltip, repeated hovers, tooltip rebuilds and

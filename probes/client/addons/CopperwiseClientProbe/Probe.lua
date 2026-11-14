@@ -18,6 +18,13 @@ local samples = {
         {lower = 150, median = 200, upper = 250, stock = 130},
         {lower = 140, median = 180, upper = 230, stock = 150},
     }},
+    {id = 2515, alias = "Sharp Arrow", values = {
+        {lower = 20, median = 30, upper = 40, stock = 180},
+        {lower = 25, median = 35, upper = 45, stock = 160},
+        {lower = 30, median = 40, upper = 55, stock = 120},
+        {lower = 25, median = 35, upper = 50, stock = 150},
+        {lower = 20, median = 30, upper = 45, stock = 190},
+    }},
 }
 
 local function record(message)
@@ -68,8 +75,8 @@ local function selectSample(item)
     selectedItem = item
     if chartHost then chartHost:Hide() end
     if not item then
-        selection:SetText("No matching sample. Try Peacebloom, Copper Ore, 2447 or 2770.")
-        result:SetText("Only two synthetic sample items are available; no real market history is loaded.")
+        selection:SetText("No matching sample. Try Peacebloom, Copper Ore or Sharp Arrow.")
+        result:SetText("Only three synthetic sample items are available; no real market history is loaded.")
         record("lookup: no matching sample; previous graphs hidden")
         return
     end
@@ -126,7 +133,7 @@ local function buildWindow()
     background:SetAllPoints(window)
     background:SetColorTexture(0.04, 0.06, 0.09, 0.97)
     label(window, "Copperwise capability probe — SYNTHETIC DATA ONLY", 18, -18, "GameFontNormalLarge")
-    label(window, "Sample name or ID (Peacebloom / Copper Ore):", 18, -49)
+    label(window, "Sample name or ID (Peacebloom / Copper Ore / Sharp Arrow):", 18, -49)
     search = CreateFrame("EditBox", nil, window, "InputBoxTemplate")
     search:SetSize(340, 24)
     search:SetPoint("TOPLEFT", window, "TOPLEFT", 24, -70)

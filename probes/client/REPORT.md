@@ -8,13 +8,13 @@ evidence.
 ## Implemented probe
 
 - Standalone interface-16001 addon, no credentials or delivery dependencies.
-- Synthetic Peacebloom (2447) and Copper Ore (2770) samples: five hourly points
+- Synthetic Peacebloom (2447), Copper Ore (2770) and Sharp Arrow (2515) samples: five hourly points
   spanning four hours, aligned price and stock plots, local labels and timezone.
   Price plots include a median and middle-50% spread bounds, explicitly not
   confidence or sales. These fixtures establish no production calculation rules.
 - Sample-name/ID lookup, movable window, two actions exposed to the game's
   configurable Key Bindings interface, and visible-GameTooltip item access.
-- Synthetic tooltip additions for the two sample IDs, duplicate suppression and
+- Synthetic tooltip additions for the three sample IDs, duplicate suppression and
   tooltip-clear handling. Prefer item post-call processing, otherwise use a
   supported legacy item-tooltip hook. Errors are diagnostic outcomes, not passes.
 - Secure post-hook observation of supported sample items through Alt-modified
@@ -62,7 +62,7 @@ available here. Owner-reported runtime results are recorded separately below.
 | Client/platform | Partial — saved probe evidence | client 1.60.1, build 70938, interface 16001, macOS reported by the addon. Actual macOS version and Intel architecture remain to be recorded. |
 | Graph rendering | Partial — owner observed | Both graphs visible; selecting Copper Ore changes both; time positions align and labels/timezone match the computer. Scale/resolution not recorded. |
 | Access away from AH | Pending | Location context and successful window opening |
-| Configurable binding | Failed — owner reported; diagnosis pending | Owner reports binding does not work. Need to distinguish missing settings entry from failed key dispatch and record assigned key. Persistence not verified. |
+| Configurable binding | Partial — owner confirmed working after fix | Window binding works after correcting binding registration. Assigned key, away-from-AH use and saved-key persistence across a subsequent reload remain unrecorded. |
 | Name lookup | Partial — owner observed | Copper Ore selection updates both graphs; an unknown query hides both with a no-match message. Localized names and ambiguous queries remain unchecked. |
 | Tooltip additions | Pending | GameTooltip/ItemRefTooltip, legibility, repeated builds, no duplicates |
 | Hovered-item access | Pending | Supported tooltip/key opens matching sample; absent/unsupported feedback |
@@ -93,7 +93,15 @@ attribute errors at both binding entries. Bindings.xml had incorrectly been
 listed in the TOC and was parsed as ordinary UI XML. Removed the TOC entry so
 the dedicated binding loader can handle it; added explicit settings categories
 matching the installed OneForAll binding pattern. This fixes an observed loading
-error; actual binding visibility, dispatch and persistence still require retest.
+error. The owner subsequently confirmed "now it works", establishing successful
+window-binding use after the fix. The assigned key and persistence across a
+subsequent reload were not explicitly reported; hovered-item access remains
+unchecked.
+
+At the owner's request, Sharp Arrow was added as a third synthetic sample so
+tooltip and hovered-item checks can use ammunition already in their bags.
+Search, graphs and item interactions share the same sample catalog. Its tooltip
+and hovered-item behavior still require the owner's in-client observations.
 
 Use `/cwclient note <outcome>` and preserve relevant SavedVariables lines after
 logging out. Record errors, unavailable APIs and protected-action/taint failures.
