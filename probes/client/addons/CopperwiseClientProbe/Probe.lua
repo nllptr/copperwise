@@ -41,6 +41,12 @@ local function sampleByID(id)
     end
 end
 
+local function sampleFromLink(link)
+    if type(link) == "string" then
+        return sampleByID(tonumber(link:match("item:(%d+)")))
+    end
+end
+
 local function localName(item)
     local lookup = C_Item and C_Item.GetItemInfo or GetItemInfo
     if lookup then
@@ -165,7 +171,7 @@ function CopperwiseClientProbeHovered()
             record("hover: no visible item tooltip") return
         end
         local _, link = GameTooltip:GetItem()
-        local item = type(link) == "string" and sampleByID(tonumber(link:match("item:(%d+)")))
+        local item = sampleFromLink(link)
         if not item then record("hover: no supported sample item in GameTooltip") return end
         if not window then record("hover: window unavailable") return end
         selectSample(item)
@@ -183,7 +189,7 @@ local function appendTooltip(tooltip)
     if tooltip.IsForbidden and tooltip:IsForbidden() then return end
     if not tooltip.GetItem or tooltip.copperwiseSampleAdded then return end
     local _, link = tooltip:GetItem()
-    local item = type(link) == "string" and sampleByID(tonumber(link:match("item:(%d+)")))
+    local item = sampleFromLink(link)
     if not item then return end
     local last = item.values[#item.values]
     tooltip:AddLine("Copperwise SAMPLE — not market data", 0.3, 0.85, 1)
@@ -223,8 +229,8 @@ local function installModifierObserver()
         hooksecurefunc("HandleModifiedItemClick", function(link)
             attempt("modifier observation", function()
                 if IsAltKeyDown() and type(link) == "string" then
-                    local id = tonumber(link:match("item:(%d+)"))
-                    if sampleByID(id) then record("Alt modified-item path observed sample item=" .. id .. "; original action preservation UNVERIFIED") end
+                    local item = sampleFromLink(link)
+                    if item then record("Alt modified-item path observed sample item=" .. item.id .. "; original action preservation UNVERIFIED") end
                 end
             end)
         end)

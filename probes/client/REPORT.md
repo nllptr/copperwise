@@ -46,7 +46,8 @@ read as API-shape research, not runtime evidence:
 
 LuaJIT's Lua-5.1-compatible `loadfile` parser accepted Graphs.lua and Probe.lua
 without executing them. Python's XML parser accepted Bindings.xml. `go vet ./...`
-passed. These checks validate syntax and the existing Go packages only.
+and the full `go test ./...` suite passed. These checks validate syntax and the
+existing Go packages only.
 
 The spec's pre-agreed prerequisite testing seam is the actual in-client
 capability probe. The [manual acceptance procedure](README.md#in-client-acceptance)
