@@ -18,7 +18,9 @@ The earlier `../ui-history` study is preserved independently.
    listed stock and no price; missing observations break both series. Neither
    draws an absent buyout as a zero price. No history keeps values unknown.
 5. Inspect Vendor metadata unavailable: no invented vendor baseline is drawn.
-6. Mark an item for sale, select another, then return and unmark it. The mark
+6. Use the small Sell button on a sidebar row: it moves from Inventory to
+   Marked for sale. Select it there to inspect details; use × to move it back.
+   Marking does not change the selected detail. Both sections share the filter. The mark
    carries item identity only. Quantity policy, persistence and AH handoff are
    separate tickets; marks reset on page refresh. No transaction is possible.
 
@@ -51,8 +53,9 @@ No local scan is claimed; the history is labelled synthetic backend history.
 
 Headless Chromium checked the complete bag list, bank-only inclusion, bag/bank
 quantity changes, total AH/vendor arithmetic, currency denominations, cached-bank
-age, selection when bank is excluded, sale marks, all ranges and missing-value
-scenarios. The compact addon surface was checked to remain under 760px tall. Desktop rendering was inspected at a
+age, selection when bank is excluded, sidebar mark/unmark movement, independent
+detail selection, keyboard focus after moving rows, shared filtering, all ranges
+and missing-value scenarios. All 29 browser checks passed. The compact addon surface was checked to remain under 760px tall. Desktop rendering was inspected at a
 960px viewport with a 900px addon surface. JavaScript syntax and the repository's
 Go suite were checked; there is no TypeScript/build step for this HTML study.
 The browser check is disposable verification, not a new production test seam.
@@ -74,3 +77,9 @@ and vendor comparison, with native WoW integration; it is not approval of this
 layout. Review whether the bag rail/detail split is comfortable at normal play
 size, whether price/stock/age are readable, and whether “Mark for sale” clearly
 means later intent. Record feedback here before claiming owner acceptance.
+
+2026-11-14 follow-up feedback: moved sale marking from the detail panel to small
+sidebar row buttons. Marked items occupy a separate sidebar section; removing a
+mark returns the item to Inventory. All included items appear exactly once across
+the two sections. Filtering and Include bank apply to both; hidden bank-only
+marks remain intent and reappear when bank inclusion is enabled again.

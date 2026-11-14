@@ -42,3 +42,7 @@ value × owned count), and add Include bank to count bank holdings when checked.
 Implemented in the browser study with eleven bag item types and one bank-only
 item, separate bag/bank counts, cached-bank age and withdrawal guidance. Actual
 client metadata/access and crafting bank-subtraction policy remain separate work.
+
+2026-11-14 owner feedback implemented: small sale-intent buttons on sidebar rows
+move items into a separate Marked for sale section. Unmarking returns them to
+Inventory; row selection remains independent of marking.
