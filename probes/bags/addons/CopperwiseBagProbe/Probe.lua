@@ -1,5 +1,6 @@
 local session
 local samples = {2447, 2770, 2515}
+local pendingMetadata = {}
 local frame = CreateFrame("Frame")
 
 local function record(message)
@@ -40,6 +41,7 @@ local function snapshot(reason)
         local row = rows[id]
         local name, _, _, _, _, _, _, _, _, _, sell = lookup(id)
         local value = "unavailable"
+        pendingMetadata[id] = not (name and type(sell) == "number")
         if name and type(sell) == "number" then
             value = sell .. " copper/unit; bag-total=" .. sell * row.count .. " copper"
         end
@@ -78,7 +80,17 @@ end
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("BAG_UPDATE_DELAYED")
 frame:RegisterEvent("GET_ITEM_INFO_RECEIVED")
-frame:SetScript("OnEvent", function(_, event)
+frame:SetScript("OnEvent", function(_, event, itemID, success)
+    if event == "GET_ITEM_INFO_RECEIVED" then
+        -- Other addons and unrelated items also generate cache notifications.
+        -- Retry only an unresolved sample, once per successful notification.
+        if not pendingMetadata[itemID] then return end
+        pendingMetadata[itemID] = nil
+        if not success then
+            record("metadata request failed item=" .. tostring(itemID) .. "; retry with /cwbags")
+            return
+        end
+    end
     if event == "PLAYER_LOGIN" then
         if type(CopperwiseBagEvidence) ~= "table" then CopperwiseBagEvidence = {} end
         session = {events = {}}
