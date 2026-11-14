@@ -38,3 +38,8 @@ Native events and API returns are never labelled confirmed listings. Extra
 native-confirmation requirements are reported without automatic confirmation.
 [Runtime report](../../../probes/posting/REPORT.md) and public-client checklist
 are ready. All acceptance boxes remain open pending actual-client evidence.
+
+Repository validation: Lua 5.1 syntax compilation, `go vet ./...` with CGO
+and the full `go test ./...` suite without CGO passed. Whitespace check passed.
+Standards review found no actionable violations; spec review checked dispatch
+and lifecycle behavior separately. These checks do not pass runtime acceptance.
