@@ -91,3 +91,9 @@ Auctionator-loaded=true. Both samples are commodities; Copper Ore full results
 show 33 rows, 5,396 units and 88 copper/unit. Build/context evidence is no longer
 missing; independent stock/Copper Ore price comparisons and cancellation/active
 scan coexistence remain pending. No upstream-market mapping claim follows.
+
+2026-11-14: Owner screenshot verifies full Rough Stone (2835) results at 22:57:25
+CET: 16 rows, 1,615 units, minimum 9 copper/unit, no bid-only units, one request.
+More is correctly disabled after completion. Initial cache state and independent
+price/stock comparison are not established by this screenshot. Remaining
+cancellation and active-search coexistence checks stay open.

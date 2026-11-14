@@ -98,6 +98,15 @@ only Peacebloom's price has owner confirmation.
 
 ## Unverified paths
 
+2026-11-14 owner screenshot after the updated one-click Rough Stone instructions:
+item 2835, state complete, one request, 16 covered rows, 1,615 covered units,
+minimum 9 copper/unit, bid-only units 0, full=true. Start and observation both
+display 22:57:25 CET. More results is visibly disabled after completion.
+This verifies another full sample result and the completed-state button fix.
+The screenshot does not establish whether metadata was initially uncached or
+whether loading continuation was exercised. Price and stock have not yet been
+independently compared with native results.
+
 Owner subsequently reports Copper Ore initially refused due to uncached metadata,
 then returned a good result on another click a few seconds later. Saved probe
 evidence subsequently supplies quantities/price/raw fields as recorded above;
@@ -114,6 +123,6 @@ These changes still need actual-client testing; no mocked runtime is substituted
 
 Remaining unverified paths: initial-highlight fix, new metadata continuation,
 independent stock/Copper Ore price comparison, noncommodity stack normalization,
-bid-only stock, empty/partial results, Rough Stone results, More, cooldowns, cancellation,
+bid-only stock, empty/partial results, More on partial results, cooldowns, cancellation,
 timeouts/errors, late responses, bounds and Auctionator coexistence.
 No M18 runtime acceptance is claimed by repository checks or installation.
