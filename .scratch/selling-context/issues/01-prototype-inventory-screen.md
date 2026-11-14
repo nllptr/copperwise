@@ -35,3 +35,10 @@ with synthetic bag selection, lowest-buyout/vendor comparisons, aligned ranges,
 empty/missing states and temporary mark/unmark intent. Browser interaction checks
 and rendering review are recorded in the study. Owner feedback and actual-client
 readability remain pending; the fourth acceptance item is intentionally open.
+
+2026-11-14 owner feedback: compact the layout, list all inventory items, show
+AH value (lowest unit buyout × owned count) and vendor value (unit vendor sell
+value × owned count), and add Include bank to count bank holdings when checked.
+Implemented in the browser study with eleven bag item types and one bank-only
+item, separate bag/bank counts, cached-bank age and withdrawal guidance. Actual
+client metadata/access and crafting bank-subtraction policy remain separate work.
