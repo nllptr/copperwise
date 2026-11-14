@@ -24,7 +24,9 @@ Cancel, changing selection, hiding Inventory, or closing the AH stops collection
 Late responses are ignored. Uncertain outstanding requests require closing and
 reopening the AH before another query. Other observed AH requests interrupt local
 collection; Copperwise never cancels another addon's work. Throttling and a
-read-only Auctionator queue check can refuse a request.
+read-only Auctionator queue check can refuse a request. Outstanding external
+requests block scanning until a matching result event; unknown completion or
+overlapping requests for the same item require closing/reopening the AH.
 
 The latest complete result is retained separately in memory during unsuccessful
 refreshes. Persistence, multiple-item retention, ranking and sale intent belong

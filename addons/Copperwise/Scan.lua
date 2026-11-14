@@ -2,6 +2,14 @@ local frame = CreateFrame("Frame")
 local active, result
 local houseOpen, ownRequest, hooksReady, reopenRequired = false, false, false, false
 local lastTraffic = 0
+local externalPending = {}
+local responseEvents = {
+    SendSearchQuery="search", SendSellSearchQuery="search",
+    RefreshItemSearchResults="search", RefreshCommoditySearchResults="search",
+    RequestMoreItemSearchResults="search", RequestMoreCommoditySearchResults="search",
+    SendBrowseQuery="browse", SearchForFavorites="browse", RequestMoreBrowseResults="browse",
+    QueryOwnedAuctions="owned", QueryBids="bids", ReplicateItems="replicate",
+}
 local MAX_REQUESTS, MAX_ROWS, TIMEOUT, QUIET = 3, 500, 15, 2
 local observed = {}
 
@@ -56,8 +64,15 @@ local function guard(fn, eventFailure)
     end
 end
 
-local function externalRequest(name)
+local function externalRequest(name, argument)
     lastTraffic = GetTime()
+    if not ownRequest then
+        local kind = responseEvents[name]
+        local id = kind == "search" and (type(argument) == "table" and argument.itemID or argument) or kind
+        local token = tostring(kind) .. ":" .. tostring(id)
+        if externalPending[token] then externalPending.uncertain = true end
+        externalPending[token] = true
+    end
     if not ownRequest and (active or (result and result.state == "partial")) then
         -- Results are shared caches: a competing request invalidates attribution.
         result.full = false
@@ -74,7 +89,7 @@ local function setupHooks()
         "RequestMoreBrowseResults", "ReplicateItems", "QueryOwnedAuctions", "QueryBids"}) do
         if C_AuctionHouse and type(C_AuctionHouse[name]) == "function" then
             local requestName = name
-            hooksecurefunc(C_AuctionHouse, name, function() externalRequest(requestName) end)
+            hooksecurefunc(C_AuctionHouse, name, function(argument) externalRequest(requestName, argument) end)
         elseif name == "SendSearchQuery" then error("modern native AH search unavailable") end
     end
     hooksReady = true
@@ -86,6 +101,7 @@ local function ready()
     if not hooksReady then error("query observation hooks unavailable") end
     if not observed.AUCTION_HOUSE_CLOSED or not observed.ITEM_SEARCH_RESULTS_UPDATED
         or not observed.COMMODITY_SEARCH_RESULTS_UPDATED then error("required AH events unavailable") end
+    if next(externalPending) then error("another AH request is outstanding; wait for completion or close/reopen AH") end
     if GetTime() - lastTraffic < QUIET then error("AH recently active; wait two quiet seconds") end
     if not api("IsThrottledMessageSystemReady") then error("AH throttled/busy; retry manually when ready") end
     -- Optional read-only diagnostic; never enqueue, abort or call Auctionator APIs.
@@ -213,6 +229,19 @@ frame:SetScript("OnUpdate", guard(function()
 end, true))
 
 frame:SetScript("OnEvent", guard(function(_, event, ...)
+    local argument = ...
+    local kind, id
+    if event == "COMMODITY_SEARCH_RESULTS_UPDATED" or event == "ITEM_SEARCH_RESULTS_UPDATED" then
+        kind = "search"
+        id = type(argument) == "table" and argument.itemID or argument
+    elseif event == "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED" then kind, id = "browse", "browse"
+    elseif event == "OWNED_AUCTIONS_UPDATED" then kind, id = "owned", "owned"
+    elseif event == "BIDS_UPDATED" then kind, id = "bids", "bids"
+    elseif event == "REPLICATE_ITEM_LIST_UPDATE" then kind, id = "replicate", "replicate" end
+    if kind and externalPending[kind .. ":" .. tostring(id)] then
+        externalPending[kind .. ":" .. tostring(id)] = nil
+        lastTraffic = GetTime()
+    end
     if event == "PLAYER_LOGIN" then
         setupHooks()
     elseif event == "AUCTION_HOUSE_SHOW" then
@@ -222,6 +251,7 @@ frame:SetScript("OnEvent", guard(function(_, event, ...)
         houseOpen = false
         cancel("Auction house closed; local collection stopped.")
         reopenRequired = false
+        externalPending = {}
     elseif event == "ITEM_KEY_ITEM_INFO_RECEIVED" then
         render()
     elseif active then
@@ -237,7 +267,8 @@ frame:SetScript("OnEvent", guard(function(_, event, ...)
 end, true))
 
 for _, event in ipairs({"PLAYER_LOGIN", "AUCTION_HOUSE_SHOW", "AUCTION_HOUSE_CLOSED",
-    "ITEM_KEY_ITEM_INFO_RECEIVED",
+    "ITEM_KEY_ITEM_INFO_RECEIVED", "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED",
+    "OWNED_AUCTIONS_UPDATED", "BIDS_UPDATED", "REPLICATE_ITEM_LIST_UPDATE",
     "ITEM_SEARCH_RESULTS_UPDATED", "ITEM_SEARCH_RESULTS_ADDED", "COMMODITY_SEARCH_RESULTS_UPDATED",
     "COMMODITY_SEARCH_RESULTS_ADDED", "AUCTION_HOUSE_THROTTLED_MESSAGE_DROPPED",
     "AUCTION_HOUSE_THROTTLED_MESSAGE_QUEUED", "AUCTION_HOUSE_THROTTLED_MESSAGE_SENT",
