@@ -61,6 +61,15 @@ switching were subsequently demonstrated by the owner's screenshots below.
   classification, raw listing fields or independent native quantity/price
   comparison. Zero bid-only units does not exercise bid-only handling.
 
+2026-11-14: Owner independently checked the displayed Peacebloom price and
+confirmed it is correct (38 copper/unit). This verifies the observed sample's
+price result, not an independent stock count or every normalization path.
+A further screenshot at 22:40:37 CET shows complete Peacebloom results with
+23 rows, 2,457 units and the same 38 copper/unit minimum. Clicking More after
+completion sent no request and preserved that observation, but produced an
+unhelpful refusal. Disabled More except for partial results within the local
+request cap, and clarified the request counter as a probe cap. Retest pending.
+
 Continue the [acceptance checklist](README.md#actual-client-acceptance-pre-agreed-test-seam).
 Record game build, market context, enabled addons, sample IDs, actions, raw
 results, coverage and outcomes. Do not copy account paths or unrelated saves.

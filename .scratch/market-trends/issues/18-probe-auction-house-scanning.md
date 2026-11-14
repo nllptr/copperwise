@@ -72,3 +72,8 @@ complete, 23 rows, 2,439 units, minimum 38 copper/unit, no bid-only units, one
 request, full=true at 22:38:03 CET. Recorded in report. Independent native
 quantity/price comparison, build/market diagnostics and remaining coexistence/
 failure-path checks remain pending; M18 stays in progress.
+
+2026-11-14: Owner independently confirms the Peacebloom price result is correct.
+Recorded the 38 copper/unit comparison. More-after-complete screenshot confirms
+no extra request was sent; disabled that button outside eligible partial results
+and clarified the local request-cap label. Remaining runtime checks stay open.

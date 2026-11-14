@@ -1,5 +1,5 @@
 local frame = CreateFrame("Frame")
-local session, panel, output, tab, active, result, notice
+local session, panel, output, tab, active, result, notice, moreButton
 local houseOpen, ownRequest, hooksReady, reopenRequired = false, false, false, false
 local lastTraffic = 0
 local samples = {{2447, "Peacebloom"}, {2770, "Copper Ore"}, {2835, "Rough Stone"}}
@@ -38,6 +38,10 @@ end
 
 local function render()
     if not output then return end
+    if moreButton then
+        moreButton:SetEnabled(not active and not reopenRequired and result ~= nil
+            and result.state == "partial" and result.requests < MAX_REQUESTS)
+    end
     local prefix = notice and (notice .. "\n\n") or ""
     if not result then
         output:SetText(prefix .. "Selected: " .. selected[2] .. " (" .. selected[1]
@@ -48,7 +52,7 @@ local function render()
     local units = r.units and tostring(r.units) or "unavailable"
     local price = r.minimum and string.format("%.4f copper/unit", r.minimum) or "unavailable"
     output:SetText(prefix .. "Item: " .. r.itemID .. " (" .. r.name .. ")\nState: " .. r.state
-        .. "\n" .. r.reason .. "\n\nRequests: " .. r.requests .. "/" .. MAX_REQUESTS
+        .. "\n" .. r.reason .. "\n\nProbe requests used: " .. r.requests .. "/" .. MAX_REQUESTS .. " (local cap)"
         .. "   Rows covered: " .. value(r.rows) .. "\nCovered stock: " .. units
         .. " units\nLowest covered buyout: " .. price
         .. "\nBid-only units: " .. value(r.bidOnly) .. "\nFull selected-key results: " .. value(r.full)
@@ -296,7 +300,7 @@ local function setupPanel()
         end)
     end
     button(panel, "Scan sample", 12, -48, start)
-    button(panel, "More results", 152, -48, more)
+    moreButton = button(panel, "More results", 152, -48, more)
     button(panel, "Cancel", 292, -48, function() cancel() end)
     -- This template appends to ah.Tabs via parentArray. LibAHTab anchors its
     -- addon row to the last entry, so Copperwise must stay on the native row.
