@@ -49,3 +49,13 @@ recorded. Earlier probe build evidence is not substituted for this run. Remainin
 acceptance includes metadata/zero/empty/partial/failure paths, cancellation and
 late responses, AH closure/recovery, coexistence and retained-result behavior.
 This confirms one production sample, not full ticket completion.
+
+Owner follow-up screenshot after `/run Copperwise.Scan(); Copperwise.Cancel()`
+shows Rough Stone latest attempt cancelled after 1/3 requests, incomplete, with
+unavailable rows, supply, buyout and observation time. A separate last-complete
+observation remains visible: 2026-11-15 00:49:03 CET, supply 2,360, asking buyout
+5 copper/unit, same market context. This verifies immediate cancellation display
+and preservation of the preceding successful observation without assigning a
+new observation time to the cancelled attempt. The screenshot alone does not
+establish elapsed waiting or late-response stability; confirmation after waiting
+and AH close/reopen recovery remain pending.
