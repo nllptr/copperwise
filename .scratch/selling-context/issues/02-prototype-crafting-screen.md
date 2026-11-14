@@ -38,3 +38,13 @@ policies remain undecided. Browser-only checks cover visible behavior; no client
 catalog, transaction or production queue capability is claimed. Owner feedback on
 the recipe-to-shopping journey and quantity terminology is pending; the final
 acceptance item remains open. See README review prompts and verification evidence.
+
+2026-11-14 owner feedback implemented: reduce Crafting text; recipe rows contain
+name and estimated margin per craft, with colored/gray icons for learned/unlearned.
+Detail shows AH-based additional ingredient cost per craft (owned materials
+subtracted once from selected batch requirements), plus AH and vendor values for
+craft count × output yield. Queue/materials and source explanations are collapsed.
+README records updated arithmetic examples and browser checks. This explicitly
+revises the earlier replacement-cost/per-output prototype presentation. Revised
+screen review remains pending; production sorting, persistence and bank rules
+are not settled by these display changes.

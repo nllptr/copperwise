@@ -101,59 +101,70 @@ post is executed by this prototype.
 
 ## Crafting journey (S02)
 
-The same page now includes a Crafting tab sharing the output market-detail
-renderer, ranges and review scenarios. Inventory selections and sale marks stay
-separate from recipe selection and craft intent. All recipes (including names,
-profession, yields, prices and ingredient holdings) are invented fixtures, not
-claims about the target client's recipe catalog.
+Select Crafting on the same page. All recipe names, yields, prices and holdings
+are invented fixtures. Inventory behavior is unchanged.
 
-1. Select Crafting. Practice Tonic illustrates two vendor reagents at 10c plus
-   three AH herbs at 20c: 80c per craft, two outputs, 40c cost per output.
-   A 70c output buyout gives a 30c estimated margin. Vendor sell value is 5c,
-   separately labelled from vendor ingredient purchase cost. Owned inputs retain
-   replacement cost. The successful-sale deposit assumption and excluded failed
-   listings are disclosed. No separate sale cut is deducted.
-2. Select Unpriced Elixir to see an unknown ingredient price withhold complete
-   cost and margin. Empty/missing output observations also withhold margin.
-3. Enable Include unlearned recipes and select Study Draught. It is explicitly
-   unlearned and cannot currently be crafted; its negative margin is visible.
-   Adding its intent warns that learning is required. Hiding unlearned recipes
-   resets selection but retains any intent in the queue, visibly labelled unlearned.
-4. Enter **2 crafts** for Practice Tonic: the preview shows **4 output units**.
-   Add craft intent to open combined material requirements: four vendor reagents
-   and six AH herbs. One reagent and two herbs are in bags, so three reagents
-   and four herbs remain to buy with bank preview off.
-5. Toggle Preview subtracting cached bank. Three bank reagents and four bank
-   herbs now cover those needs, with explicit withdrawal counts. Bank counts are
-   synthetic, observed at 16:30 CET (90 minutes old); this toggle is a comparison
-   tool, not a selected bank-eligibility policy. Unknown bank holdings remain
-   unknown. Shared ingredient requirements aggregate before crediting ownership;
-   surplus never becomes a negative shopping quantity.
-6. Add another recipe to compare shared-material requirements; remove intents
-   individually. Tab switches retain intent; refreshing clears it. There are no
-   purchase/craft controls, storage, client APIs or working AH handoff.
+The owner's follow-up replaces the initial verbose per-output presentation:
 
-Historical crafting-cost lines are withheld because the fixture has no
-contemporaneous ingredient observations. The separate current per-output cost
-remains visible. This avoids projecting today's ingredient costs backward.
-Sorting stays in sample order with the ranking basis explicitly undecided.
-Craft count, additive intent, removal and page-only lifetime are disposable
-interaction proposals; they do not settle quantity, cancellation or persistence
-rules for production (S06/S07). Queue contents are not executable craft counts.
+- Sidebar rows show recipe name and estimated **margin per craft**, accounting
+  for output yield. Colored icons mean learned; grayscale icons mean unlearned.
+  Accessible labels and hover titles also identify learning status. Unknown
+  margins show a dash. Include unlearned recipes controls their visibility.
+- Three detail metrics show **Cost / craft**, **AH value**, and **Vendor value**.
+  The selected craft count multiplies output yield for both sale values.
+- Ingredient costs now use AH prices. Cost is the additional material cost after
+  subtracting owned ingredients once from the selected batch's requirements.
+  Per-craft cost is that batch total divided by craft count; the total is shown
+  beneath it. Fractions are displayed to two decimal copper places; sale values
+  and batch totals use their exact fixture amounts.
+- Sidebar margins compare a single craft's output AH value with its additional
+  material cost after ownership. They describe alternative choices, not reserved
+  materials. They do not change when the selected detail count changes.
+- Bags count by default. Optional cached-bank subtraction remains an explicit
+  comparison in Queue & materials; enabling it affects costs and sidebar margins
+  as well as the shopping table. Bank eligibility is still an open production
+  policy. Unknown bank counts remain unknown and are not credited.
+- Craft intent and its combined shopping table are in a collapsed section below
+  the quantity control. Adding intent opens it. Shared needs aggregate before
+  ownership subtraction, and shortages never become negative. Queue counts are
+  independent of the current detail preview; page refresh clears intent.
+- Longer price/source explanations are under Price details. Synthetic status
+  remains outside the addon surface. No purchasing or crafting is executed.
 
-### S02 verification and feedback
+### Worked examples
 
-44 disposable Chromium UI assertions passed for recipe inclusion/selection,
-worked-example economics, negative/incomplete margins, craft/output quantities,
-invalid counts, shared requirements, bag/bank subtraction previews, unknown bank
-counts, withdrawal needs, removal, and tab switching. The 38 existing Inventory
-checks also passed. JavaScript syntax and the full Go suite are checked separately;
-this HTML has no typechecker. Screenshots were inspected at a 960px viewport.
-Browser checks establish prototype behavior only, not native fit or capabilities.
+Practice Tonic requires two reagents at 10c AH each plus three herbs at 20c AH
+each, producing two items per craft. Bags contain one reagent and two herbs:
 
-Owner review is **pending**. No owner feedback on this Crafting journey has yet
-been received. Review prompts: Is recipe → craft count → required materials →
-shopping understandable? Are “crafts” versus “output units” clear for multi-output
-recipes? Is the optional bank comparison useful? Should queue and shopping detail
-stay here or move to the AH context? Record answers here and in S02 before marking
-the feedback acceptance item complete. S01 approval does not approve these choices.
+| Crafts | Output items | Cost still to buy | Average cost / craft | AH value | Vendor value |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 2 | 30c | 30c | 140c | 10c |
+| 2 | 4 | 110c | 55c | 280c | 20c |
+| 3 | 6 | 190c | 63.33c | 420c | 30c |
+
+The sidebar shows 110c/craft for this recipe: 140c output value minus 30c
+additional cost for one craft. Unpriced Elixir withholds estimates when an input
+price is missing. Missing output observations withhold AH value and margin.
+Optional bank preview covers the first two Practice Tonic crafts entirely;
+a third craft still needs 80c of additional inputs. Historical crafting costs
+remain withheld because contemporaneous input observations are unavailable.
+
+### Verification and owner feedback
+
+2026-11-14: Owner requested less text, icon-only learned/unlearned differentiation,
+sidebar margin per craft, AH-based ingredient costs net of owned materials, and
+AH/vendor totals multiplied by output quantity. Implemented as described above.
+This supersedes the original replacement-cost/per-output detail proposal for
+this prototype; it is not a production pricing contract or ranking approval.
+
+33 revised Chromium checks passed for simplified recipe rows, learned/unlearned
+icons, yield-aware margins, one/two/three-craft arithmetic, fractional averages,
+ownership credited once, bank comparison, missing estimates, invalid quantities,
+Inventory restoration and a Crafting surface under 760px tall. The 38 Inventory
+checks also passed. Screenshots were inspected at 960px viewport width. JavaScript
+syntax and the Go suite are checked separately; this HTML has no typechecker.
+These browser checks establish prototype behavior, not client capabilities.
+
+The revised design awaits owner review. Queue persistence, sorting behavior and
+production bank subtraction remain open; the owner's quantity and display
+feedback above is recorded rather than treated as approval of those policies.
