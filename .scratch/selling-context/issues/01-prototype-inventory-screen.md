@@ -4,15 +4,15 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** in-progress — browser prototype implemented; owner feedback and target-client readability pending
 
 **Labels:** ready-for-agent
 
 **Type:** prototype
 
-- [ ] Show a small, clearly synthetic bag-item list with quantities and a selected-item detail panel; selection changes the displayed item without requiring tooltip interaction.
-- [ ] Bring lowest buyout, vendor sell value and aligned price/stock history together with units, observation age, timezone and actual coverage; distinguish missing observations from observed empty supply.
-- [ ] Show an understandable mark-for-sale affordance as intent only; do not imply a working posting integration or approved ranking formula.
+- [x] Show a small, clearly synthetic bag-item list with quantities and a selected-item detail panel; selection changes the displayed item without requiring tooltip interaction.
+- [x] Bring lowest buyout, vendor sell value and aligned price/stock history together with units, observation age, timezone and actual coverage; distinguish missing observations from observed empty supply.
+- [x] Show an understandable mark-for-sale affordance as intent only; do not imply a working posting integration or approved ranking formula.
 - [ ] Review the screen at a realistic addon window size; record owner feedback and which details are browser-only versus already verified client capabilities.
 
 ## Scope and verification
@@ -29,3 +29,9 @@ status does not bypass blockers or turn unverified capabilities into facts.
 2026-11-14: Published using to-tickets after the owner approved the 23-slice
 breakdown and requested tickets small enough for a single fresh context.
 Testing follows the owner-confirmed public pipeline and actual-client boundaries.
+
+2026-11-14: Implemented the [Inventory browser study](../../../probes/ui-inventory/README.md)
+with synthetic bag selection, lowest-buyout/vendor comparisons, aligned ranges,
+empty/missing states and temporary mark/unmark intent. Browser interaction checks
+and rendering review are recorded in the study. Owner feedback and actual-client
+readability remain pending; the fourth acceptance item is intentionally open.
