@@ -1,0 +1,5 @@
+## Interface: 16001
+## Title: Copperwise Bag Probe
+## Notes: Read-only bag counts and vendor sell metadata capability probe
+## SavedVariables: CopperwiseBagEvidence
+Probe.lua

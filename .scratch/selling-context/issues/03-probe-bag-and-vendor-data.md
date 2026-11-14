@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** in-progress — read-only probe implemented; actual-client evidence pending
 
 **Labels:** ready-for-agent
 
@@ -25,6 +25,13 @@ M identifiers refer to the existing market-trends series. A ready-for-agent
 status does not bypass blockers or turn unverified capabilities into facts.
 
 ## Comments
+
+2026-11-14: Added the standalone [bag probe](../../../probes/bags/README.md)
+with fresh slot-based sample totals, vendor sell metadata, zero/unavailable
+distinction, bag/cache event refresh and bounded saved diagnostics. The existing
+actual-client seam remains the acceptance boundary. Runtime checklist and
+[evidence report](../../../probes/bags/REPORT.md) are ready; all acceptance
+criteria remain open until observed in the target client.
 
 2026-11-14: Published using to-tickets after the owner approved the 23-slice
 breakdown and requested tickets small enough for a single fresh context.
