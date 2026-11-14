@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** in-progress — runtime freshness cycle observed; visual count/coverage confirmation pending
+**Status:** in-progress — runtime freshness cycle observed; visible/API bank coverage mismatch unresolved
 
 **Labels:** ready-for-agent
 
@@ -39,9 +39,16 @@ in the target client. [Runtime report](../../../probes/bank/REPORT.md) is pendin
 no acceptance checkbox is passed by repository checks.
 
 2026-11-14: Owner-provided target-client output now demonstrates unknown before
-access, Peacebloom deposit/withdrawal in bank bag 6, cached counts with unchanged
+access, Peacebloom deposit/withdrawal in container 6, cached counts with unchanged
 observation time after close/reload, and refreshed confirmation after reopening.
 Evidence and timestamps are recorded in the runtime report. Initial bank-bag
 capacity changes from zero to 48 slots during loading, so early `confirmed`
 reads do not prove completeness. Independent visual count and capacity
 confirmation remains pending; S04 is not yet closed.
+
+2026-11-14: Owner confirms the final Peacebloom location (bags, not bank), but
+the visible bank has 48 main slots and no unlocked bank bag slots. API container
+-1 reports 32 slots invisible in that UI; container 6 reports 48 and held the
+sample. This contradicts the assumed classic container mapping. The combined
+bank coverage remains unverified; investigate the target-client mapping before
+closing S04 or treating these summed counts as confirmed visible holdings.

@@ -1,6 +1,6 @@
 # S04 evidence
 
-Status: runtime freshness cycle observed; independent visual coverage confirmation pending.
+Status: runtime freshness cycle observed; visible/API bank coverage mismatch unresolved.
 
 ## Repository evidence
 
@@ -37,7 +37,8 @@ aborting startup. Subsequent owner-provided output verifies startup now succeeds
   counts and observation time 1794674857.
 - Deposit sequence: at 1794674922 Peacebloom is bags 1 / bank 0. At
   BAG_UPDATE_DELAYED 1794674925 and manual snapshot 1794674931 it is bags 0 /
-  bank 1 in 6:1. The deposit landed in bank bag 6, not the main bank.
+  bank 1 in 6:1. Container 6 was initially described as a bank bag; subsequent
+  owner visual evidence contradicts that assumed mapping (see below).
 - Withdrawal sequence: at BAG_UPDATE_DELAYED 1794674953 and manual snapshot
   1794674958 Peacebloom is bags 1 in 0:15 / bank 0. No persistent double count
   is visible in these supplied settled observations.
@@ -51,9 +52,13 @@ aborting startup. Subsequent owner-provided output verifies startup now succeeds
 
 ### Remaining checks and limitations
 
-- Owner still needs to independently confirm visible Peacebloom quantities and
-  bank layout/capacities. Output alone cannot establish complete bank coverage.
-  Main-bank item placement and other bank bags were not exercised.
+- Owner confirms Peacebloom is visibly in bags and absent from bank after the
+  withdrawal. The visible bank has 48 main slots, no unlocked bank bag slots
+  and no equipped 32-slot bank bag. The API's -1:32 container is invisible in
+  that UI. Container 6:48 matches the visible capacity and held the moved sample,
+  but its mapping and the meaning of -1 remain unresolved. The assumed classic
+  main-bank/bank-bag mapping is contradicted; summing both is not validated.
+  Do not claim 80 visible slots or confirmed combined bank holdings.
 - Open-bank event reads can precede capacity loading, and unlocked item reads
   are not atomic. The `confirmed` label means an open-access API observation,
   not a completeness/stability guarantee. Production must handle loading states.
@@ -66,7 +71,8 @@ aborting startup. Subsequent owner-provided output verifies startup now succeeds
 ## Acceptance boundary
 
 The supplied runtime output establishes the tested deposit/withdrawal refresh and
-closed-bank/reload/reopen freshness cycle. Independent visual confirmation of
-counts and coverage remains pending before closing S04. No atomicity, complete
+closed-bank/reload/reopen freshness cycle and the owner confirms the final
+Peacebloom location. Visible/API coverage mismatch remains unresolved before
+closing S04. No atomicity, complete
 coverage or production readiness claim follows. Cached-bank subtraction policy,
 automatic withdrawals/transfers and cross-character tracking remain out of scope.
