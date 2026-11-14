@@ -13,4 +13,9 @@
 
 ## Comments
 
+2026-11-14: Ticket 17's [synthetic UI study](../../../probes/ui-history/README.md)
+proposes a shared requested domain for both graphs and explicit actual coverage
+above them (including blank leading time for a partial week). Layout and in-game
+readability await review; this is design input, not pipeline acceptance.
+
 2026-11-14: Reconciled with the owner-approved login and user-initiated `/reload` import model; ticket number and blocking edges retained.

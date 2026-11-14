@@ -11,3 +11,10 @@
 - [ ] Explain insufficient evidence and distinguish price spread from confidence or predictions.
 - [ ] Controlled sparse, extreme, and adequate distributions verify visible estimates and explanations through the real pipeline.
 
+## Comments
+
+2026-11-14: Ticket 17's [synthetic UI study](../../../probes/ui-history/README.md)
+withholds the median and band in a manually selected sparse fixture while keeping
+stock and provenance visible. This proposes the presentation only; no evidence
+threshold, quantile algorithm or production acceptance is established.
+

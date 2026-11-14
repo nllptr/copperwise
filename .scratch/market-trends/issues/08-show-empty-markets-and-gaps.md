@@ -13,4 +13,10 @@
 
 ## Comments
 
+2026-11-14: Ticket 17's [synthetic UI study](../../../probes/ui-history/README.md)
+distinguishes missing observations (break both series), observed empty supply
+(zero stock and absent price), and a supported item with no loaded history
+(explicit message). Compare fixtures at 24 hours. These are proposed visible
+states; end-to-end acceptance remains pending.
+
 2026-11-14: Reconciled with the owner-approved login and user-initiated `/reload` import model; ticket number and blocking edges retained.

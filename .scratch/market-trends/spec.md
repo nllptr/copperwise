@@ -3,6 +3,16 @@
 Status: open
 Labels: ready-for-agent
 
+## Scope amendment — 2026-11-14
+
+The [competitive asking prices and crafting margin spec](../selling-context/spec.md)
+records the owner's expanded direction from ticket 17 feedback. It takes
+precedence over trend-only and crafting-analysis/estimated-margin deferrals
+below for lowest-buyout, vendor-value and recipe-cost comparisons. Other scope,
+delivery and feasibility decisions remain in force. Existing implementation
+tickets need reconciliation; their original acceptance criteria alone do not
+complete the expanded scope.
+
 ## Problem Statement
 
 As a casual seller in World of Warcraft: Forever, the owner wants to understand where most stock is priced, whether asking prices are moving up or down, and how available stock changes over time without leaving the game. Individual listings and extreme prices can mislead; incomplete or outdated history can look more authoritative than it is. The owner also wants to inspect time-of-day and longer patterns personally without the product making unsupported predictions about sales or recurring patterns.

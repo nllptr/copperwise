@@ -1,0 +1,74 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Copperwise addon UI study</title><body style="margin:0;padding:16px;background:#101619"><div id="cw17">
+<style>
+#cw17{font:14px/1.45 system-ui,sans-serif;--cw-gold:#e2ba7e;--cw-muted:#b6bbb6;color:#ebe6dc}#cw17 *{box-sizing:border-box}#cw17 [hidden]{display:none!important}#cw17 button,#cw17 input,#cw17 select{font:inherit;color:inherit}#cw17 button,#cw17 select{cursor:inherit}#cw17 .lab{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#242b30;padding:12px 16px;margin-bottom:12px;border-radius:6px;font-size:12px}#cw17 select,#cw17 input{background:#151b1e;border:1px solid #59615d;padding:8px;border-radius:4px;max-width:100%}#cw17 .window{max-width:860px;margin:auto;background:#191e21;border:1px solid #7f6c4e;border-radius:7px;overflow:hidden}#cw17 header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:15px 20px;background:#252a2c;border-bottom:1px solid #4d483d}#cw17 .brand{font:21px Georgia,serif;letter-spacing:1px;color:var(--cw-gold)}#cw17 small{font-size:12px;color:var(--cw-muted)}#cw17 .status{margin-left:auto;font-size:12px;color:#bbd0ae}#cw17 .layout{display:grid;grid-template-columns:160px 1fr;min-height:580px}#cw17 aside{padding:16px 10px;background:#14191c;border-right:1px solid #3b4140}#cw17 input{width:100%;font-size:12px}#cw17 .category{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--cw-muted);margin:22px 9px 8px}#cw17 .item{display:block;width:100%;text-align:left;border:0;background:transparent;padding:11px 9px;font-size:13px;border-radius:4px}#cw17 .item[aria-pressed=true]{background:#37372f;color:var(--cw-gold)}#cw17 main{padding:20px;min-width:0}#cw17 h2{font:25px Georgia,serif;margin:0 0 4px}#cw17 .stats{display:flex;gap:24px;flex-wrap:wrap;margin:20px 0}#cw17 .stat{font-size:11px;color:var(--cw-muted)}#cw17 .stat strong{display:block;font-size:20px;font-weight:500;color:#f0e7d6;margin-top:4px;font-variant-numeric:tabular-nums}#cw17 .tools{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid #3b4140;padding-top:14px}#cw17 .ranges{display:flex;gap:4px}#cw17 .ranges button{padding:7px 10px;border:1px solid #545b55;border-radius:4px;background:#252c2e;font-size:12px}#cw17 .ranges button[aria-pressed=true]{background:#c6a168;color:#181d1f;border-color:#c6a168}#cw17 .label{display:flex;justify-content:space-between;flex-wrap:wrap;gap:5px;margin:18px 0 2px;font-size:13px}#cw17 svg{display:block;width:100%;height:150px}#cw17 .stock{height:100px}#cw17 .notice{font-size:12px;padding:10px 12px;background:#302d23;border-left:2px solid #c6a168;margin-top:14px;color:#e5d5b8}#cw17 .message{padding:60px 12px;min-height:290px;text-align:center}#cw17 .message strong{display:block;font:22px Georgia,serif;margin-bottom:12px}#cw17 .message span{display:block;max-width:360px;margin:auto;color:var(--cw-muted)}#cw17 footer{font-size:11px;line-height:1.8;margin-top:14px;padding-top:12px;border-top:1px solid #3b4140;color:var(--cw-muted)}#cw17 .no-match{padding:12px 8px;color:#c9c4b7;font-size:12px}#cw17 :focus-visible{outline:2px solid #e2ba7e;outline-offset:3px}#cw17 .legend{font-size:11px;color:#c3c5bb}#cw17 .legend b{color:var(--cw-gold);font-weight:500}#cw17 .disclaimer{font-size:11px;color:#b6bbb6;margin-top:9px}#cw17 .compact .layout{grid-template-columns:1fr}#cw17 .compact aside{display:flex;flex-wrap:wrap;gap:4px;padding:10px 16px;border-right:0;border-bottom:1px solid #3b4140}#cw17 .compact input{width:160px}#cw17 .compact .item{width:auto}#cw17 .compact .category{display:none}@media(max-width:600px){#cw17 .layout{grid-template-columns:1fr}#cw17 aside{display:flex;gap:4px;flex-wrap:wrap;border-right:0;border-bottom:1px solid #3b4140}#cw17 .item{width:auto;min-height:44px}#cw17 .category{display:none}#cw17 .status{margin-left:0}#cw17 main{padding:15px}#cw17 .stats{gap:14px}#cw17 .stat strong{font-size:18px}#cw17 .ranges button{min-height:44px}#cw17 input{font-size:16px}#cw17 .lab select{min-height:44px}}
+</style>
+<div class="lab" aria-label="Prototype controls"><span>SYNTHETIC UI STUDY</span><label>Scenario <select id="cw-scenario"><option value="adequate">Adequate history</option><option value="sparse">Sparse evidence</option><option value="empty">Observed empty supply</option><option value="gap">Collection gap</option><option value="unrecorded">Supported / no history</option><option value="unsupported">Unsupported item</option><option value="aged">Aged source data</option><option value="unusable">No usable dataset</option></select></label><label>Layout <select id="cw-layout"><option value="journal">Field journal</option><option value="compact">Compact ledger</option></select></label></div>
+<div class="window" aria-label="Copperwise addon history window">
+<header><span class="brand">COPPERWISE</span><small>EU · RP · Alliance*</small><span class="status" role="status">● Loaded data usable</span></header>
+<div class="layout"><aside><input type="search" aria-label="Search synthetic items" placeholder="Search items…"><div class="category">Trade goods</div><button class="item" data-item="0" aria-pressed="true">Peacebloom</button><button class="item" data-item="1" aria-pressed="false">Copper Ore</button><button class="item" data-item="2" aria-pressed="false">Linen Cloth</button><div class="no-match" hidden>No matching items in this sample catalog.</div></aside>
+<main><h2>Peacebloom</h2><small class="subtitle">Herb · observed asking prices per unit</small><div class="notice" role="status" hidden></div>
+<div class="content"><div class="stats"><div class="stat">Latest median buyout / unit<strong data-value="median"></strong></div><div class="stat">Middle 50% of buyout units<strong data-value="spread"></strong></div><div class="stat">All listed units<strong data-value="stock"></strong></div></div>
+<div class="tools"><small class="coverage"></small><div class="ranges" aria-label="History range"><button data-days="1" aria-pressed="false">24 hours</button><button data-days="7" aria-pressed="true">7 days</button><button data-days="16" aria-pressed="false">All retained</button></div></div>
+<div class="label"><span>Buyout unit price</span><span class="legend"><b>━ Median</b> &nbsp; ▰ Middle 50% spread</span></div><svg class="price" role="img" aria-label="Synthetic buyout median and price spread history"></svg>
+<div class="label"><span>Available stock</span><small>All units, including bid-only</small></div><svg class="stock" role="img" aria-label="Synthetic listed stock on the same time axis"></svg>
+<div class="disclaimer">Price spread describes listings, not confidence or completed sales.</div></div>
+<div class="message" hidden><strong></strong><span></span></div>
+<footer><div class="timestamps"></div><div>New history loads at login or user-initiated <code>/reload</code>.</div><div>Synthetic fixtures · provisional evidence and age states · *market mapping unverified</div></footer>
+</main></div></div>
+<script>
+(()=>{
+const r=document.getElementById('cw17'),q=s=>r.querySelector(s),all=s=>[...r.querySelectorAll(s)];
+const names=['Peacebloom','Copper Ore','Linen Cloth'],types=['Herb','Ore','Cloth'];
+const hour=3600000,now=Date.UTC(2026,10,14,17),end=now-38*60000;
+let item=0,days=7,scenario='adequate';
+const fmt=t=>new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Stockholm',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:false}).format(t);
+const coins=c=>{c=Math.round(c);const g=Math.floor(c/10000),s=Math.floor(c%10000/100),copper=c%100;return [g?g+'g':'',s?s+'s':'',copper?copper+'c':''].filter(Boolean).join(' ')||'0c';};
+function fixtures(){return Array.from({length:385},(_,i)=>{const m=Math.round([12400,8400,1840][item]*(1+.15*Math.sin(i*.18+item)+.05*Math.cos(i*.07)));return {t:end-(384-i)*hour,m,lo:Math.round(m*.84),hi:Math.round(m*1.19),stock:Math.round([2840,6120,8460][item]*(1+.24*Math.cos(i*.12)+.12*Math.sin(i*.21)))};});}
+function render(){
+const aged=scenario==='aged',last=end-(aged?48*hour:0),start=last-days*24*hour;
+let rows=fixtures().map(p=>({...p,t:p.t-(aged?48*hour:0)}));
+// The seven-day fixture intentionally has only 6d 8h of coverage.
+rows=rows.filter(p=>p.t>=start&&(days!==7||p.t>=last-152*hour));
+rows=rows.map(p=>({...p,missing:scenario==='gap'&&p.t>last-16*hour&&p.t<last-9*hour,empty:scenario==='empty'&&p.t>=last-8*hour}));
+const latest=rows[rows.length-1],blocked=['unrecorded','unsupported','unusable'].includes(scenario),sparse=scenario==='sparse';
+q('h2').textContent=scenario==='unsupported'?'Variant equipment':names[item];q('.subtitle').textContent=scenario==='unsupported'?'Unsupported item identity':types[item]+' · observed asking prices per unit';
+q('.status').textContent=scenario==='unusable'?'● No usable dataset':aged?'▲ Loaded source data aged':'● Loaded data usable';q('.status').style.color=scenario==='unusable'?'#eda8a0':aged?'#e3c080':'#bbd0ae';
+const notices={sparse:'Price estimate withheld: sparse evidence in this synthetic scenario. Available stock remains visible.',empty:'Market observed empty for the latest 8 hours: zero stock, no buyout price.',gap:'Missing collection observations: both graphs leave a gap.',aged:'Source data is 2 days 38 min old. Cached history remains available; age policy is provisional.'};
+q('.notice').hidden=!notices[scenario];q('.notice').textContent=notices[scenario]||'';
+q('.content').hidden=blocked;q('.message').hidden=!blocked;
+const messages={unrecorded:['No history for this item','This item is supported, but the loaded dataset contains no observations. Missing history is not zero supply.'],unsupported:['This item is not supported','Variant-specific equipment is not combined with ordinary trade goods. Search a supported herb, ore or cloth.'],unusable:['No usable dataset loaded','Export a usable dataset with the companion, then log in or use /reload to load it.']};
+if(blocked){q('.message strong').textContent=messages[scenario][0];q('.message span').textContent=messages[scenario][1];}
+q('[data-value="median"]').textContent=sparse?'Withheld':latest.empty?'No buyout price':coins(latest.m);
+q('[data-value="spread"]').textContent=sparse?'Withheld':latest.empty?'No buyout price':coins(latest.lo)+' – '+coins(latest.hi);
+q('[data-value="stock"]').textContent=(latest.empty?0:latest.stock).toLocaleString('en-GB');
+q('.coverage').textContent=days===7?'6d 8h coverage / 7d requested':days===1?'24h coverage':'16d retained coverage';
+q('.timestamps').textContent=scenario==='unusable'?'Source observation unavailable · import unavailable':`Dataset source observed ${fmt(last)} (${aged?'2d 38m':'38m'} old) · imported 14 Nov 17:48 (12m ago) · Europe/Stockholm (CET)`;
+all('[data-item]').forEach(b=>b.setAttribute('aria-pressed',Number(b.dataset.item)===item));
+all('[data-days]').forEach(b=>b.setAttribute('aria-pressed',Number(b.dataset.days)===days));
+if(blocked)return;
+draw(q('.price'),false);draw(q('.stock'),true);
+function draw(svg,stock){const width=svg.clientWidth;if(!width)return;const height=stock?100:150,left=48,right=width-8,top=14,bottom=height-25;
+const max=stock?Math.ceil(Math.max(...rows.map(p=>p.stock))/1000)*1000:Math.ceil(Math.max(...rows.map(p=>p.hi))/(item===2?1000:10000))*(item===2?1000:10000);
+const x=t=>left+(t-start)/(last-start)*(right-left),y=v=>bottom-v/max*(bottom-top);
+let out='';[0,.5,1].forEach(k=>{const yy=y(k*max);out+=`<line x1="${left}" y1="${yy}" x2="${right}" y2="${yy}" stroke="#343c3d"/><text x="0" y="${yy+4}" fill="#b6bbb6" font-size="11">${stock?(max*k).toLocaleString('en-GB'):coins(max*k)}</text>`;});
+let segments=[],segment=[];rows.forEach(p=>{if(p.missing||(!stock&&(p.empty||sparse))){if(segment.length)segments.push(segment);segment=[];}else segment.push(p);});if(segment.length)segments.push(segment);
+segments.forEach(seg=>{const line=seg.map((p,i)=>`${i?'L':'M'}${x(p.t)},${y(stock?(p.empty?0:p.stock):p.m)}`).join(' ');if(!stock){const band=seg.map((p,i)=>`${i?'L':'M'}${x(p.t)},${y(p.hi)}`).join(' ')+[...seg].reverse().map(p=>`L${x(p.t)},${y(p.lo)}`).join(' ')+'Z';out+=`<path d="${band}" fill="#b99253" opacity=".24"/>`;}out+=`<path d="${line}" fill="none" stroke="${stock?'#a9c0b5':'#e2ba7e'}" stroke-width="2"/>`;});
+if(sparse&&!stock)out+=`<text x="${(left+right)/2}" y="65" text-anchor="middle" fill="#d6c5a6" font-size="12">Estimate withheld</text>`;
+if(scenario==='gap')out+=`<text x="${Math.min(right-25,Math.max(left+25,x(last-12*hour)))}" y="11" text-anchor="middle" fill="#d6c5a6" font-size="11">Gap</text>`;
+if(scenario==='empty'&&stock)out+=`<circle cx="${x(last)}" cy="${y(0)}" r="3" fill="#a9c0b5"/><text x="${right-4}" y="${bottom-8}" text-anchor="end" fill="#d6c5a6" font-size="11">0 units observed</text>`;
+if(scenario==='empty'&&!stock)out+=`<text x="${right-4}" y="15" text-anchor="end" fill="#d6c5a6" font-size="11">No buyout price now</text>`;
+const count=width<420?2:3;for(let i=0;i<count;i++){const t=start+(last-start)*i/(count-1),label=days===1?new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Stockholm',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(t):new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Stockholm',day:'2-digit',month:'short'}).format(t);out+=`<text x="${x(t)}" y="${height-5}" text-anchor="${i===0?'start':i===count-1?'end':'middle'}" fill="#b6bbb6" font-size="11">${label}</text>`;}
+svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.innerHTML=out;svg.setAttribute('aria-label',`Synthetic ${stock?'stock':'buyout median and spread'} history, ${days} day range, ${scenario} scenario, Europe/Stockholm`);}
+}
+q('#cw-scenario').onchange=e=>{scenario=e.target.value;render();};
+q('#cw-layout').onchange=e=>{q('.window').classList.toggle('compact',e.target.value==='compact');render();};
+all('[data-item]').forEach(b=>b.onclick=()=>{item=Number(b.dataset.item);render();});
+all('[data-days]').forEach(b=>b.onclick=()=>{days=Number(b.dataset.days);render();});
+q('input').oninput=e=>{let shown=0;all('[data-item]').forEach(b=>{b.hidden=!b.textContent.toLowerCase().includes(e.target.value.toLowerCase());if(!b.hidden)shown++;});q('.no-match').hidden=shown>0;};
+q('input').onkeydown=e=>{if(e.key==='Enter'){const first=all('[data-item]').find(b=>!b.hidden);if(first)first.click();}};
+new ResizeObserver(render).observe(q('main'));render();
+if(globalThis.Tweak){const state={accent:'#e2ba7e',corners:7};const tweak=new Tweak({container:q('.window'),onChange:()=>{r.style.setProperty('--cw-gold',state.accent);q('.window').style.borderRadius=state.corners+'px';}});tweak.addColorPicker(state,'accent',{label:'Copper accent'});tweak.addSlider(state,'corners',{label:'Window corners',min:0,max:12,unit:'px'});}
+})();
+</script>
+</div>
+</body></html>

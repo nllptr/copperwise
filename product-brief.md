@@ -5,6 +5,15 @@
 **Initial environment:** macOS 26 on Intel; EU, RP ruleset, Alliance
 **Date:** 2026-11-13
 
+**Scope amendment, 2026-11-14:** The owner now wants competitive asking-price
+and cost comparisons to support quick, profitable selling. The
+[selling-context specification](.scratch/selling-context/spec.md) supersedes
+the trend-only/crafting-analysis deferrals below for lowest buyout, vendor sell
+value, recipe-based crafting cost and estimated crafting margin. These are
+observed-price comparisons, not guaranteed sales or realized-profit claims.
+Other feasibility gates and architecture decisions remain in force; the
+market-trends spec contains the later accepted login/`/reload` delivery model.
+
 ## 1. Purpose and audience
 
 Copperwise helps casual sellers understand auction-house asking prices and available stock without leaving the game. It aims for Auctionator-like simplicity and useful market context inspired by TradeSkillMaster.
