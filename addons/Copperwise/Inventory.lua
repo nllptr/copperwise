@@ -7,7 +7,12 @@ local settled = false
 
 local function money(value)
     if value == nil then return "unavailable" end
-    return GetCoinTextureString(value)
+    if type(GetCoinTextureString) == "function" then return GetCoinTextureString(value) end
+    if type(GetMoneyString) == "function" then return GetMoneyString(value) end
+    local gold = math.floor(value / 10000)
+    local silver = math.floor(value / 100) % 100
+    local copper = value % 100
+    return string.format("%dg %ds %dc", gold, silver, copper)
 end
 
 function CW.SelectedItem()
