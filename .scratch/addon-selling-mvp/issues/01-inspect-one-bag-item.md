@@ -28,3 +28,24 @@ settled bag snapshots, explicit native commodity queries and separate attempt /
 last-complete observation display. Target-client acceptance remains pending;
 see `addons/Copperwise/README.md` for the production workflow checklist and limits.
 The ticket remains open until actual client evidence verifies the acceptance list.
+
+### Production client evidence — 2026-11-15
+
+Owner screenshot and explicit native-AH comparison confirm the connected
+selection → user-initiated query → visible result journey for Rough Stone
+(2835). At displayed observation time 2026-11-15 00:47:43 CET, the result is
+complete: 1/3 requests, 19 covered rows, 2,465 covered units and lowest asking
+buyout 5 copper/unit. Owner confirms native AH price and supply match.
+Market: CAMWOW EU5 Realm 10 RP / Alliance / region 3.
+
+The same screenshot displays 18 owned units, vendor sell 2 copper/unit and
+36 copper total. These vendor/bag values are visible evidence only; independent
+native bag/vendor comparisons and split/move settling checks remain pending.
+The earlier missing-coin-formatter crash was fixed in 8e05004; the subsequent
+screenshots verify successful money rendering and item selection.
+
+Current run build/interface/platform, enabled addons and UI scale have not been
+recorded. Earlier probe build evidence is not substituted for this run. Remaining
+acceptance includes metadata/zero/empty/partial/failure paths, cancellation and
+late responses, AH closure/recovery, coexistence and retained-result behavior.
+This confirms one production sample, not full ticket completion.
