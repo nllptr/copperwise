@@ -2,82 +2,102 @@
 
 ## Current outcome
 
-**Revised login/reload probe implemented; actual in-client acceptance pending.**
-The owner explicitly replaced continuous in-session imports with login and
-user-initiated `/reload` imports. The previous repeated-load experiment was not
-accepted in-client and is not evidence for the revised gate. Dependent full
-implementation remains gated.
+**Pass: login and user-initiated `/reload` imports verified in the target client.**
+The owner observed initial revision A=15, then B=34 and C=44 after two explicit
+reloads. Independently inspected newer exports did not replace loaded B or C
+before a reload. Source, download, export and import times remain separate, and
+the addon reports companion connection/newer-export state as unknown.
 
-## Observed local environment
+Ticket 01 is complete. This is a synthetic capability probe, not a production
+transport contract, market-data verification or approval of all Phase 0 work.
+Other Phase 0 gates still apply.
 
-Platform and installed client rechecked on 2026-11-14:
+## Environment and setup, 2026-11-14
 
-- macOS 26.6.2, build 25G83, x86_64.
+- Actual running client chat: version 1.60.1, build 70938, interface 16001.
+- Local host: macOS 26.6.2, build 25G83, x86_64 (Intel).
 - Installed `.build.info`: active EU `wowf`, version 1.60.1.70938.
-- Installed Auctionator: version 346, TOC includes interface 16001.
-- Go: go1.26.5 darwin/amd64.
+- Installed Auctionator version 346; it is not a dependency of this probe.
+- Go toolchain: go1.26.5 darwin/amd64.
 
-The probe uses interface 16001 as an initial candidate. Record `GetBuildInfo()`
-from the running client below; installed files do not establish runtime acceptance.
+The owner ran the real backend and companion following the
+[repeatable procedure](README.md), with exports into the installed Forever
+AddOns directory. CopperwiseDeliveryProbe depends on CopperwiseDeliveryData;
+both use ordinary addon loading. The old installed repeated-load experiment
+initially lacked `/cwprobe` and marked the data addon LoadOnDemand. Installed
+Probe.lua and both manifests were updated from the repository, preserving the
+companion's Data.lua. The owner then supplied initialization output following
+full-restart/login instructions and later explicitly identified each reload.
 
-## Implementation and observable state
+The probe captures loaded data at PLAYER_LOGIN; `/cwprobe` only reports that
+snapshot. No automatic reloads, load-on-demand polling, client modifications,
+input automation or protections bypasses were used. File export alone was never
+accepted as proof of in-client import.
 
-The companion writes a numeric payload into an ordinary, enabled data addon.
-The probe requires that addon as a dependency, captures the already loaded data
-at `PLAYER_LOGIN`, and records the actual client build and import time. There
-are no load-on-demand calls, file polling, automatic reloads, client modifications,
-network interception, or input automation. `/cwprobe` reports the captured snapshot
-and its current source age; it neither rereads files nor imports data.
+## Runtime evidence
 
-The companion records source observation time, download completion, and export
-write start separately. These timestamps can coincide at one-second resolution.
-The addon records local import time separately. Payload timestamps are companion
-claims, not independent verification. These fixtures contain no market listings.
-The addon cannot observe newer exports, backend failures, or current companion
-connectivity. It reports connection and newer-export state as unknown. Successful
-companion exports do not claim addon receipt.
-
-[TSM's own refresh documentation](https://support.tradeskillmaster.com/en_US/addon/why-does-my-addon-keep-telling-me-no-recent-auctiondb-scan-data-found)
-describes using `/reload` to populate newer desktop pricing data. This informs the
-chosen workflow; it establishes neither target-client runtime compatibility nor
-Blizzard approval of Copperwise.
-
-## Runtime evidence to complete
-
-Follow the README's login, unchanged, reload, unchanged, reload sequence:
+The chat lines below were supplied directly by the owner. Only relevant probe
+output is retained; unrelated game/chat content is omitted. Export evidence was
+read directly from the installed Data.lua (and cache.json for revision 31).
 
 | Observation | Actual result |
 | --- | --- |
-| Running client version / build / interface | Pending |
-| Platform build / architecture for acceptance run | Pending |
-| Login: revision A and source / download / export / import times | Pending |
-| Newer companion export while A remains loaded (`/cwprobe`) | Pending |
-| First user `/reload`: revision B, newer than A | Pending |
-| Newer companion export while B remains loaded (`/cwprobe`) | Pending |
-| Second user `/reload`: revision C, newer than B | Pending |
-| Optional companion-stop behavior | Pending |
-| Errors / limitations | Pending |
-| Gate verdict | Pending actual observations |
+| Initial login import A | revision 15; source=1794649133, download/export=1794649140, import=1794649145 |
+| A stays loaded | Subsequent status retained 15 and import 1794649145, source age rising from 12 to 185 seconds |
+| First explicit reload imports B | revision 34; source=1794649418, download/export=1794649430, import=1794649432 |
+| Newer export while B remains loaded | Inspected export 37 (source=1794649463, download/export=1794649464), then fresh owner status still showed B=34 and import=1794649432 |
+| Second explicit reload imports C | revision 44; source=1794649568, download/export=1794649570, import=1794649573 |
+| Newer export while C remains loaded | Inspected export 47 (source=1794649613, download/export=1794649624), then fresh owner status still showed C=44 and import=1794649573 |
+| Optional companion-stop behavior | Not exercised; not required for this gate |
+| Errors | Old installed probe corrected before acceptance; no runtime error reported in the revised import sequence |
+
+Relevant owner-provided chat:
+
+```text
+t=124624.131 client=1.60.1 build=70938 interface=16001 evidenceSession=4
+t=124624.131 LOADED revision=15 observedAt=1794649133 downloadedAt=1794649140 exportedAt=1794649140 importedAt=1794649145 sourceAgeSeconds=12
+t=124635.529 LOADED revision=15 observedAt=1794649133 downloadedAt=1794649140 exportedAt=1794649140 importedAt=1794649145 sourceAgeSeconds=23
+t=124797.522 LOADED revision=15 observedAt=1794649133 downloadedAt=1794649140 exportedAt=1794649140 importedAt=1794649145 sourceAgeSeconds=185
+t=124910.169 client=1.60.1 build=70938 interface=16001 evidenceSession=5
+t=124910.169 LOADED revision=34 observedAt=1794649418 downloadedAt=1794649430 exportedAt=1794649430 importedAt=1794649432 sourceAgeSeconds=14
+t=125008.71 LOADED revision=34 observedAt=1794649418 downloadedAt=1794649430 exportedAt=1794649430 importedAt=1794649432 sourceAgeSeconds=111
+t=125051.428 client=1.60.1 build=70938 interface=16001 evidenceSession=5
+t=125051.428 LOADED revision=44 observedAt=1794649568 downloadedAt=1794649570 exportedAt=1794649570 importedAt=1794649573 sourceAgeSeconds=5
+t=125056.649 LOADED revision=44 observedAt=1794649568 downloadedAt=1794649570 exportedAt=1794649570 importedAt=1794649573 sourceAgeSeconds=9
+t=125208.082 LOADED revision=44 observedAt=1794649568 downloadedAt=1794649570 exportedAt=1794649570 importedAt=1794649573 sourceAgeSeconds=160
+```
+
+The addon also reported companion connection UNKNOWN, newer exports UNKNOWN,
+and refresh only at login or user /reload. It did not claim to know the separately
+inspected exports.
+
+## Interpretation and limits
+
+The imports 15 -> 34 -> 44 establish initial loading and two newer revisions at
+explicit reload boundaries. Ordered export/status observations establish that
+loaded B and C stay unchanged despite newer exports. Source age increases while
+import time remains fixed. Download/export timestamps can coincide at one-second
+resolution; they remain distinct fields. Synthetic source timestamps and payload
+metadata are probe claims, not independently verified upstream observations.
+
+The initial A status was sampled before the independent inspection of export 31
+(source=1794649373, download/export=1794649384). The owner's later before-reload
+paste repeated those old status lines; it did not establish an ordered
+export-then-status check for A. That limitation is retained rather than claiming
+it passed. The same unchanged-loaded-data capability was subsequently established
+with ordered observations for both B (after export 37) and C (after export 47).
+
+Evidence is supplied chat and direct file observations, not a recording of all
+client activity. Companion-stop behavior, outages, large payloads and rendering
+performance are not established here. SavedVariables can additionally preserve
+probe observations when the owner logs out; closure does not depend on another
+log export. The earlier repeated-load experiment is not used as gate evidence.
 
 ## Repository verification
 
-- Timestamp check failed against the old export, then passed after separate
-  download and export fields were added.
-- Targeted CLI integration test and full `go test ./... -count=1` passed with
-  permission to open the local loopback HTTP listener.
-- `go build`, `go vet ./...`, LuaJIT bytecode compilation (syntax check only),
-  and `git diff --check` passed.
-- Independent code-review standards axis: zero findings.
-- Independent code-review spec axis: zero actionable deviations; actual
-  target-client acceptance remains pending.
-
-The CLI integration test covers only backend publication, caching, export contents,
-and separate timestamps. Syntax checks and review are not game-client acceptance.
-
-## If the revised import gate fails
-
-First distinguish installation/export errors from a client capability failure;
-record actual errors and builds. Do not attempt to bypass restrictions or restore
-repeated load-on-demand polling. A companion-only viewer or more restrictive
-restart-based imports would change the agreed experience and require the owner's
-explicit decision. Report evidence before proceeding to dependent implementation.
+Existing CLI integration tests cover backend publication, companion caching,
+export contents and separate timestamps. Targeted/full Go tests, build, vet,
+LuaJIT syntax compilation and diff checks passed during probe implementation.
+Those checks establish no in-client import behavior; the runtime observations
+above provide that evidence. No implementation change was needed for this run;
+only installed files were brought up to date and evidence was recorded.
