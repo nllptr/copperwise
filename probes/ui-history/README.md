@@ -1,5 +1,11 @@
 # Addon history-window design study
 
+Scope update: the [integrated workflow spec](../../.scratch/selling-context/spec.md)
+now includes Inventory/Crafting tabs, queues, material ownership and native AH
+scanning/buying/posting. This disposable prototype still illustrates the earlier
+history screen only. Its checks do not establish those newer workflows. Use the
+integrated spec as current direction; the feedback below is historical context.
+
 Ticket 17: disposable browser prototype, synthetic data only. Open `index.html`
 in a browser, or serve this directory with `python3 -m http.server 8017` and
 visit `http://localhost:8017`. No build, backend, credentials or dependencies.

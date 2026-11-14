@@ -5,13 +5,17 @@ Labels: ready-for-agent
 
 ## Scope amendment — 2026-11-14
 
-The [competitive asking prices and crafting margin spec](../selling-context/spec.md)
-records the owner's expanded direction from ticket 17 feedback. It takes
-precedence over trend-only and crafting-analysis/estimated-margin deferrals
-below for lowest-buyout, vendor-value and recipe-cost comparisons. Other scope,
-delivery and feasibility decisions remain in force. Existing implementation
-tickets need reconciliation; their original acceptance criteria alone do not
-complete the expanded scope.
+The [inventory, crafting and auction-house workflow spec](../selling-context/spec.md)
+is the integrated current scope for the owner's expanded direction. It takes
+precedence over the trend-only, crafting, queue, buying/posting and local-scan
+exclusions below for the specific workflows it describes: two main tabs,
+lowest-buyout/vendor/craft-cost comparisons, sale and craft queues, queued
+ingredient purchasing, marked-item posting and native AH scanning. Native
+Copperwise integration is preferred, Auctionator is a fallback. Other scope,
+companion import boundaries and feasibility decisions remain in force. Existing
+implementation tickets need reconciliation; their original acceptance criteria
+alone do not complete the expanded scope. Local scans do not replace imported
+history or independently satisfy full pipeline feasibility.
 
 ## Problem Statement
 

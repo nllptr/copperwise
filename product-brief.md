@@ -5,14 +5,21 @@
 **Initial environment:** macOS 26 on Intel; EU, RP ruleset, Alliance
 **Date:** 2026-11-13
 
-**Scope amendment, 2026-11-14:** The owner now wants competitive asking-price
-and cost comparisons to support quick, profitable selling. The
-[selling-context specification](.scratch/selling-context/spec.md) supersedes
-the trend-only/crafting-analysis deferrals below for lowest buyout, vendor sell
-value, recipe-based crafting cost and estimated crafting margin. These are
-observed-price comparisons, not guaranteed sales or realized-profit claims.
-Other feasibility gates and architecture decisions remain in force; the
-market-trends spec contains the later accepted login/`/reload` delivery model.
+**Scope amendment, 2026-11-14:** The
+[integrated workflow specification](.scratch/selling-context/spec.md) is the
+current scope for the owner's expanded direction: Inventory and Crafting tabs,
+lowest-buyout/vendor/crafting-cost comparisons, estimated margins, sale and craft
+queues, ingredient shopping, marked-item posting and native AH scanning. It
+supersedes the corresponding trend-only, crafting-analysis, execution and
+community-scan deferrals below only for these workflows. Prefer Copperwise's
+own AH tab; Auctionator is a fallback. Automatically subtract owned materials
+with visible bags/bank breakdowns; other-character tracking remains deferred.
+These comparisons support vendor/post/wait decisions without guaranteeing
+sales, forecasts or realized profit. Local scans provide recent observations;
+the backend/companion provides accumulated offline-period history. Other
+feasibility gates remain in force; companion imports use the later accepted
+login/`/reload` model in the market-trends spec. This brief's older sections
+should be read with those explicit amendments.
 
 ## 1. Purpose and audience
 
@@ -23,6 +30,12 @@ V1 is a trend viewer for the project owner. Initial releases are internal only. 
 The player should be able to select an item and understand its observed price range, movement, and available-stock history. The product describes listings, not confirmed sales, sale probability, future prices, or realized profit. The player interprets recurring daily, weekly, or monthly patterns; Copperwise does not infer claims such as “usually cheapest on Thursdays.”
 
 ## 2. Product principles
+
+- Owner clarification (2026-11-14): aim for Auctionator's simplicity with the
+  decision-making depth sought in TradeSkillMaster. This is not feature parity:
+  use plain labels, useful defaults and clear queues instead of mandatory
+  pricing formulas or complex rule configuration. Keep calculations explainable
+  and necessary uncertainty visible.
 
 - Simple, understandable presentation with minimal configuration.
 - Show data age, actual history coverage, missing observations, and meaningful status details.

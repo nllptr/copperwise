@@ -28,6 +28,66 @@ Focus on the addon history window first. Companion configuration and diagnostics
 
 ## Comments
 
+2026-11-14: Second `to-spec` synthesis integrates the expanded direction into
+the [current workflow spec](../../selling-context/spec.md): Inventory/Crafting
+tabs, revised price references, owned-material visibility, queues and native AH
+workflows. Use it as the current scope rather than reconstructing decisions
+from the historical comments below. The owner confirmed the existing pipeline
+test boundary plus extended actual-client checks for native workflows. The
+browser prototype remains the earlier screen; new UX and client acceptance
+are not claimed complete.
+
+2026-11-14 — Owner's product positioning: Auctionator is valued for simplicity;
+TradeSkillMaster for power, but its complexity is the gap Copperwise should
+close. Favor understandable defaults, plain labels, clear costs and queues over
+expert configuration. This is a usability goal for the agreed workflows, not a
+request for full TSM feature parity. Recorded in the broader spec and brief.
+
+2026-11-14 — Owner confirms automatically subtracting owned ingredients from
+the crafting shopping list, with visible location flags/breakdowns for bags
+versus bank. Keep owned amounts and remaining-to-buy amounts distinct, with
+withdrawal/transfer needs visible. Bank observation freshness and subtraction
+eligibility still need definition. Tracking holdings of other characters,
+including a banking alt, is explicitly a later decision, not an accepted
+implementation commitment. Record this in the expanded queue UX; it is not
+implemented by the current prototype.
+
+2026-11-14 — Owner supersedes Auctionator-first preference: prefer a standalone
+Copperwise auction-house tab; Auctionator is a fallback if native integration
+is difficult. Also extend Crafting with a "to craft" queue whose recipes drive
+ingredient purchasing at the auction house. Keep craft/output counts, ingredient
+sources, estimated versus actual prices, and explicit purchasing actions clear.
+This extends purchasing/planning scope for queued ingredients; it does not
+establish automatic buying/crafting or target-client feasibility. Quantity,
+ownership subtraction, partial completion and queue persistence need design.
+Latest direction is recorded in the selling-context spec; prototype work has
+not yet implemented either queue or the auction-house tab.
+
+2026-11-14 — Owner extends Inventory UX with "mark for sale" intent while
+browsing owned items; at the auction house these marked items should feed a
+rapid posting workflow. Research Auctionator's actual supported selling-list
+integration first. A shopping-list API is not proof of a selling-list API. If
+unsuitable, explore a Copperwise auction-house tab using supported posting APIs
+and required user actions. This reopens the prior posting exclusion for this
+flow; no API, automatic posting or compatibility is established. Include bag
+availability versus bank holdings, quantities, current price review and posting
+outcomes in follow-up design. The broader direction is recorded in the
+selling-context spec; this prototype still does not implement the selling queue.
+
+2026-11-14 — Owner's main-window UX direction: set tooltip exploration aside
+for now. Explore two tabs: Inventory lists items owned in bags, potentially
+including bank holdings; Crafting lists recipes for the character's professions
+and offers an option to include unlearned recipes to investigate acquiring them
+for profit. Selecting an item/recipe opens its market data. Both tabs should
+support ranking by estimated profitability. This extends the original search-
+first browsing spike; bag/bank/profession/recipe-catalog access has not been
+established by ticket 03. Do not imply all bank data is current or that an
+unlearned recipe is craftable. Inventory profit lacks a recorded acquisition
+cost: explore auction value above vendor value with an explicit label rather
+than silently equating it to actual profit. Ranking basis (per unit versus owned
+stack/recipe output), incomplete-input handling and recipe acquisition metadata
+remain design questions. No implementation or owner acceptance is claimed.
+
 2026-11-14: Broader owner feedback is now synthesized in the
 [selling-context specification](../../selling-context/spec.md), labelled
 ready-for-agent. Use that amendment when revising the synthetic spike's price,
