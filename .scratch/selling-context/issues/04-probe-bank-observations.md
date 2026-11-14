@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** in-progress — standalone probe implemented; target-client bank evidence pending
+**Status:** in-progress — runtime freshness cycle observed; visual count/coverage confirmation pending
 
 **Labels:** ready-for-agent
 
@@ -12,8 +12,8 @@
 
 - [ ] Display sample bank counts separately from bag counts and record the client/platform build and bank-access conditions.
 - [ ] Observe a sample deposit/withdrawal and document when the bank count can actually be refreshed.
-- [ ] After leaving bank access and after a user reload where applicable, distinguish confirmed, cached and unknown counts and expose the last observation time.
-- [ ] Record limitations without selecting a subtraction policy or claiming access to unseen or other-character holdings.
+- [x] After leaving bank access and after a user reload where applicable, distinguish confirmed, cached and unknown counts and expose the last observation time.
+- [x] Record limitations without selecting a subtraction policy or claiming access to unseen or other-character holdings.
 
 ## Scope and verification
 
@@ -37,3 +37,11 @@ deposit/withdrawal, close/reload/reopen and coverage verification checklist.
 Classic bank container IDs and event behavior remain hypotheses until observed
 in the target client. [Runtime report](../../../probes/bank/REPORT.md) is pending;
 no acceptance checkbox is passed by repository checks.
+
+2026-11-14: Owner-provided target-client output now demonstrates unknown before
+access, Peacebloom deposit/withdrawal in bank bag 6, cached counts with unchanged
+observation time after close/reload, and refreshed confirmation after reopening.
+Evidence and timestamps are recorded in the runtime report. Initial bank-bag
+capacity changes from zero to 48 slots during loading, so early `confirmed`
+reads do not prove completeness. Independent visual count and capacity
+confirmation remains pending; S04 is not yet closed.
