@@ -79,3 +79,11 @@ for this sample, alongside the previously confirmed cursor-held withholding.
 Owner confirms the native vendor sell tooltip matches Copperwise for Rough
 Stone: 2 copper/unit and 36 copper for 18 units. The sample's vendor unit and
 owned-quantity total comparison passes.
+
+Owner ran the AH-closure check with the corrected modern API macro,
+`/run Copperwise.Scan(); C_AuctionHouse.CloseAuctionHouse()`, and confirms
+"it's cancelled" after the instruction to wait several seconds. AH closure
+produces a cancelled attempt for this run. The initial macro used unavailable
+global `CloseAuctionHouse()` and errored; that failed operator instruction is
+not counted as closure evidence. Preservation of the prior observation in the
+closure case has not been explicitly confirmed.
