@@ -111,3 +111,12 @@ identical native keys without adding supply and withholds conflicting keys
 from commodity estimates rather than aborting unrelated market collection.
 Repeated/conflicting counts are visible in the retained full-scan summary.
 This fix requires a new target-client scan; no full-scan pass is claimed yet.
+
+Owner subsequently confirms, after duplicate-summary fixes through 597d9d0:
+"scan worked and i can see ah prices in the /cw window". The revised connected
+journey from full scan in the native Copperwise AH tab to retained-price display
+in standalone Inventory passes for this run. Final summary count, duplicate /
+conflict counts and independent native price/supply comparison for the new full
+scan have not yet been supplied. Reload/logout persistence, current build and
+the revised full collector's cancellation/coexistence paths remain pending;
+earlier selected-item checks do not automatically pass the new collector.
