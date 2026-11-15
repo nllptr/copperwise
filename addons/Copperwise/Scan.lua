@@ -361,6 +361,7 @@ frame:SetScript("OnEvent", guard(function(_, event, argument)
         if kind == "browse" then full = C_AuctionHouse.HasFullBrowseResults
         elseif kind == "owned" then full = C_AuctionHouse.HasFullOwnedAuctionResults
         elseif kind == "bids" then full = C_AuctionHouse.HasFullBidResults
+        elseif kind == "replicate" then full = function() return true end -- The replication completion event.
         elseif kind == "search" then
             local key = type(argument) == "table" and argument
                 or (C_AuctionHouse.MakeItemKey and C_AuctionHouse.MakeItemKey(argument,0,0,0))

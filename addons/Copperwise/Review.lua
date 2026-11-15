@@ -115,11 +115,12 @@ local function readPrice()
     return whole(price) and price or nil
 end
 
-local function editTerms()
+local function editTerms(priceEdited)
     if not selected then return end
     local draft = drafts[selected]
     if not draft then return end
-    draft.quantity, draft.price, draft.edited = tonumber(quantityInput:GetText()), readPrice(), true
+    draft.quantity, draft.price = tonumber(quantityInput:GetText()), readPrice()
+    if priceEdited then draft.edited = true end
     CW.RenderReview()
 end
 
@@ -320,7 +321,7 @@ function CW.SetupReview(parent)
     priceInputs = {}
     local coins = {"Gold", "Silver", "Copper"}
     for i = 1, 3 do
-        priceInputs[i] = input(detail, 86+(i-1)*66, -110, 45, i==1 and 6 or 2, editTerms)
+        priceInputs[i] = input(detail, 86+(i-1)*66, -110, 45, i==1 and 6 or 2, function() editTerms(true) end)
         local coin = detail:CreateTexture(nil, "ARTWORK")
         coin:SetSize(14,14); coin:SetPoint("TOPLEFT", 133+(i-1)*66, -114)
         coin:SetTexture("Interface\\MoneyFrame\\UI-" .. coins[i] .. "Icon")
@@ -360,15 +361,16 @@ function CW.SetupReview(parent)
     message = label(panel, 240, -8, 320)
     message:ClearAllPoints(); message:SetPoint("BOTTOMLEFT", 240, 7)
     reconcileButton = button(panel, "Reconcile post", 0,0,125,function()
-        StaticPopup_Show("COPPERWISE_RECONCILE_POST")
+        local description, token = CW.PendingPostDetails()
+        StaticPopup_Show("COPPERWISE_RECONCILE_POST", description, nil, token)
     end)
     reconcileButton:ClearAllPoints(); reconcileButton:SetPoint("BOTTOMRIGHT", -12, 6)
     StaticPopupDialogs.COPPERWISE_RECONCILE_POST = {
-        text="Inspect native Auctions and bags for Copperwise's pending post. Count as posted reduces the unchanged reviewed intent; Keep intent clears the blocker without reducing intent. Never retry a posted listing.",
+        text="%s\n\nInspect native Auctions and bags for Copperwise's pending post. Count as posted reduces the unchanged reviewed intent; Keep intent clears the blocker without reducing intent. Never retry a posted listing.",
         button1="Count as posted", button2="Cancel", button3="Keep intent",
-        OnAccept=function() CW.ResolvePost(true) end,
+        OnAccept=function(_, token) CW.ResolvePost(true, token) end,
         OnCancel=function() end,
-        OnAlt=function() CW.ResolvePost(false) end, timeout=0, whileDead=true, hideOnEscape=true, preferredIndex=3,
+        OnAlt=function(_, token) CW.ResolvePost(false, token) end, timeout=0, whileDead=true, hideOnEscape=true, preferredIndex=3,
     }
     panel:HookScript("OnShow", function() CW.OpenPosting(); CW.RenderReview() end)
     panel:HookScript("OnHide", CW.DiscardReview)

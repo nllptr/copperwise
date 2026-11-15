@@ -151,8 +151,14 @@ function CW.PostReviewedItem(review)
     wanted = true
 end
 
-function CW.ResolvePost(posted)
-    if not pending then return end
+function CW.PendingPostDetails()
+    if not validLedger(pending) then return "Unsupported pending-post data is preserved.", pending end
+    return "Item " .. pending.id .. " · " .. pending.quantity .. " units · "
+        .. pending.price .. " copper/unit · duration " .. ({2,8,24})[pending.duration] .. "h", pending
+end
+
+function CW.ResolvePost(posted, reviewedPending)
+    if not pending or pending ~= reviewedPending then return end
     if not validLedger(pending) then
         notice = "Unsupported or malformed pending-post data preserved; manual recovery required."; changed(); return
     end
