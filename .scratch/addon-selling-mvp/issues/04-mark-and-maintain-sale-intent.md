@@ -111,3 +111,20 @@ for every step. Split restoration after reload, logout, character isolation,
 zero-holding shortages and destination preservation after price changes remain
 unverified. The earlier owner-confirmed quantity restoration after reload
 remains valid evidence for the prior version. Ticket acceptance stays pending.
+
+### Split reload acceptance and scan warning correction — 2026-11-15
+
+Owner confirms the requested reload check passes: 6 unmarked / 5 AH-marked
+survives reload, with each portion's totals still using its own quantity.
+This settles the revised split-quantity reload case; logout and other remaining
+acceptance cases are not inferred.
+
+Owner requests one outdated-scan warning icon in Inventory instead of **!** on
+every AH button. Complete scans replace the whole compatible-market snapshot,
+so all retained prices share its timestamp. Implemented one top-of-window icon
+and age label with tooltip for source time, market, threshold and refresh action.
+It uses the existing strict configurable threshold and remains independent of
+selection/destination. Removed row markers and duplicate selected-item warnings;
+no scan merging or storage changes. Existing freshness regression checks now
+observe the shared window warning, including Vendor/unavailable selections.
+Client verification of the revised warning remains pending.

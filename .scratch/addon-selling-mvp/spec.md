@@ -341,3 +341,17 @@ holdings, intended units, coverage and shortages distinct. An intent above
 current bags retains its full planned quantity and shortage, with zero upper
 remainder. Editing or changing observed bags recalculates the split; no saved
 schema change or silent intent change is needed.
+
+### Full-scan freshness warning — 2026-11-15
+
+Owner confirmed the partial quantity split and portion-specific totals survive
+reload. Owner then requested one Inventory-window warning icon for outdated
+market data, replacing per-item exclamation marks: successful scans replace the
+entire market snapshot, so all retained item prices share a source timestamp.
+Use the compatible market's last complete scan time and existing configurable
+threshold (default 60 minutes, strictly exceeded). The warning is independent
+of selected item, destination and current holdings. Hover explains source time,
+market, threshold and refresh action. Missing compatible scans show existing
+unavailable states instead of an invented stale scan. Failed/cancelled scans
+continue to use the retained complete snapshot's age. This supersedes earlier
+per-AH-button stale warnings. No scan merging or incremental refresh is added.

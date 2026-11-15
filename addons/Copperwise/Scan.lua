@@ -26,6 +26,14 @@ local function cache()
     return key and CW.markets and CW.markets[key]
 end
 
+-- One complete scan supplies every retained item price in this market.
+function CW.ScanSummary()
+    local snapshot = cache()
+    if snapshot then
+        return {observedAt=snapshot.observedAt, context=snapshot.context, count=snapshot.count}
+    end
+end
+
 -- Inventory only compares native commodities; full-market collection also retains
 -- other native keys, without collapsing equipment variants into a bag item ID.
 function CW.ObservationFor(id)

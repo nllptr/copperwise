@@ -73,14 +73,18 @@ after the entire chain succeeds. Add behavior checks for the concrete schema
 change at the login/Inventory boundary. No account schema change is needed yet.
 Unsupported versions, malformed data and failed upgrades leave the saved data
 intact and disable market reads/scans with a visible explanation.
-AH row buttons show an **!** warning only when the original observation is
-older than the threshold (default 60 minutes); exactly 60 minutes is fresh.
+Inventory shows one warning icon and **Market scan is outdated** above the list
+when the retained complete scan is older than the threshold (default 60 minutes);
+exactly 60 minutes is fresh. Every price in a complete market scan shares the
+same source time, so individual rows carry no stale marker.
 Use `/cw stale 30` to set a positive threshold in minutes for this character,
 or `/cw stale` to see the current setting and usage. Settings survive reload
-and logout; invalid input preserves the previous value. Vendor recommendations
-and unavailable comparisons have no stale warning. The warning updates while
+and logout; invalid input preserves the previous value. The single warning is
+independent of selection and destination, including Vendor-only or empty bags.
+Hover it for the scan source time, market, threshold and refresh instructions.
+It is absent when no compatible complete scan is available. It updates while
 Inventory is open and never changes a recommendation or source timestamp.
-The same warning appears on the AH destination marking control.
+Failed or cancelled refreshes leave the warning based on the prior complete scan.
 
 ## Actual-client acceptance
 
@@ -126,10 +130,11 @@ are supporting checks only.
    turn missing buyout into zero. Verify unavailable/known-zero vendor metadata.
 
 9. With an AH-recommended commodity selected, use `/cw stale 0.01` on a scan
-   older than one second. Confirm **!** on its AH row button, an age warning in
-   its tooltip and a warning in its detail. Use `/cw stale 60` to restore the default; warnings
-   disappear if the observation is within an hour. Confirm Vendor recommendations
-   have no warning. Reload and use `/cw stale` to confirm the chosen setting.
+   older than one second. Confirm one warning icon and “Market scan is outdated”
+   above the list, with no per-row **!**. Hover for scan time, market, threshold
+   and Full scan instructions. Select AH, Vendor or unavailable rows: the shared
+   warning must remain the same. Use `/cw stale 60` to restore the default; it
+   disappears if the observation is within an hour. Reload and use `/cw stale` to confirm the chosen setting.
    Exact threshold boundaries are covered by the synthetic checks below.
 
 No posting or other transaction is performed by this version.
@@ -182,8 +187,8 @@ Each compact inventory row has a separate **AH** or **Vendor** button beside
 its name, owned quantity and total comparison value. Click that button to mark
 the currently observed bag units without changing the selected detail. The
 button follows the approved net-AH/vendor comparison and is absent when metadata
-or either comparison is missing, or while bag holdings settle. An AH **!** and
-its tooltip warn about stale prices.
+or either comparison is missing, or while bag holdings settle. The single
+window warning indicates when the retained complete scan is outdated.
 
 Marked rows move below unmarked inventory into **Marked for sale**. Their
 button reads **AH ×** or **Vendor ×**; click it to unmark and return the item to
@@ -226,8 +231,8 @@ Record build, platform, realm/faction/region and UI scale. Run the production
 addon with probes disabled. Repository checks do not pass these cases.
 
 1. With retained prices and multiple stacks, compare an unmarked commodity's
-   net AH/vendor values. Confirm its row button names the preferred destination,
-   including a stale-price warning where applicable. Missing comparisons and
+   net AH/vendor values. Confirm its row button names the preferred destination.
+   Confirm the window-level stale-scan warning where applicable. Missing comparisons and
    unsupported items must have no destination button.
 2. Select a different row first, then click the commodity's AH/Vendor button.
    Confirm intended units equal its bag quantity, the row moves below inventory

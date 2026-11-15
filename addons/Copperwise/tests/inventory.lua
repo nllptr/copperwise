@@ -28,8 +28,9 @@ local function inventory(items, prices, character)
     function methods:CreateTexture() return widget("Texture") end
     function methods:Show() self.shown = true end
     function methods:Hide() self.shown = false end
-    env.CreateFrame = function(kind)
+    env.CreateFrame = function(kind, name)
         local value = widget(kind)
+        if name then env[name] = value end
         value.TitleText = widget("FontString")
         state.frames[#state.frames+1] = value
         return value
@@ -198,39 +199,43 @@ test("ranking compares net AH proceeds with vendor totals rather than gross aski
 end)
 
 
-test("AH recommendations warn strictly after the default hour", function()
+test("the window warns about the full scan strictly after the default hour", function()
     local ui = inventory({{id=1, name="AH", sell=1}}, {[1]=100})
     ui.now = 4500 -- retained source is 900
     ui:refresh()
-    assert(not ui:rows()[1].toggle.help:find("AH price exceeds", 1, true))
+    assert(not ui.env.CopperwiseScanWarning.shown)
     ui.now = 4501
     ui:refresh()
-    contains(ui:rows()[1].toggle.help, "AH price exceeds")
-    contains(ui:select(1), "Warning: AH price exceeds the stale threshold (60 minutes).")
+    assert(ui.env.CopperwiseScanWarning.shown)
+    contains(ui.env.CopperwiseScanWarning.message.text, "Market scan is outdated (60 min)")
+    contains(ui.env.CopperwiseScanWarning.help, "Warning threshold: 60 minutes.")
+    assert(not ui:rows()[1].toggle.text:find("!", 1, true))
+    assert(not ui:select(1):find("Warning:", 1, true))
 end)
 
 test("stale configuration survives login and rejects invalid input without changing intent", function()
     local character = {saleIntent={[1]=3}}
     local ui = inventory({{id=1, name="AH", sell=1}}, {[1]=100}, character)
     ui:command("stale 1")
-    contains(ui:rows()[1].toggle.help, "AH price exceeds")
+    assert(ui.env.CopperwiseScanWarning.shown)
     assert(character.staleMinutes == 1 and character.saleIntent[1] == 3)
     ui = inventory({{id=1, name="AH", sell=1}}, {[1]=100}, character)
-    contains(ui:rows()[1].toggle.help, "AH price exceeds")
+    assert(ui.env.CopperwiseScanWarning.shown)
     for _, input in ipairs({"stale 0", "stale -1", "stale nan", "stale inf", "stale 1 extra"}) do
         ui:command(input)
         assert(character.staleMinutes == 1)
     end
     ui:command("stale 2")
-    assert(not ui:rows()[1].toggle.help:find("AH price exceeds", 1, true))
+    assert(not ui.env.CopperwiseScanWarning.shown)
 end)
 
-test("old Vendor recommendations and unavailable comparisons have no stale warning", function()
+test("the shared scan warning applies with Vendor and unavailable selections", function()
     local ui = inventory({{id=1, name="Vendor", sell=100}, {id=2, name="Empty", sell=1}}, {[1]=100})
     ui.now = 10000
     ui:refresh()
+    assert(ui.env.CopperwiseScanWarning.shown)
     for index, row in ipairs(ui:rows()) do
-        assert(not (row.toggle.help or ""):find("AH price exceeds", 1, true))
+        assert(not (row.toggle.text or ""):find("!", 1, true))
         assert(not ui:select(index):find("Warning:", 1, true))
     end
 end)

@@ -2,7 +2,7 @@ Copperwise = {}
 local CW = Copperwise
 local frame = CreateFrame("Frame")
 local window, output, list, listContent
-local quantityInput, quantityLabel, editButton, actionMessage
+local quantityInput, quantityLabel, editButton, actionMessage, scanWarning
 local sectionLabels = {}
 local buttons = {}
 local lastOrder = {}
@@ -67,9 +67,20 @@ local function staleMinutes()
     return minutes
 end
 
-local function stale(values)
-    return values.destination == "AH" and values.observation
-        and time() - values.observation.observedAt > staleMinutes() * 60
+local function renderScanWarning()
+    local summary = CW.ScanSummary and CW.ScanSummary()
+    if summary and time() - summary.observedAt > staleMinutes() * 60 then
+        local age = math.max(0, math.floor((time() - summary.observedAt) / 60))
+        scanWarning.message:SetText("Market scan is outdated (" .. age .. " min)")
+        scanWarning.help = "All retained AH prices come from the same complete scan."
+            .. "\nObserved: " .. date("%Y-%m-%d %H:%M:%S %Z", summary.observedAt)
+            .. "\nMarket: " .. summary.context
+            .. "\nWarning threshold: " .. staleMinutes() .. " minutes."
+            .. "\nRefresh with Full scan in the Copperwise auction-house tab."
+        scanWarning:Show()
+    else
+        scanWarning:Hide()
+    end
 end
 
 local function renderList()
@@ -213,15 +224,12 @@ local function renderList()
             .. (ready and bagQuantity < intent.quantity and ("; short " .. (intent.quantity - bagQuantity)) or ""))
             or (values.reason and ("Unavailable — " .. values.reason) or (intent and "Unmarked remainder" or "")))
         local destination = intent and intent.destination or values.destination
-        local oldPrice = destination == "AH" and values.observation
-            and time() - values.observation.observedAt > staleMinutes() * 60
         if choice.marked or (ready and not values.reason and destination) then
             button.toggle:SetText((destination == "AH" and "|cffffd100" or "|cff99ddaa")
-                .. destination .. (choice.marked and " ×" or (intent and " +" or "")) .. (oldPrice and " !" or "") .. "|r")
+                .. destination .. (choice.marked and " ×" or (intent and " +" or "")) .. "|r")
             button.toggle.help = choice.marked and ("Unmark " .. item.name .. " from " .. destination .. ". No sale is made.")
                 or ((intent and "Add " or "Mark ") .. item.quantity .. " units of " .. item.name
                     .. " for " .. destination .. ". No sale is made.")
-            if oldPrice then button.toggle.help = button.toggle.help .. " AH price exceeds " .. staleMinutes() .. " minutes." end
             button.toggle:Show()
         else button.toggle:Hide() end
         button:Show()
@@ -232,6 +240,7 @@ end
 
 function CW.Render()
     if not output then return end
+    renderScanWarning()
     local intent = CW.SaleIntent and CW.SaleIntent(selected)
     local owned = rows[selected]
     local remaining = math.max(0, (owned and owned.quantity or 0) - (intent and intent.quantity or 0))
@@ -270,9 +279,6 @@ function CW.Render()
         else
             quantityLabel:Hide(); quantityInput:Hide(); editButton:Hide()
         end
-    end
-    if values and stale(values) then
-        text = text .. "\nWarning: AH price exceeds the stale threshold (" .. staleMinutes() .. " minutes)."
     end
     local observation = values and values.observation
     if observation then
@@ -345,6 +351,21 @@ local function open()
         background:SetPoint("TOPLEFT", window, "TOPLEFT", 6, -28)
         background:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", -6, 6)
         background:SetColorTexture(0.24, 0.24, 0.24, 1)
+        scanWarning = CreateFrame("Button", "CopperwiseScanWarning", window)
+        scanWarning:SetSize(360, 24)
+        scanWarning:SetPoint("TOPLEFT", 22, -33)
+        scanWarning.icon = scanWarning:CreateTexture(nil, "ARTWORK")
+        scanWarning.icon:SetSize(22, 22)
+        scanWarning.icon:SetPoint("LEFT", 0, 0)
+        scanWarning.icon:SetTexture("Interface\\DialogFrame\\UI-Dialog-Icon-AlertNew")
+        scanWarning.message = scanWarning:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        scanWarning.message:SetPoint("LEFT", 28, 0)
+        scanWarning:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(self.help)
+            GameTooltip:Show()
+        end)
+        scanWarning:SetScript("OnLeave", function() GameTooltip:Hide() end)
         list = CreateFrame("ScrollFrame", nil, window, "UIPanelScrollFrameTemplate")
         list:SetPoint("TOPLEFT", 22, -65)
         list:SetPoint("BOTTOMLEFT", 22, 25)
