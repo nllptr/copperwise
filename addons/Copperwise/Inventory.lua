@@ -1,7 +1,8 @@
 Copperwise = {}
 local CW = Copperwise
 local frame = CreateFrame("Frame")
-local window, output, picker
+local window, output, list, listContent, listStatus
+local buttons = {}
 local rows, selected, candidate, candidateAt, dirtyAt = {}, nil, nil, 0, 0
 local settled = false
 
@@ -19,19 +20,97 @@ function CW.SelectedItem()
     if settled and not CursorHasItem() then return rows[selected] end
 end
 
+local function comparison(item)
+    local observation = CW.ObservationFor and CW.ObservationFor(item.id)
+    local asking, vendor, destination, value
+    if settled and not CursorHasItem() then
+        if observation and observation.minimum ~= nil then asking = observation.minimum * item.quantity end
+        if item.sell ~= nil then vendor = item.sell * item.quantity end
+        if asking ~= nil and vendor ~= nil then
+            destination = asking > vendor and "AH" or "Vendor"
+            value = math.max(asking, vendor)
+        end
+    end
+    local reason
+    if not settled or CursorHasItem() then reason = "bags updating"
+    elseif item.support ~= "comparable commodity" then reason = item.support
+    elseif asking == nil then
+        reason = observation and (observation.empty and "observed empty supply" or "asking price unavailable")
+            or "no comparable retained AH value"
+    elseif vendor == nil then reason = "vendor metadata loading" end
+    return {observation=observation, asking=asking, vendor=vendor, destination=destination, value=value, reason=reason}
+end
+
+local function renderList()
+    local choices = {}
+    for _, row in pairs(rows) do
+        choices[#choices+1] = {item=row, comparison=comparison(row)}
+    end
+    table.sort(choices, function(a, b)
+        local av, bv = a.comparison.value, b.comparison.value
+        if (av ~= nil) ~= (bv ~= nil) then return av ~= nil end
+        if av ~= bv then return av > bv end
+        if a.item.name ~= b.item.name then return a.item.name < b.item.name end
+        return a.item.id < b.item.id
+    end)
+    listStatus:SetText(not settled and "Bags updating — comparisons withheld"
+        or (#choices == 0 and "No bag items" or "Highest total destination value first"))
+    listContent:SetHeight(math.max(1, #choices * 54))
+    local maxScroll = math.max(0, #choices * 54 - list:GetHeight())
+    list:SetVerticalScroll(math.min(list:GetVerticalScroll(), maxScroll))
+    for index, choice in ipairs(choices) do
+        local button = buttons[index]
+        if not button then
+            button = CreateFrame("Button", nil, listContent)
+            button:SetSize(330, 52)
+            button:SetPoint("TOPLEFT", 0, -(index - 1) * 54)
+            button:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
+            button.icon = button:CreateTexture(nil, "ARTWORK")
+            button.icon:SetSize(28, 28)
+            button.icon:SetPoint("LEFT", 2, 0)
+            button.label = button:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+            button.label:SetPoint("TOPLEFT", 36, -4)
+            button.label:SetWidth(290)
+            button.label:SetJustifyH("LEFT")
+            button.value = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+            button.value:SetPoint("TOPLEFT", 36, -25)
+            button.value:SetWidth(290)
+            button.value:SetJustifyH("LEFT")
+            button:SetScript("OnClick", function(self)
+                selected = self.itemID
+                CW.Render()
+            end)
+            buttons[index] = button
+        end
+        local item, values = choice.item, choice.comparison
+        button.itemID = item.id
+        button.icon:SetTexture(item.icon or "Interface\\Icons\\INV_Misc_QuestionMark")
+        button.label:SetText((selected == item.id and "|cffffd100" or "") .. item.name
+            .. " (" .. (settled and tostring(item.quantity) or "updating") .. ")")
+        button.value:SetText(values.value ~= nil and (money(values.value) .. " — " .. values.destination)
+            or ("Unavailable — " .. values.reason))
+        button:Show()
+    end
+    for index = #choices + 1, #buttons do buttons[index]:Hide() end
+end
+
 function CW.Render()
     if not output then return end
+    renderList()
     local item = rows[selected]
     local ready = CW.SelectedItem()
-    local text = "Select a bag item from the menu.\nBackpack and bags only; bank and equipment excluded."
+    local text = "Select a bag item from the list.\nBackpack and bags only; bank and equipment excluded."
+    local values = item and comparison(item)
     if item then
         text = (item.link or item.name) .. "\nItem ID: " .. item.id
             .. "\nBag quantity: " .. (ready and tostring(item.quantity) or "updating — totals withheld")
             .. "\nVendor sell / unit: " .. money(item.sell)
-            .. "\nVendor sell / owned quantity: " .. money(ready and item.sell and item.sell * item.quantity or nil)
+            .. "\nVendor sell / owned quantity: " .. money(values.vendor)
+            .. "\nAH asking / owned quantity: " .. money(values.asking)
+            .. "\nPreferred destination: " .. (values.destination or "unavailable (both values required)")
             .. "\nSupport: " .. item.support
     end
-    local observation = item and CW.ObservationFor and CW.ObservationFor(item.id)
+    local observation = values and values.observation
     if observation then
         text = text .. "\n\nRetained full-scan observation"
             .. "\nLowest observed asking / unit: " .. money(observation.minimum)
@@ -65,8 +144,8 @@ local function snapshot()
                 signature[#signature+1] = bag .. ":" .. slot .. ":" .. id .. ":" .. info.stackCount
                 local row = nextRows[id] or {id=id, quantity=0, link=info.hyperlink}
                 row.quantity = row.quantity + info.stackCount
-                local name, _, _, _, _, _, _, _, _, _, sell = C_Item.GetItemInfo(id)
-                row.name, row.sell = name or ("Item " .. id), sell
+                local name, _, _, _, _, _, _, _, _, icon, sell = C_Item.GetItemInfo(id)
+                row.name, row.sell, row.icon = name or ("Item " .. id), sell, icon or info.iconFileID
                 row.support = "metadata loading"
                 if C_AuctionHouse and C_AuctionHouse.MakeItemKey and C_AuctionHouse.GetItemKeyInfo then
                     local key = C_AuctionHouse.MakeItemKey(id, 0, 0, 0)
@@ -86,7 +165,7 @@ end
 local function open()
     if not window then
         window = CreateFrame("Frame", "CopperwiseInventory", UIParent, "BasicFrameTemplateWithInset")
-        window:SetSize(620, 590)
+        window:SetSize(920, 640)
         window:SetPoint("CENTER")
         window:SetMovable(true)
         window:EnableMouse(true)
@@ -95,28 +174,17 @@ local function open()
         window:SetScript("OnDragStop", window.StopMovingOrSizing)
         window.TitleText:SetText("Copperwise — Inventory")
         table.insert(UISpecialFrames, "CopperwiseInventory")
-        picker = CreateFrame("Frame", "CopperwiseItemPicker", window, "UIDropDownMenuTemplate")
-        picker:SetPoint("TOPLEFT", 0, -35)
-        UIDropDownMenu_SetWidth(picker, 350)
-        UIDropDownMenu_SetText(picker, "Select a bag item")
-        UIDropDownMenu_Initialize(picker, function()
-            local choices = {}
-            for _, row in pairs(rows) do choices[#choices+1] = row end
-            table.sort(choices, function(a,b) return a.name == b.name and a.id < b.id or a.name < b.name end)
-            for _, row in ipairs(choices) do
-                local id = row.id
-                local info = UIDropDownMenu_CreateInfo()
-                info.text, info.checked = row.name, selected == id
-                info.func = function()
-                    selected = id
-                    UIDropDownMenu_SetText(picker, rows[id] and rows[id].name or "Item removed")
-                    CW.Render()
-                end
-                UIDropDownMenu_AddButton(info)
-            end
-        end)
+        listStatus = window:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        listStatus:SetPoint("TOPLEFT", 22, -40)
+        list = CreateFrame("ScrollFrame", nil, window, "UIPanelScrollFrameTemplate")
+        list:SetPoint("TOPLEFT", 22, -65)
+        list:SetPoint("BOTTOMLEFT", 22, 25)
+        list:SetWidth(330)
+        listContent = CreateFrame("Frame", nil, list)
+        listContent:SetSize(330, 1)
+        list:SetScrollChild(listContent)
         output = window:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-        output:SetPoint("TOPLEFT", 22, -85)
+        output:SetPoint("TOPLEFT", 395, -40)
         output:SetPoint("BOTTOMRIGHT", -22, 20)
         output:SetJustifyH("LEFT")
         output:SetJustifyV("TOP")

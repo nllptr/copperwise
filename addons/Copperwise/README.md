@@ -15,7 +15,13 @@ cursor withholds totals. This is a settling heuristic, not an atomic guarantee.
 Inventory displays retained full-scan asking values for comparable native
 commodities. Missing observations are unavailable; go to the AH to refresh.
 Known-zero vendor values remain numeric zero. Equipment variants are not
-compared by item ID. Ranking and AH/Vendor marking belong to subsequent tickets.
+compared by item ID. The scrollable Inventory list shows icons, names and settled
+aggregated quantities. Complete comparisons rank by the greater of AH asking
+total and vendor sell total, descending, then name and item ID. Incomplete
+comparisons sort last; known zero stays numeric. Equal totals prefer Vendor.
+Select any row to see both totals for the same quantity and its retained source
+time/coverage. Selection sends no market query. Destination labels are review
+recommendations; marking controls belong to ticket 04.
 
 ## Full market scan
 

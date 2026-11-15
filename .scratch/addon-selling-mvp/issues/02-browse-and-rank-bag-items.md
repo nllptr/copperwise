@@ -4,7 +4,7 @@
 
 **Blocked by:** None — ticket 01 resolved (2026-11-15).
 
-**Status:** ready-for-agent
+**Status:** in-progress
 
 **Labels:** ready-for-agent
 
@@ -49,3 +49,38 @@ owner-approved controlled diagnostics, which passed 7/7 in the target client.
 Its current checklist distinguishes native observations from simulated edge
 cases and records remaining evidence limits. Ticket 02 is unblocked; no ticket
 02 implementation or acceptance is implied by this update.
+
+### Implementation — 2026-11-15
+
+Replaced the Inventory dropdown with a scrollable list of item icons, names and
+aggregated quantities. Complete comparisons sort by greatest destination total,
+then name and stable item ID; unavailable comparisons sort last. Detail shows
+AH asking and vendor sell totals for the same owned quantity. Equal totals
+prefer Vendor; known zero remains numeric. Missing comparisons have no
+destination recommendation. Recommendations are labels in this slice; ticket
+04 adds marking actions independently of row selection. Selection only reads
+retained observations; scan controls remain exclusively in the native AH tab.
+Existing bag/cursor settling continues to withhold actionable totals while
+holdings change. Metadata is refreshed with settled snapshots.
+
+Target-client acceptance remains pending; no native-client pass is claimed.
+Use `/cw` after installing the updated addon and check:
+
+1. With a retained complete scan, compare several commodity rows against their
+   bag totals and native vendor sell values. Select each row; verify both totals
+   use the displayed quantity and the retained timestamp does not change.
+2. Confirm descending greater-total order; equal ranking values sort by name,
+   then item ID. Scroll through more rows than fit in the viewport, select a
+   lower row, and confirm selection survives a holdings-driven reorder.
+3. Verify equal AH/vendor totals prefer Vendor, known-zero vendor remains zero,
+   missing vendor metadata withholds the destination, and unavailable AH data
+   sorts last. Use controlled client diagnostics only with explicit approval if
+   native examples cannot be obtained; record simulated evidence separately.
+4. Check unsupported items, metadata loading, no retained observation and
+   observed-empty supply remain understandable. No missing value becomes zero.
+5. Split, merge, move, lock and remove bag stacks; hold an item on the cursor.
+   Totals and recommendations must be withheld until holdings settle; no
+   transient extra inventory may become actionable. Check metadata completion.
+6. Confirm selection never sends an AH query, Inventory has no scan controls,
+   and native Copperwise Full scan/cancellation still work independently.
+7. Confirm readability, scrolling and selection at the normal target UI scale.
