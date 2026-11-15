@@ -190,3 +190,11 @@ Retained observation context shown: CAMWOW EU5 Realm 10 RP / Alliance / region
 3, source time 2026-11-15 15:50:39 CET. No scan attempted in the shown session.
 Net destination ties, equal ranking-value name/identity ties, missing vendor
 metadata and supported items with no retained observation remain pending.
+
+### Equal-value ordering acceptance deferred — 2026-11-15
+
+Owner found no naturally occurring equal-total rows and considers that ordering
+check minor enough to defer, fixing later if a defect appears. Record the
+name/identity tie-order acceptance case as owner-deferred, not failed or passed.
+No tie-order defect was observed. This does not waive net AH/Vendor destination
+ties or missing-data checks.
