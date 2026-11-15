@@ -25,6 +25,8 @@ Verified in the production addon:
 - [x] Move a stack between different bags with Inventory open: the settled
   quantity remains unchanged, with transient quantities withheld during movement.
 - [x] Match the native vendor sell tooltip: 2 copper/unit, 36 copper for 18.
+- [x] Display a known numeric zero vendor value as 0 per unit and 0 total:
+  Waylaid Crate: Apprentice Herbs (248682), one owned unit.
 - [x] Run a user-initiated full-market summary scan in the native AH tab and
   display retained asking values in `/cw`, with supply, market, source time and
   completeness. The observed retained scan has 6,061 item summaries, one repeated
@@ -48,8 +50,8 @@ Verified in the production addon:
 
 Remaining ticket-01 acceptance checks (not implied by the passes above):
 
-- [ ] Verify unavailable/loading vendor metadata versus a known numeric zero
-  through visible client behavior; metadata availability must not send a scan.
+- [ ] Verify unavailable/loading vendor metadata through visible client
+  behavior; metadata availability must not send a scan. Known-zero display passes.
 - [ ] Exercise complete-empty and incomplete/partial coverage; missing buyout
   must remain unavailable, and incomplete data cannot become a recommendation.
 - [ ] Observe native throttling and bound/timeout behavior without publishing a
@@ -288,3 +290,15 @@ without hiding the Copperwise tab, alongside the earlier normal native-search
 completion and retained price/supply/time/coverage confirmation. The competing
 AH activity acceptance check passes. Four ticket-01 checks remain; the ticket
 stays open.
+
+### Known-zero vendor value — 2026-11-15
+
+After the read-only bag search for native vendor values equal to zero, owner
+supplied an Inventory screenshot selecting Waylaid Crate: Apprentice Herbs
+(248682), quantity one. Vendor sell per unit and owned-quantity total both
+display numeric 0 copper. This verifies known-zero display rather than treating
+zero as unavailable. The latest scan remains cancelled from the competing AH
+activity check, and the retained observation remains dated 12:03:55 CET. This
+does not exercise unavailable/loading vendor metadata or establish its scan
+behavior; that portion of the acceptance check remains pending. Four checks
+remain open, with known-zero display now confirmed.
