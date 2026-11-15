@@ -71,3 +71,24 @@ when rendering the zero-valued empty summary. Fixed by sharing Inventory's
 existing currency formatter with Review: prefer available native texture/money
 formatters, then use explicit gold/silver/copper text. Missing values remain
 unavailable and known zero remains numeric zero. Reload verification is pending.
+
+### Owner-directed layout prototype — 2026-11-15
+
+Owner confirms marked items are listed after the formatter fix, and supplied
+screenshots showing the review and Auctionator navigation. The current production
+layout is not approved. Owner requests a proper prototype first, under
+`probes/ah-layout/`, before reimplementing the appearance:
+
+- AH-marked sidebar with automatic first-item selection.
+- Selected-item quantity, unit buyout, deposit, total price and duration radios.
+- Current selected-item listings with only unit buyout and available item units.
+- A selected-item Post button; Full scan and the Post all placeholder in a shared
+  top section, following the supplied Auctionator layout references.
+
+[Interactive prototype](../../../probes/ah-layout/index.html) and its
+[review guide](../../../probes/ah-layout/README.md) implement this study with
+synthetic fixtures only. Production is unchanged pending layout review.
+Current-listing depth requires selected-item queries beyond the retained summary;
+price defaults/refresh for that new workflow need reconciliation. Actual posting
+remains ticket 06. Screenshots establish rendered marked rows and native/Auctionator
+tabs, not full layout approval, deposit acceptance or posting evidence.
