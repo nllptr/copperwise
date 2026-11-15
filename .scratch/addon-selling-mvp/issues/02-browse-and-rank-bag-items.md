@@ -125,3 +125,10 @@ Owner deferred noncommodity support and requested the Currency window's brown
 textured scheme instead of flat gray. Replaced the gray fill with the native
 character-window inset material `Interface\FrameGeneral\UI-Background-Marble`,
 tiled rather than stretched. Native-client visual match remains pending.
+
+Owner rejected the tiled background in-client and requested restoring the plain
+gray fill and resuming functional acceptance. Restored the previous gray fill.
+Latest screenshot demonstrates selected Waylaid Crate detail with known-zero
+vendor sell value, AH total 11s99c for one owned unit, AH recommendation and
+retained observation details. Visible rows show descending AH totals. This
+evidence does not establish native price correctness, ties or changed holdings.
