@@ -15,8 +15,8 @@
 - [ ] Keep Full scan and cancellation exclusively in the Copperwise native AH
   tab. Missing Inventory data remains unavailable and directs the player there;
   do not add selected-item or sequential bag-item queries to Inventory.
-- [ ] For the same owned quantity, show AH asking total and vendor sell total; rank complete comparisons by the larger total descending, then name and stable identity, with unavailable comparisons last.
-- [ ] Choose Vendor on equal totals; withhold the destination action when either comparison value is unavailable, while keeping known numeric zero distinct.
+- [ ] For the same owned quantity, show gross AH asking total, estimated AH proceeds after the faction 5% cut and vendor sell total; rank complete comparisons by the larger of estimated AH proceeds and vendor total descending, then name and stable identity, with unavailable comparisons last.
+- [ ] Choose Vendor when estimated AH proceeds equal vendor total; withhold the destination action when either comparison value is unavailable, while keeping known numeric zero distinct.
 - [ ] Refresh settled holdings and metadata without presenting transient stack moves/splits as actionable extra inventory.
 - [ ] Verify multiple item selections, rankings, ties, zero and unavailable values and changed holdings through visible production-addon behavior in the target client.
 
@@ -151,3 +151,18 @@ These passes complement the prior screenshot evidence for numeric-zero vendor
 value on Waylaid Crate. Vendor-preferred comparisons, equal-total/name/identity
 ties, missing vendor metadata and observed-empty/no-scan cases remain unverified
 for ticket 02; do not infer full acceptance from the above samples.
+
+### Commission and faction-only scope — 2026-11-15
+
+Owner reported no Vendor rows in current holdings, so that case remains pending.
+Owner then required commission-aware comparisons and approved faction AH only
+for the MVP; neutral AH (15% cut) is deferred. Ranking and recommendations now
+compare floor(gross AH total × 95 / 100) against vendor total, retaining Vendor
+on ties. Detail preserves gross asking total and adds estimated proceeds after
+the 5% cut. Deposits are excluded. This supersedes earlier gross-total ranking.
+Existing client passes for quantity/selection, split/merge and unsupported items
+remain evidence; their old gross list totals do not pass the revised proceeds
+ranking. Recheck Strange Dust gross 21s60c → estimated proceeds 20s52c, and
+Greater Magic Essence gross 18s → estimated proceeds 17s10c (if observations
+and quantities remain unchanged). Commission rounding is a conservative
+whole-copper display estimate, not verified native settlement accounting.

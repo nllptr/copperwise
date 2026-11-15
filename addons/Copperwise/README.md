@@ -17,10 +17,11 @@ Inventory displays retained full-scan asking values for comparable native
 commodities. Missing observations are unavailable; go to the AH to refresh.
 Known-zero vendor values remain numeric zero. Equipment variants are not
 compared by item ID. The scrollable Inventory list shows icons, names and settled
-aggregated quantities. Complete comparisons rank by the greater of AH asking
-total and vendor sell total, descending, then name and item ID. Incomplete
+aggregated quantities. Complete comparisons rank by the greater of estimated AH proceeds after the
+faction 5% cut and vendor sell total, descending, then name and item ID.
+Estimated AH proceeds round down to whole copper and exclude deposits. Incomplete
 comparisons sort last; known zero stays numeric. Equal totals prefer Vendor.
-Select any row to see both totals for the same quantity and its retained source
+Select any row to see gross AH asking total, estimated AH proceeds and vendor total for the same quantity and its retained source
 time/coverage. Selection sends no market query. Destination labels are review
 recommendations; marking controls belong to ticket 04.
 
@@ -128,3 +129,10 @@ From the repository root, run `lua addons/Copperwise/tests/storage.lua` with Lua
 5.1 or newer. These checks exercise login and Inventory observations with native
 API boundary stubs; they do not establish actual-client acceptance. Syntax-check
 the production Lua files with `luac -p addons/Copperwise/*.lua`.
+
+## Supported auction-house scope
+
+Use faction auction houses for MVP scans and posting. Neutral/cross-faction
+auction houses and their 15% cut are deferred to a later release. Inventory
+assumes faction AH commission (5%); it does not detect or support neutral
+markets. Estimated proceeds are conditional on a sale, not guaranteed profit.

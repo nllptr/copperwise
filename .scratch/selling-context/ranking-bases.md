@@ -159,3 +159,13 @@ The stale-AH warning uses an easily changed setting defaulting to one hour.
 S06 is complete as a policy/UX decision. Production sorting and configuration
 remain downstream implementation work. Historical proposals above remain
 comparison context, not approval of alternatives or uplift sorting.
+
+### Addon MVP commission override — 2026-11-15
+
+For the addon-only MVP, owner approved faction AH only and commission-aware
+Inventory comparisons. Compare estimated AH proceeds after the 5% cut, rounded
+down to whole copper, with vendor sell total for the same owned units. Rank
+by the larger value; Vendor wins ties; missing either value withholds the
+destination. Preserve gross asking totals in detail. Deposits are excluded.
+This supersedes gross asking-total ranking for that release. Neutral AH support
+and its 15% cut are deferred; see the addon-selling-mvp specification.

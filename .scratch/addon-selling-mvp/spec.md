@@ -112,8 +112,10 @@ merchant UI to sell. Market history and crafting belong to later releases.
   from AH, offline collection, cross-account sharing or simultaneous-client
   synchronization is implied. Ordinary save on reload/logout and load on
   login/reload is sufficient for the intended character-switching workflow.
-- Inventory totals use observed unit buyout times owned units and vendor sell
-  value times the same units. Rank complete comparisons by the greater total,
+- Inventory shows gross observed unit buyout times owned units and vendor sell
+  value times the same units. Deduct the faction AH 5% cut from the gross AH
+  total, rounding estimated proceeds down to whole copper. Rank complete
+  comparisons by the greater of estimated AH proceeds and vendor total,
   descending; ties sort by name and stable identity. Unavailable comparisons
   sort last. Choose Vendor on equal destination totals. Omit the destination
   button when either value is unavailable; known zero remains numeric zero.
@@ -192,6 +194,7 @@ merchant UI to sell. Market history and crafting belong to later releases.
   does not introduce a history product.
 - Crafting economics, recipe browsing, craft queues, ingredient shopping and
   native purchasing. The purchase capability probe is not an MVP prerequisite.
+- Neutral/cross-faction auction houses (15% commission); defer to a later release.
 - Bank inclusion, cached bank planning, other-character holdings and transfers.
 - Equipment variants, noncommodity auction workflows and unsupported item classes.
 - Automatic merchant selling, bulk unattended posting, automatic undercut rules,
@@ -273,3 +276,16 @@ changes in addon updates must provide sequential saved-data migrations, preservi
 observations and source times across supported upgrades, including skipped
 releases. Unsupported or malformed stores and failed migrations must be preserved
 rather than silently reset or overwritten.
+
+### Faction AH commission decision — 2026-11-15
+
+Owner requires commission to affect ranking and approved faction AH only for
+the MVP. Compare estimated AH proceeds after the 5% cut against vendor sell
+total for the same owned quantity. Use the larger value for ranking and choose
+Vendor on ties; both comparison values remain required. Keep gross asking
+values visible in detail. Estimated proceeds round down to whole copper,
+exclude deposits, and do not imply a completed sale or guaranteed profit.
+Neutral/cross-faction AH support, including its 15% cut and compatible market
+identification, belongs to a later release. Perform MVP scans and posts only
+at faction auction houses; existing faction market context does not establish
+neutral-house support. Earlier gross-total ranking decisions are superseded.

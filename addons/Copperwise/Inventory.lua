@@ -26,14 +26,15 @@ local function comparison(item)
     local ready = settled and not CursorHasItem()
     if not ready and displayedComparisons[item.id] then return displayedComparisons[item.id] end
     local observation = CW.ObservationFor and CW.ObservationFor(item.id)
-    local asking, vendor, destination, value
+    local asking, proceeds, vendor, destination, value
     -- Display the last settled holdings during bag/cursor activity. Actions
     -- must use SelectedItem(), which remains unavailable until holdings settle.
     if observation and observation.minimum ~= nil then asking = observation.minimum * item.quantity end
+    if asking ~= nil then proceeds = math.floor(asking * 95 / 100) end
     if item.sell ~= nil then vendor = item.sell * item.quantity end
-    if asking ~= nil and vendor ~= nil then
-        destination = asking > vendor and "AH" or "Vendor"
-        value = math.max(asking, vendor)
+    if proceeds ~= nil and vendor ~= nil then
+        destination = proceeds > vendor and "AH" or "Vendor"
+        value = math.max(proceeds, vendor)
     end
     local reason
     if item.support ~= "comparable commodity" then reason = item.support
@@ -41,7 +42,7 @@ local function comparison(item)
         reason = observation and (observation.empty and "observed empty supply" or "asking price unavailable")
             or "no comparable retained AH value"
     elseif vendor == nil then reason = "vendor metadata loading" end
-    local values = {observation=observation, asking=asking, vendor=vendor, destination=destination, value=value, reason=reason}
+    local values = {observation=observation, asking=asking, proceeds=proceeds, vendor=vendor, destination=destination, value=value, reason=reason}
     if ready then displayedComparisons[item.id] = values end
     return values
 end
@@ -122,6 +123,7 @@ function CW.Render()
             .. "\nVendor sell / unit: " .. money(item.sell)
             .. "\nVendor sell / owned quantity: " .. money(values.vendor)
             .. "\nAH asking / owned quantity: " .. money(values.asking)
+            .. "\nAH estimated proceeds (5% cut): " .. money(values.proceeds)
             .. "\nPreferred destination: " .. (values.destination or "unavailable (both values required)")
             .. "\nSupport: " .. item.support
     end
@@ -143,6 +145,7 @@ function CW.Render()
         text = text .. "\n\nNo scan attempted this session."
     end
     text = text .. "\n\nRefresh market data with Full scan in the Copperwise auction-house tab."
+        .. "\nFaction AH only. AH estimates deduct 5%; deposits excluded."
         .. "\nRetained asking values are not live prices or completed sales."
     output:SetText(text)
 end
