@@ -302,3 +302,21 @@ activity check, and the retained observation remains dated 12:03:55 CET. This
 does not exercise unavailable/loading vendor metadata or establish its scan
 behavior; that portion of the acceptance check remains pending. Four checks
 remain open, with known-zero display now confirmed.
+
+### Controlled diagnostic approach approved — 2026-11-15
+
+Owner approved a separate diagnostic addon to exercise otherwise difficult
+failure/metadata cases, with its results explicitly distinguished from native
+server evidence. Implementation and instructions live in
+`probes/ticket-01/README.md`. It runs bundled production Lua with isolated globals,
+synthetic APIs, UI, time and storage, exposing captured Inventory output in a
+separate native results window. It cannot issue real AH requests or replace the
+production saved snapshot.
+
+The seven supporting cases pass locally: unavailable-to-zero vendor metadata
+without a scan, complete-empty coverage, unavailable buyout, failed refresh
+preservation, response timeout with late results, partial coverage with total
+timeout, and throttling readiness pause/resume. These are simulated outcomes;
+the target-client `/cwdiag` run is pending. Actual native throttling and
+unavailable-metadata timing are not established by synthetic inputs. No remaining
+native acceptance checkbox is marked passed solely by these supporting checks.

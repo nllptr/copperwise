@@ -1,0 +1,6 @@
+## Interface: 16001
+## Title: Copperwise ticket 01 diagnostics
+## Notes: Isolated simulated checks; no native AH requests or saved variables
+Sources.lua
+Runner.lua
+UI.lua

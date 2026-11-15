@@ -107,6 +107,11 @@ collector. Lua syntax and Go checks are supporting checks only.
 
 No posting or other transaction is performed by this version.
 
+For reproducible simulated edge cases, see the separate
+[ticket 01 diagnostics](../../probes/ticket-01/README.md). Those checks run isolated
+production Lua with synthetic API inputs; they do not establish native-server
+acceptance and never replace the retained production market snapshot.
+
 ## Supporting storage checks
 
 From the repository root, run `lua addons/Copperwise/tests/storage.lua` with Lua
