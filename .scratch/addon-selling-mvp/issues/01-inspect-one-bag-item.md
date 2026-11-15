@@ -149,3 +149,9 @@ hidden). The retained complete scan remains visible: 2026-11-15 01:36:59 CET,
 6,061 item summaries, one repeated key, zero conflicting keys, same market.
 This verifies outstanding-work refusal and retained-snapshot display for this
 interaction. Auctionator's normal completion has not yet been confirmed.
+
+Owner subsequently confirms Auctionator finished normally. The observed
+coexistence scenario passes: Copperwise refused a new full scan while external
+AH work was outstanding, retained its prior complete snapshot, and did not
+prevent Auctionator from completing. This does not establish every competing
+request/interruption or throttle path.
