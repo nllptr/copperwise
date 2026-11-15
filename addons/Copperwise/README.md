@@ -22,8 +22,8 @@ faction 5% cut and vendor sell total, descending, then name and item ID.
 Estimated AH proceeds round down to whole copper and exclude deposits. Incomplete
 comparisons sort last; known zero stays numeric. Equal totals prefer Vendor.
 Select any row to see gross AH asking total, estimated AH proceeds and vendor total for the same quantity and its retained source
-time/coverage. Selection sends no market query. Destination labels are review
-recommendations; marking controls belong to ticket 04.
+time/coverage. Selection sends no market query. Use the destination button in
+the selected item detail to mark its currently observed bag units for sale.
 
 ## Full market scan
 
@@ -80,7 +80,7 @@ or `/cw stale` to see the current setting and usage. Settings survive reload
 and logout; invalid input preserves the previous value. Vendor recommendations
 and unavailable comparisons have no stale warning. The warning updates while
 Inventory is open and never changes a recommendation or source timestamp.
-Ticket 04 will use the same warning on destination marking controls.
+The same warning appears on the AH destination marking control.
 
 ## Actual-client acceptance
 
@@ -175,3 +175,70 @@ changes, competing work, failure/timeouts, late responses, reopen recovery,
 market isolation, complete-empty coverage and missing buyout. Inventory checks
 also cover stale-warning boundaries and per-character setting restoration.
 These checks support the client evidence; they do not establish server behavior.
+
+## Maintain sale intent (ticket 04)
+
+Select an unmarked comparable item, then **Sell on AH** or **Sell on Vendor**.
+The button follows the approved net-AH/vendor comparison and is absent when
+metadata or either comparison is missing, or while bag holdings settle. Marking
+moves the item into **Marked for sale** without selecting a different item.
+Selection alone never marks anything. Unmarked inventory retains its value order.
+
+For a marked selection, **Add bag units** adds the current settled bag quantity
+to the existing intent, preserving its destination even after a price change.
+Enter positive whole item units in the quantity field and press **Set units**
+to replace the intended quantity (maximum 2,147,483,647). Typing alone changes
+nothing. **Remove mark** explicitly removes intent; remove and reselect the
+item to choose its newly recommended destination. Zero is rejected, not removal.
+
+Intended units, current bag availability, covered intent and shortage are shown
+separately. Marked items remain listed when none are held. During bag or cursor
+activity, availability says **checking** and additions are withheld; edits and
+explicit removal remain available. A bag decrease never completes or removes
+Vendor or AH intent. Use the normal merchant UI to sell Vendor items, then
+explicitly remove or edit the plan. No merchant or auction transaction is sent.
+
+Sale plans use version 1 in `CopperwiseDB.salePlan`, saved per character by the
+native SavedVariables lifecycle. Window/tab changes and AH visits do not reset
+them. Login/reload restores intent before bag revalidation. Incompatible or
+malformed plans are preserved and editing is blocked with a visible explanation.
+This introduces a separate character-plan schema without changing the account
+market schema. Future plan schema changes require sequential copy-on-upgrade
+migrations preserving supported saved plans.
+
+### Ticket 04 client acceptance — pending
+
+Record build, platform, realm/faction/region and UI scale. Run the production
+addon with probes disabled. Repository checks do not pass these cases.
+
+1. With retained prices and multiple stacks, select an unmarked commodity.
+   Compare the displayed net AH/vendor values. Confirm the button names the
+   preferred destination, including stale warning where applicable. Missing
+   comparisons and unsupported items must have no destination button.
+2. Click the destination button. Confirm intended units equal all observed bag
+   units, the row moves to Marked for sale, and selection stays on that item.
+   Select another row without marking it; confirm its intent remains absent.
+3. Return to the mark. Add bag units once: e.g. 8 intended plus 8 bags gives 16
+   intended, 8 available, 8 covered and 8 shortage. Set units to 5 and confirm
+   replacement. Reject blank, zero, negative, fractional and oversized values.
+   Typing without pressing Set units must leave the plan unchanged.
+4. Split/merge stacks and move an item onto the cursor: additions disappear
+   during settling and availability says checking. After settling, bag quantities
+   agree with native bags. Decrease holdings below intended units, then to zero:
+   the mark and destination remain, with the correct shortage and no lost row.
+5. Close/reopen Inventory, visit/switch native AH tabs and return. Reload and
+   logout/login: verify the same intended quantity and destination, with fresh
+   availability rather than treating saved intent as bag holdings.
+6. Change to a second character: the first character's intent must be absent.
+   Mark something on the second character, then return to the first; verify both
+   characters retain only their own plan while sharing compatible scan data.
+7. Refresh prices so the preferred destination changes: the saved destination
+   must remain. Add bag units and edit quantity without changing it. Remove the
+   mark explicitly, then mark again to choose the new recommendation.
+8. Exercise a Vendor mark and sell some units with the normal merchant UI.
+   Verify bag availability decreases but intended units persist. Remove the mark
+   explicitly. Confirm AH and Vendor labels remain distinct throughout.
+9. Verify readable layout at normal UI scale, scrolling marked/unmarked rows,
+   quantity controls and shortage detail. Confirm marking, editing, removal,
+   restoration and window/tab changes never query or post an auction or sell
+   to a merchant. AH queue display and posting belong to tickets 05 and 06.

@@ -5,4 +5,5 @@
 ## SavedVariablesPerCharacter: CopperwiseDB
 Inventory.lua
 Storage.lua
+Intent.lua
 Scan.lua

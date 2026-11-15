@@ -4,7 +4,7 @@
 
 **Blocked by:** 02: Browse and rank bag items.
 
-**Status:** ready-for-agent
+**Status:** implemented — target-client acceptance pending
 
 **Labels:** ready-for-agent
 
@@ -23,3 +23,26 @@ Use the addon-only selling MVP specification and its approved ranking and sale-i
 ## Comments
 
 Published after owner approval of the seven-ticket breakdown. This MVP series replaces the broader selling-context implementation order for the first release; the older roadmap remains historical and later-release scope. No parent specification or older ticket is closed or modified.
+
+### Implementation — 2026-11-15
+
+Added Inventory destination marking, separate marked/unmarked sections and
+positive whole-unit editing, additive bag-unit additions and explicit removal.
+Selection remains independent. Existing destination choices survive later
+price changes; remove and reselect to change destination. Shortages, including
+zero current holdings, remain visible and never delete intent. Holdings are
+revalidated through the existing settling boundary; pending observations show
+checking and cannot supply additions. Vendor marks use the normal merchant UI;
+no bag event completes intent and no transaction API is called.
+
+Added versioned per-character sale-plan persistence, independently of shared
+market observations. Unsupported/malformed plans are preserved with editing
+disabled. The existing Inventory regression fixture now loads the production
+Intent module and supports its native controls; no new synthetic acceptance
+boundary is introduced for this ticket.
+
+The agreed primary boundary remains the actual production addon in the target
+client. Follow the [ticket 04 checklist](../../../addons/Copperwise/README.md#ticket-04-client-acceptance--pending)
+for add/edit/remove, duplicates, shortages, reload/logout, character isolation,
+price changes, layout and absence of transactions. No acceptance box is checked
+by repository validation; target-client verification remains pending.

@@ -2,6 +2,8 @@ Copperwise = {}
 local CW = Copperwise
 local frame = CreateFrame("Frame")
 local window, output, list, listContent
+local markButton, quantityInput, addButton, editButton, removeButton, actionMessage
+local sectionLabels = {}
 local buttons = {}
 local lastOrder = {}
 local displayedComparisons = {}
@@ -65,7 +67,16 @@ local function renderList()
     for _, row in pairs(rows) do
         choices[#choices+1] = {item=row, comparison=comparison(row)}
     end
+    for id, intent in pairs(CW.SaleIntents and CW.SaleIntents() or {}) do
+        if not rows[id] then
+            local item = {id=id, name=intent.name, quantity=0, support="not currently in bags"}
+            choices[#choices+1] = {item=item, comparison={reason="not currently in bags"}}
+        end
+    end
     table.sort(choices, function(a, b)
+        local am = CW.SaleIntent and CW.SaleIntent(a.item.id) ~= nil
+        local bm = CW.SaleIntent and CW.SaleIntent(b.item.id) ~= nil
+        if am ~= bm then return am end
         -- Keep the last settled order throughout bag/cursor activity.
         if not ready then
             local ai, bi = lastOrder[a.item.id], lastOrder[b.item.id]
@@ -84,10 +95,27 @@ local function renderList()
             if not rows[id] then displayedComparisons[id] = nil end
         end
     end
-    listContent:SetHeight(math.max(1, #choices * 54))
-    local maxScroll = math.max(0, #choices * 54 - list:GetHeight())
+    local height = #choices * 54 + 48
+    listContent:SetHeight(math.max(1, height))
+    local maxScroll = math.max(0, height - list:GetHeight())
     list:SetVerticalScroll(math.min(list:GetVerticalScroll(), maxScroll))
+    local offset, previousSection, sections = 0, nil, 0
     for index, choice in ipairs(choices) do
+        local intent = CW.SaleIntent and CW.SaleIntent(choice.item.id)
+        local section = intent and "Marked for sale" or "Unmarked inventory"
+        if section ~= previousSection then
+            sections = sections + 1
+            local label = sectionLabels[sections]
+            if not label then
+                label = listContent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+                sectionLabels[sections] = label
+            end
+            label:SetPoint("TOPLEFT", 2, -offset)
+            label:SetText(section)
+            label:Show()
+            offset = offset + 24
+            previousSection = section
+        end
         local button = buttons[index]
         if not button then
             button = CreateFrame("Button", nil, listContent)
@@ -107,26 +135,36 @@ local function renderList()
             button.value:SetJustifyH("LEFT")
             button:SetScript("OnClick", function(self)
                 selected = self.itemID
+                actionMessage = nil
+                local intent = CW.SaleIntent and CW.SaleIntent(selected)
+                if quantityInput then quantityInput:SetText(intent and tostring(intent.quantity) or "") end
                 CW.Render()
             end)
             buttons[index] = button
         end
+        button:ClearAllPoints()
+        button:SetPoint("TOPLEFT", 0, -offset)
+        offset = offset + 54
         local item, values = choice.item, choice.comparison
         button.itemID = item.id
         button.icon:SetTexture(item.icon or "Interface\\Icons\\INV_Misc_QuestionMark")
         button.label:SetText((selected == item.id and "|cffffd100" or "") .. item.name
             .. " (" .. item.quantity .. ")")
-        button.value:SetText(values.value ~= nil and (money(values.value) .. " — " .. values.destination .. (stale(values) and " (stale price)" or ""))
-            or ("Unavailable — " .. values.reason))
+        button.value:SetText(intent and (intent.destination .. " — intended " .. intent.quantity
+            .. "; bags " .. (ready and item.quantity or "checking")) or (values.value ~= nil and (money(values.value) .. " — " .. values.destination .. (stale(values) and " (stale price)" or ""))
+            or ("Unavailable — " .. values.reason)))
         button:Show()
     end
+    for index = sections + 1, #sectionLabels do sectionLabels[index]:Hide() end
     for index = #choices + 1, #buttons do buttons[index]:Hide() end
 end
 
 function CW.Render()
     if not output then return end
     renderList()
+    local intent = CW.SaleIntent and CW.SaleIntent(selected)
     local item = rows[selected]
+    if not item and intent then item = {id=selected, name=intent.name, quantity=0, support="not currently in bags"} end
     local text = "Select a bag item from the list.\nBackpack and bags only; bank and equipment excluded."
     local values = item and comparison(item)
     if item then
@@ -138,6 +176,30 @@ function CW.Render()
             .. "\nAH estimated proceeds (5% cut): " .. money(values.proceeds)
             .. "\nPreferred destination: " .. (values.destination or "unavailable (both values required)")
             .. "\nSupport: " .. item.support
+    end
+    if intent then
+        local available = settled and not CursorHasItem() and (rows[selected] and rows[selected].quantity or 0)
+        text = text .. "\n\nSale intent: " .. intent.destination .. " — " .. intent.quantity .. " units"
+            .. "\nCurrently available in bags: " .. (available or "checking")
+            .. "\nCovered intent: " .. (available and math.min(available, intent.quantity) or "checking")
+            .. "\nShortage: " .. (available and math.max(0, intent.quantity - available) or "checking")
+        if intent.destination == "Vendor" then text = text .. "\nSell with the normal merchant UI; remove intent explicitly." end
+    end
+    if CW.intentNotice then text = text .. "\n" .. CW.intentNotice end
+    if actionMessage then text = text .. "\n" .. actionMessage end
+    if markButton then
+        local actionable = CW.SelectedItem()
+        local destination = actionable and values and not values.reason and values.destination
+        if destination and not intent then
+            markButton:SetText("Sell on " .. destination .. (stale(values) and " (stale price)" or ""))
+            markButton:Show()
+        else markButton:Hide() end
+        if actionable and intent then addButton:Show() else addButton:Hide() end
+        if intent then
+            quantityInput:Show(); editButton:Show(); removeButton:Show()
+        else
+            quantityInput:Hide(); editButton:Hide(); removeButton:Hide()
+        end
     end
     if values and stale(values) then
         text = text .. "\nWarning: AH price exceeds the stale threshold (" .. staleMinutes() .. " minutes)."
@@ -198,7 +260,7 @@ end
 local function open()
     if not window then
         window = CreateFrame("Frame", "CopperwiseInventory", UIParent, "BasicFrameTemplateWithInset")
-        window:SetSize(920, 640)
+        window:SetSize(920, 760)
         window:SetPoint("CENTER")
         window:SetMovable(true)
         window:EnableMouse(true)
@@ -222,9 +284,44 @@ local function open()
         list:SetScrollChild(listContent)
         output = window:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
         output:SetPoint("TOPLEFT", 395, -40)
-        output:SetPoint("BOTTOMRIGHT", -22, 20)
+        output:SetPoint("BOTTOMRIGHT", -22, 115)
         output:SetJustifyH("LEFT")
         output:SetJustifyV("TOP")
+        local function change(action, quantity, destination)
+            local ok, reason = CW.ChangeIntent(selected, action, quantity, destination)
+            actionMessage = ok and nil or reason
+            local intent = CW.SaleIntent(selected)
+            quantityInput:SetText(intent and tostring(intent.quantity) or "")
+            quantityInput:ClearFocus()
+            CW.Render()
+        end
+        local function button(label, x, y, width, click)
+            local control = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
+            control:SetSize(width, 24)
+            control:SetPoint("BOTTOMLEFT", x, y)
+            control:SetText(label)
+            control:SetScript("OnClick", click)
+            return control
+        end
+        markButton = button("", 395, 77, 270, function()
+            local item = CW.SelectedItem()
+            if not item then return end
+            local values = comparison(item)
+            if not values.reason then change("add", item.quantity, values.destination) end
+        end)
+        quantityInput = CreateFrame("EditBox", nil, window, "InputBoxTemplate")
+        quantityInput:SetSize(90, 24)
+        quantityInput:SetPoint("BOTTOMLEFT", 402, 43)
+        quantityInput:SetAutoFocus(false)
+        quantityInput:SetMaxLetters(10)
+        quantityInput:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+        editButton = button("Set units", 505, 43, 95, function() change("edit", tonumber(quantityInput:GetText())) end)
+        removeButton = button("Remove mark", 610, 43, 120, function() change("remove") end)
+        addButton = button("Add bag units", 675, 77, 140, function()
+            local item = CW.SelectedItem()
+            local intent = CW.SaleIntent(selected)
+            if item and intent then change("add", item.quantity, intent.destination) end
+        end)
     end
     window:Show()
     CW.Render()

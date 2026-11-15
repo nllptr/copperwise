@@ -12,7 +12,8 @@ local function inventory(items, prices, character)
     end
     for _, name in ipairs({"SetPoint", "SetMovable", "EnableMouse", "RegisterForDrag",
         "StartMoving", "StopMovingOrSizing", "RegisterEvent", "SetJustifyH", "SetJustifyV",
-        "SetHighlightTexture", "SetWidth", "SetTexture", "SetColorTexture"}) do
+        "SetHighlightTexture", "SetWidth", "SetTexture", "SetColorTexture",
+        "ClearAllPoints", "SetAutoFocus", "SetMaxLetters", "ClearFocus"}) do
         methods[name] = function() end
     end
     function methods:SetSize(_, height) self.height = height end
@@ -76,7 +77,7 @@ local function inventory(items, prices, character)
             items=summaries,
         }
     end
-    for _, name in ipairs({"Inventory", "Storage", "Scan"}) do
+    for _, name in ipairs({"Inventory", "Storage", "Intent", "Scan"}) do
         local chunk = assert(loadfile("addons/Copperwise/" .. name .. ".lua"))
         setfenv(chunk, env)()
     end
