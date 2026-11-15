@@ -109,7 +109,9 @@ are supporting checks only.
    read incompatible data. On 2026-11-15 the owner confirmed existing observations
    survived reinstall/restart with the versioned loader, compatible characters
    shared those observations, and a new full scan completed and survived reload.
-   Incompatible-market isolation still awaits separate client confirmation.
+   Incompatible-market client acceptance is deferred to
+   [ticket 08](../../.scratch/addon-selling-mvp/issues/08-verify-other-factions-and-rulesets.md),
+   together with all other-faction/ruleset tests; it does not gate current-environment acceptance.
 5. Cancel immediately after dispatch from the open Copperwise AH tab:
    `/run Copperwise.Scan(); Copperwise.Cancel()`.
    Wait for late responses; state must remain cancelled and retained data must

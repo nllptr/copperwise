@@ -16,6 +16,10 @@
 - [ ] Verify native fonts/controls/coin presentation, layout and readability at the owner's normal UI scale, normal AH navigation and coexistence with Auctionator installed.
 - [ ] Record outcomes and limitations at the agreed public in-client boundary; syntax checks and passed historical probes alone do not establish release acceptance.
 
+Other-faction/ruleset and incompatible-market client acceptance is deferred to
+[ticket 08](08-verify-other-factions-and-rulesets.md); this release ticket verifies
+the current supported environment and records that limitation.
+
 ## Scope and verification
 
 Use the addon-only selling MVP specification and its approved ranking and sale-intent decisions. This ticket is a production vertical slice, verified through visible behavior in the actual target client. Reuse completed bag, native scanning and posting probes as bounded capability evidence; they do not pass this slice automatically. API, backend, companion, history, bank, crafting and purchasing work do not gate this release.

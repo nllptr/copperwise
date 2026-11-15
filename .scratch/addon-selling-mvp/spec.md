@@ -298,3 +298,14 @@ net AH/vendor ties, missing vendor metadata, missing retained observations and
 equal-value ordering. These tests complement the recorded client workflow
 passes and suffice to settle ticket 02. The exception is limited to this ticket;
 it does not claim native-server evidence or waive later ticket/release testing.
+
+
+### Deferred faction/ruleset acceptance — 2026-11-15
+
+Owner deferred all testing for other factions/rulesets to
+[ticket 08](issues/08-verify-other-factions-and-rulesets.md), including remaining
+incompatible-market client verification across faction/realm/region. This does
+not gate ticket 03 or release acceptance in the currently verified Forever
+Alliance environment. Existing automated isolation checks remain required.
+Untested environments are not accepted by this deferral, and neutral AH/other
+ruleset support is not added to the MVP scope.

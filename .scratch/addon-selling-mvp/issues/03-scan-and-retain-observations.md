@@ -4,25 +4,25 @@
 
 **Blocked by:** None — ticket 02 resolved (2026-11-15).
 
-**Status:** implemented — remaining target-client acceptance pending
+**Status:** resolved — current-environment acceptance passed; additional-market checks deferred to 08
 
-**Labels:** ready-for-agent
+**Labels:** accepted
 
-- [ ] Offer a user-initiated full-market summary scan in the Copperwise AH tab using all native browse pages with visible progress, throttling and cancellation; respect other AH activity and stop further work on AH closure.
-- [ ] Keep each item's latest successful observation separate from its latest attempt state; failed/cancelled refreshes preserve previous usable results without advancing source time or completeness.
-- [ ] Persist market scans account-wide so all characters on the same account
+- [x] Offer a user-initiated full-market summary scan in the Copperwise AH tab using all native browse pages with visible progress, throttling and cancellation; respect other AH activity and stop further work on AH closure.
+- [x] Keep each item's latest successful observation separate from its latest attempt state; failed/cancelled refreshes preserve previous usable results without advancing source time or completeness.
+- [x] Persist market scans account-wide so all characters on the same account
   can read compatible observations; retain comparable identity, native market
   context, source time and coverage, and never mix incompatible markets.
-- [ ] Preserve account-wide data through future schema upgrades, including skipped
+- [x] Preserve account-wide data through future schema upgrades, including skipped
   releases; keep unsupported data intact. Pre-account-wide migration was waived
   by the owner on 2026-11-15.
-- [ ] Verify character A scans and saves on reload/logout, then character B
+- [x] Verify character A scans and saves on reload/logout, then character B
   logs in/reloads and sees the same compatible prices, supply and source time
   away from AH. Keep each character's bag holdings and sale intent separate.
-- [ ] Treat complete empty observations as valid empty results with unavailable buyout; partial observations remain identifiable and cannot become complete comparison estimates.
-- [ ] Restore cached observations across reload/logout and show age away from the AH without implying live or offline collection.
-- [ ] Provide an easily changed stale-price threshold defaulting to one hour; warn on AH destination buttons only when source age exceeds it, with exactly one hour not exceeding it.
-- [ ] Verify scanning multiple items, cancellation/coexistence, failed refresh preservation, persistence, market scoping and stale-warning boundaries through visible target-client behavior.
+- [x] Treat complete empty observations as valid empty results with unavailable buyout; partial observations remain identifiable and cannot become complete comparison estimates.
+- [x] Restore cached observations across reload/logout and show age away from the AH without implying live or offline collection.
+- [x] Provide an easily changed stale-price threshold defaulting to one hour; warn on AH destination buttons only when source age exceeds it, with exactly one hour not exceeding it.
+- [x] Verify scanning multiple items, cancellation/coexistence, failed refresh preservation, persistence, market scoping and stale-warning behavior through visible target-client behavior, with exact boundaries covered by approved synthetic tests. Other-market client verification is deferred to ticket 08.
 
 ## Scope and verification
 
@@ -116,3 +116,40 @@ Still pending: target-client verification of the new configuration/warning displ
 and persistence (README step 9), incompatible-market isolation, and integrated
 review of the ticket 03 acceptance list. Synthetic checks do not establish native
 server behavior; this ticket is not resolved yet.
+
+
+### Warning acceptance screenshot — 2026-11-15
+
+Owner supplied an in-client screenshot showing AH recommendations labeled
+“stale price” (including Sharp Arrow and Lesser Healing Potion), while Heavy
+Linen Bandage's Vendor recommendation has no stale warning. Chat reports the
+configured threshold as 0.01 minutes. No item is selected, so the detail warning
+is not verified by this screenshot. Reload persistence is not independently
+established by a still image; awaiting owner confirmation of the reload step.
+Warning clearing and incompatible-market verification remain pending.
+
+
+### Owner-confirmed stale-warning acceptance — 2026-11-15
+
+Following the screenshot and the requested detail/clearing checks, the owner
+reported “everything works” and explicitly confirmed setting persistence.
+Record selected AH detail warning, clearing row/detail warnings with a larger
+threshold, restoring the 60-minute threshold, and setting persistence across
+reload as owner-reported passed. The screenshot separately verifies AH row
+warnings and Vendor warning exclusion. Exact threshold boundaries remain
+supported by synthetic tests. Incompatible-market client verification remains
+pending; the ticket is not resolved.
+
+
+### Resolution and deferred compatibility acceptance — 2026-11-15
+
+Owner directed all tests for other factions/rulesets to dedicated
+[ticket 08](08-verify-other-factions-and-rulesets.md). That ticket also owns the
+remaining incompatible-market client verification across faction/realm/region.
+No native evidence for those environments is claimed; automated isolation checks
+remain passing. This supersedes earlier comments treating that check as a gate.
+
+Ticket 03 is resolved for the current environment using the recorded ticket 01
+scan evidence, owner-confirmed account-wide sharing/persistence, the new warning
+screenshot and owner confirmation, and approved synthetic edge-case checks.
+Destination marking controls and their warning reuse remain ticket 04 work.
