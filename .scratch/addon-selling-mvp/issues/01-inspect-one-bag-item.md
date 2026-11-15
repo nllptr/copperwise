@@ -120,3 +120,9 @@ conflict counts and independent native price/supply comparison for the new full
 scan have not yet been supplied. Reload/logout persistence, current build and
 the revised full collector's cancellation/coexistence paths remain pending;
 earlier selected-item checks do not automatically pass the new collector.
+
+Owner subsequently confirms "they remain and are correct" after the requested
+close-AH, `/reload`, reopen-Inventory sequence. Retained full-scan prices survive
+reload and are owner-confirmed correct. No separate explicit timestamp comparison,
+supply comparison, logout/login test or cross-market scoping test was supplied;
+those remain unverified rather than inferred from price persistence.
