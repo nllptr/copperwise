@@ -86,7 +86,7 @@ are supporting checks only.
 1. Record `GetBuildInfo()`, platform, native realm/faction/region, UI scale and
    enabled addons. Disable Copperwise probes. Verify loading without Auctionator.
 2. Open `/cw` away from AH. Confirm no scan controls. Verify bag totals after
-   split/merge/movement and retained display and updating status on cursor; compare vendor sell values.
+   split/merge/movement and stable retained display while holding an item on the cursor; compare vendor sell values.
 3. Open AH, then its Copperwise tab. Confirm native tab layout and switching.
    Full scan should process all market summaries and reach complete, with a
    retained summary count and timestamp. Independently compare several owned
