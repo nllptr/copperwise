@@ -55,7 +55,9 @@ Remaining ticket-01 acceptance checks (not implied by the passes above):
 - [ ] Verify a failed refresh with an existing successful snapshot preserves its
   price, supply, source time and coverage. Cancellation preservation already passes.
 - [ ] Exercise competing AH activity during an active Copperwise scan; current
-  coexistence evidence covers refusal before starting, not mid-scan interruption.
+  evidence confirms stopping and normal native search completion during the
+  tab-switch/search sequence. Retained observation preservation remains pending;
+  this sequence does not isolate competing-request detection from tab hiding.
 
 Ticket 01 remains open for these checks. This reconciliation neither waives
 acceptance nor marks ticket 02's dependency resolved. Extended logout/market
@@ -250,3 +252,15 @@ The preceding comparison showed an older retained observation (11:57:52 CET,
 That mismatched comparison did not pass acceptance; the fresh matching pair
 above supplies the acceptance evidence without inferring why the older values
 differed. Five ticket-01 acceptance checks remain; the ticket stays open.
+
+### Active-scan native navigation — 2026-11-15
+
+Owner confirms "it stopped and the native search finished normally" after
+starting a Copperwise full scan, switching to native Browse while it is running,
+and searching Rough Stone. This verifies stopping during the tab-switch/search
+sequence and normal completion of the native search. Because leaving the
+Copperwise tab itself cancels collection, this does not independently establish
+competing-request detection while the Copperwise tab remains active. Owner did
+not explicitly confirm preservation of the retained 12:03:55 observation, so
+that outcome remains pending rather than inferred. Five acceptance checks
+remain open, with this additional partial coexistence evidence recorded.
