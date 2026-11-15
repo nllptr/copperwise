@@ -6,4 +6,5 @@
 Inventory.lua
 Storage.lua
 Intent.lua
+Review.lua
 Scan.lua

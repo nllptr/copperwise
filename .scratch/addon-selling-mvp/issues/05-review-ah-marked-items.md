@@ -38,3 +38,21 @@ the reviewed list through successive native postings. The default price rule,
 price-refresh policy and shared duration default remain product decisions to
 settle during implementation; matching the lowest buyout was suggested but
 has not been approved as the required pricing rule.
+
+### Implementation — 2026-11-15
+
+Owner approved proposed terms: compatible retained complete-scan lowest unit
+buyout, no undercut; refresh unedited defaults after a new complete scan; retain
+item overrides until cancellation/closure; shared duration defaults to 24 hours.
+Native duration indices are 2/8/24 hours (posting probe evidence), not retail's
+12/24/48 hours. Tab departure also discards ephemeral review terms.
+
+Implemented the full AH-only review, optional unit-price edits, shared duration,
+source-stack eligibility/native deposits, shortages and known batch totals in
+`addons/Copperwise/Review.lua`. Post all remains disabled; no posting call exists.
+Saved intent and account schemas are unchanged. Review preparation is ephemeral
+and must be revalidated by ticket 06 before dispatch.
+
+Actual-client acceptance is pending using the checklist in
+[addon README](../../../addons/Copperwise/README.md#ticket-05-target-client-acceptance--pending).
+Implementation and supporting repository checks do not resolve this ticket.

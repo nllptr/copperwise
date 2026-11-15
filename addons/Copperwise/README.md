@@ -280,3 +280,63 @@ pass client acceptance.
    quantity controls and shortage detail. Confirm marking, editing, removal,
    restoration and window/tab changes never query or post an auction or sell
    to a merchant. AH queue display and posting belong to tickets 05 and 06.
+
+## AH batch review (ticket 05)
+
+Open the native Copperwise AH tab to see every AH-marked entry, including restored
+intent and items no longer held or supported. Vendor intent and unmarked bags are
+excluded. Full scan and native tab navigation remain available. No transaction
+API is called; **Post all (soon)** is deliberately disabled until ticket 06.
+
+Owner-approved defaults (2026-11-15): use the compatible retained complete scan's
+lowest unit buyout without undercutting. New complete scans refresh unedited
+prices; failed/cancelled scans preserve them. Prices are cached asking values,
+not live offers. Enter a positive whole copper price and Apply for an optional
+item override; Use scan price removes it. Edits are session-only. Shared duration
+defaults to 24 hours; clicking Duration cycles the target client's 2/8/24-hour
+choices. Cancel review, tab departure or AH closure discards edits/preparation
+and resets duration; returning rebuilds defaults without changing saved intent.
+
+Rows show intended and eligible units, shortages, unit price, eligible total,
+duration, summed native deposit and source-stack count. Multiple supported stacks
+cover one intent without consolidation. Unavailable values are labeled, never
+invented as zero. Partial coverage can be ready while its remainder stays pending.
+The summary includes known totals and counts entries with unknown terms; estimated
+proceeds deduct 5% and exclude deposits. Insufficient funds are flagged. Every
+half-second the visible review rebuilds from current intent, settled holdings,
+native eligibility, price and deposit. Unsettled bags invalidate preparation.
+Ticket 06 must revalidate each individual dispatch; this review authorizes none.
+
+### Ticket 05 target-client acceptance — pending
+
+Run production Copperwise with probes disabled at the faction AH; record build,
+realm/faction/region, UI scale and Auctionator version/presence. These checks are
+the agreed acceptance seam, and repository checks do not pass them.
+
+1. Mark at least two commodities AH and one Vendor; leave some holdings unmarked.
+   Use partial intended units and an intent above available bags. Reload and open
+   Copperwise at AH: all and only AH marks appear, with correct intended quantities,
+   shortages and eligible totals. Restore a saved AH mark with zero bags; keep it
+   visible with a reason. Unsupported/ineligible marks also stay visible.
+2. Use a commodity spanning multiple stacks. Compare eligible units with bags,
+   intended units and source-stack count. No consolidation or per-stack review is
+   required. Move/lock a stack, reduce holdings, change intent in Inventory and
+   remove a mark: preparation must invalidate/update without losing saved intent.
+3. Compare proposed unit price with the compatible retained scan minimum and
+   eligible total with quantity × price. No scan/empty supply means unavailable
+   price; enter an explicit price to propose terms. Reject blank, zero, negative,
+   fractional and oversized input. Apply one override without selecting every row.
+4. Compare native deposits for each prepared stack quantity at 24 hours and sum
+   them. Cycle 2/8/24 hours and compare native deposit/labels again. Verify known
+   zero remains zero and unavailable deposit is labeled. Compare summary totals
+   and insufficient-funds warnings, including partially covered entries.
+5. Full scan refreshes unedited prices but preserves edits. Failed/cancelled scan
+   preserves prior prices and source time. Review text identifies edited prices
+   or source time. No scan or review action posts an auction.
+6. Cancel review, leave the tab and close AH separately: saved intent survives,
+   overrides disappear, duration returns to 24 hours and reopening rebuilds the
+   list without posting. Confirm Post all is disabled throughout.
+7. Check scrolling, long item names, input focus and readable native coin labels
+   at normal UI scale. Verify Full scan, Cancel scan and all native tabs remain
+   usable, both with Auctionator installed/idle/active and without it. Record
+   observations and any Lua errors before accepting the ticket.

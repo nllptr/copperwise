@@ -25,6 +25,10 @@ function CW.AvailableItem(id)
     if settled and not CursorHasItem() then return rows[id] end
 end
 
+function CW.HoldingsSettled()
+    return settled and not CursorHasItem()
+end
+
 function CW.SelectedItem()
     return CW.AvailableItem(selected)
 end

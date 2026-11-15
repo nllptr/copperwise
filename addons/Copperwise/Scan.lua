@@ -62,23 +62,21 @@ local function render()
     if not output then return end
     scanButton:SetEnabled(active == nil)
     cancelButton:SetEnabled(active ~= nil)
-    local text = "Full auction-house scan (summary mode)\nCollect minimum asking values and available supply across the market.\n"
-        .. "Inventory uses the retained results to review owned commodities.\n\n"
+    local text = "Full market summary scan — retained asking values, not completed sales.\n"
     if attempt then
         text = text .. "Latest scan: " .. attempt.state .. "\n" .. attempt.reason
             .. "\nRequests: " .. attempt.requests .. "; item summaries processed: " .. attempt.count
-            .. "\nMarket: " .. attempt.context
-            .. "\nStarted: " .. date("%Y-%m-%d %H:%M:%S %Z", attempt.started)
     else text = text .. "No scan attempted this session." end
     local snapshot = cache()
     if snapshot then
-        text = text .. "\n\nLast complete full scan: " .. date("%Y-%m-%d %H:%M:%S %Z", snapshot.observedAt)
+        text = text .. "\nLast complete full scan: " .. date("%Y-%m-%d %H:%M:%S %Z", snapshot.observedAt)
             .. "\n" .. snapshot.count .. " item summaries; " .. snapshot.context
             .. "\nRepeated keys: " .. (snapshot.duplicates or 0)
             .. "; conflicting keys withheld: " .. (snapshot.ambiguous or 0)
     else text = text .. "\n\nNo complete scan retained for this market." end
     if CW.notice then text = text .. "\n\n" .. CW.notice end
-    output:SetText(text .. "\n\nAsking values are not completed sales.\nKeep this tab open until scanning finishes.\nNo posting is performed by a scan.")
+    output:SetText(text)
+    if CW.RenderReview then CW.RenderReview() end
 end
 
 local function finish(state, reason)
@@ -284,7 +282,7 @@ local function setupPanel()
     scanButton = button("Full scan", 12, start)
     cancelButton = button("Cancel scan", 205, function() cancel() end)
     output = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    output:SetPoint("TOPLEFT", 12, -60); output:SetPoint("BOTTOMRIGHT", -12, 10)
+    output:SetPoint("TOPLEFT", 12, -42); output:SetPoint("BOTTOMRIGHT", panel, "TOPRIGHT", -12, -162)
     output:SetJustifyH("LEFT"); output:SetJustifyV("TOP")
     local tab = CreateFrame("Button", "CopperwiseMarketTab", ah, "AuctionHouseFrameDisplayModeTabTemplate")
     tab:SetText("Copperwise")
@@ -313,6 +311,7 @@ local function setupPanel()
         end
     end)
     panel:SetScript("OnHide", function() cancel("Copperwise AH tab hidden; scan stopped.") end)
+    if CW.SetupReview then CW.SetupReview(panel) end
     render()
 end
 
@@ -349,6 +348,8 @@ frame:SetScript("OnEvent", guard(function(_, event, argument)
         setupPanel()
     elseif event == "AUCTION_HOUSE_CLOSED" then
         houseOpen = false
+        if panel then panel:Hide() end
+        if CW.DiscardReview then CW.DiscardReview() end
         cancel("Auction house closed; previous complete scan preserved.")
         reopenRequired, externalPending = false, {}
     elseif active and (event == "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED" or event == "AUCTION_HOUSE_BROWSE_RESULTS_ADDED") then
