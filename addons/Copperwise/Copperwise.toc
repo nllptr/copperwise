@@ -1,6 +1,7 @@
 ## Interface: 16001
 ## Title: Copperwise
 ## Notes: Inspect current bag commodities and native auction asking values
+## SavedVariables: CopperwiseAccountDB
 ## SavedVariablesPerCharacter: CopperwiseDB
 Inventory.lua
 Scan.lua

@@ -23,7 +23,7 @@ end
 
 local function cache()
     local key = market()
-    return key and CopperwiseDB and CopperwiseDB.markets and CopperwiseDB.markets[key]
+    return key and CopperwiseAccountDB and CopperwiseAccountDB.markets and CopperwiseAccountDB.markets[key]
 end
 
 -- Inventory only compares native commodities; full-market collection also retains
@@ -240,7 +240,7 @@ local function process()
             duplicates=batch.duplicates, ambiguous=batch.ambiguous,
             observedAt=time(), startedAt=attempt.started, source="native full browse summary", full=true,
             client={version=version, build=build, interface=interface}}
-        CopperwiseDB.markets[active.market] = snapshot
+        CopperwiseAccountDB.markets[active.market] = snapshot
         finish("complete", "Full market summary scan completed; " .. batch.count .. " item summaries retained.")
         print("Copperwise: Finished processing " .. batch.count .. " item summaries.")
     else
@@ -333,8 +333,21 @@ frame:SetScript("OnEvent", guard(function(_, event, argument)
         lastTraffic = GetTime()
     end
     if event == "PLAYER_LOGIN" then
-        if type(CopperwiseDB) ~= "table" or CopperwiseDB.version ~= 1 then CopperwiseDB = {version=1, markets={}} end
-        if type(CopperwiseDB.markets) ~= "table" then CopperwiseDB.markets = {} end
+        if type(CopperwiseAccountDB) ~= "table" then CopperwiseAccountDB = {version=1, markets={}} end
+        if type(CopperwiseAccountDB.markets) ~= "table" then CopperwiseAccountDB.markets = {} end
+        -- Keep the legacy character store intact. Characters migrate as they log in;
+        -- their bag holdings and sale intent never enter the account market store.
+        if type(CopperwiseDB) == "table" and CopperwiseDB.version == 1 and type(CopperwiseDB.markets) == "table" then
+            for key, snapshot in pairs(CopperwiseDB.markets) do
+                local retained = CopperwiseAccountDB.markets[key]
+                if type(snapshot) == "table" and snapshot.full == true
+                    and type(snapshot.items) == "table" and type(snapshot.observedAt) == "number"
+                    and (type(retained) ~= "table" or retained.full ~= true
+                        or type(retained.observedAt) ~= "number" or snapshot.observedAt > retained.observedAt) then
+                    CopperwiseAccountDB.markets[key] = snapshot
+                end
+            end
+        end
         setupHooks()
     elseif event == "AUCTION_HOUSE_SHOW" then
         houseOpen, lastTraffic = true, GetTime()

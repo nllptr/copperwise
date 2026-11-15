@@ -49,9 +49,15 @@ Repeated identical native keys are counted once, without summing supply. If
 repeated keys disagree on price or supply, that key is withheld from Inventory
 comparisons. The AH panel reports repeated-key and conflicting-key counts.
 
-Snapshots persist through ordinary per-character addon saved variables, separated
-by native realm/faction/region. Inventory can read them away from AH and after
-reload; observation age is shown. There is no offline collection or price history.
+Snapshots persist through account-wide `CopperwiseAccountDB` saved variables,
+separated by native realm/faction/region. All characters on the same account can
+read compatible observations away from AH after ordinary reload/logout and login.
+Observation age uses the original source time. Existing complete snapshots in
+per-character `CopperwiseDB` migrate at login; the newer complete snapshot wins
+per market, with equal timestamps keeping the account copy. Legacy character
+data stays intact, and character holdings and sale intent are never copied into
+the account store. There is no live cross-client synchronization, offline
+collection or price history.
 Stale-warning configuration and destination buttons belong to later tickets.
 
 ## Actual-client acceptance
@@ -72,6 +78,12 @@ collector. Lua syntax and Go checks are supporting checks only.
    context rather than assuming counts must be identical.
 4. Close AH and inspect Inventory. Reload/logout and restore: selected commodity
    observations must retain prices, supply, source time, market and coverage.
+   Switch to another character on the same account and compatible market, away
+   from AH. Confirm the same observations and original source time against that
+   character's own bag quantities. Log into a character with an older legacy
+   scan and confirm it cannot replace the newer shared scan. Verify another
+   realm/faction/region cannot read incompatible data. Account-wide persistence
+   and migration acceptance remain pending until these client checks pass.
 5. Cancel immediately after dispatch from the open Copperwise AH tab:
    `/run Copperwise.Scan(); Copperwise.Cancel()`.
    Wait for late responses; state must remain cancelled and retained data must
@@ -86,3 +98,10 @@ collector. Lua syntax and Go checks are supporting checks only.
    turn missing buyout into zero. Verify unavailable/known-zero vendor metadata.
 
 No posting or other transaction is performed by this version.
+
+## Supporting storage checks
+
+From the repository root, run `lua addons/Copperwise/tests/storage.lua` with Lua
+5.1 or newer. These checks exercise login and Inventory observations with native
+API boundary stubs; they do not establish actual-client acceptance. Syntax-check
+the production Lua files with `luac -p addons/Copperwise/*.lua`.

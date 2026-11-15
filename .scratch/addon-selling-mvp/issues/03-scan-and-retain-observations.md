@@ -50,3 +50,17 @@ Current scans are per-character, so the acceptance above is implementation work,
 not already passed. Account-wide bag/bank observations are only an undecided
 future possibility without a sufficient use case; do not implement them here.
 See the specification's account-wide data decision for the requirement and scope.
+
+### Account-wide storage implementation — 2026-11-15
+
+Implemented account-wide `CopperwiseAccountDB` for complete market snapshots.
+Login migrates version-1 per-character snapshots, preserving source time and
+native market keys; only a newer complete snapshot replaces a complete shared
+snapshot. Equal timestamps keep the shared copy. Legacy character data remains
+intact; holdings and sale intent are not copied into the shared store.
+
+Supporting Lua checks cover cross-character reads, newer/older/equal migration,
+partial/undated rejection, complete-empty results and market isolation. These
+are supporting checks, not actual-client acceptance. The two-character
+reload/logout journey and migration checks in the addon README remain pending;
+this storage change does not close the broader scan ticket.
