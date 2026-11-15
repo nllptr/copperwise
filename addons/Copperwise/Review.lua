@@ -33,15 +33,18 @@ local function prepare(id, intent)
     elseif item.support ~= "comparable commodity" then row.reason = item.support
     else
         row.name = item.name
-        local remaining = intent.quantity
+        local remaining, rejected = intent.quantity, {}
         for bag = 0, 4 do
             for slot = 1, C_Container.GetContainerNumSlots(bag) do
                 local info = C_Container.GetContainerItemInfo(bag, slot)
-                if remaining > 0 and info and info.itemID == id and not info.isLocked then
+                if remaining > 0 and info and info.itemID == id then
                     local location = ItemLocation:CreateFromBagAndSlot(bag, slot)
                     local valid = native(C_AuctionHouse.IsSellItemValid, location, false)
                     local status = native(C_AuctionHouse.GetItemCommodityStatus, location)
-                    if valid and status == Enum.ItemCommodityStatus.Commodity then
+                    if info.isLocked then rejected["locked stacks"] = true
+                    elseif valid ~= true then rejected["native sell eligibility unavailable or refused"] = true
+                    elseif status ~= Enum.ItemCommodityStatus.Commodity then rejected["native commodity classification unavailable or unsupported"] = true
+                    else
                         local units = math.min(remaining, info.stackCount)
                         local deposit = native(C_AuctionHouse.CalculateCommodityDeposit, id, duration, units)
                         if type(deposit) ~= "number" or deposit < 0 or deposit % 1 ~= 0 then deposit = nil end
@@ -53,6 +56,12 @@ local function prepare(id, intent)
                     end
                 end
             end
+        end
+        if remaining > 0 then
+            local reasons = {}
+            for reason in pairs(rejected) do reasons[#reasons+1] = reason end
+            table.sort(reasons)
+            if #reasons > 0 then row.pendingReason = table.concat(reasons, "; ") end
         end
         if row.eligible == 0 then row.reason = "No supported sellable source stacks" end
     end
@@ -123,7 +132,7 @@ function CW.RenderReview()
         widget.terms:SetText("Unit " .. money(row.price) .. "; eligible total " .. money(row.price and row.eligible > 0 and row.price * row.eligible or nil)
             .. "; " .. hours[duration] .. "h; deposit " .. money(row.deposit) .. "; " .. #row.stacks .. " source stacks")
         widget.state:SetText((row.ready and "Ready" or ("Pending: " .. (row.reason or "unavailable")))
-            .. (row.eligible < row.intended and "; remainder stays pending" or "")
+            .. (row.eligible < row.intended and ("; pending: " .. (row.pendingReason or (row.shortage and row.shortage > 0 and "bag shortage" or "holdings unavailable"))) or "")
             .. (edits[row.id] and "; edited price" or (row.observedAt and ("; scan " .. date("%H:%M %d/%m", row.observedAt)) or "")))
         if not widget.input:HasFocus() then widget.input:SetText(row.price and tostring(row.price) or "") end
         local id = row.id

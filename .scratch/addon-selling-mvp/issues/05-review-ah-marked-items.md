@@ -56,3 +56,11 @@ and must be revalidated by ticket 06 before dispatch.
 Actual-client acceptance is pending using the checklist in
 [addon README](../../../addons/Copperwise/README.md#ticket-05-target-client-acceptance--pending).
 Implementation and supporting repository checks do not resolve this ticket.
+
+Supporting validation: production Lua files compile with LuaJIT; existing Inventory,
+storage and scan regression suites and `CGO_ENABLED=0 go test ./...` pass.
+Review against starting commit `ea56479`: Standards found no violations or
+baseline smells. Spec found missing reasons for partially ineligible quantities
+(fixed by recording native eligibility/classification/locked-stack reasons) and
+pending required actual-client acceptance (still outstanding). No transaction
+calls were added. Native layout/coexistence and integrated handoff remain unverified.
