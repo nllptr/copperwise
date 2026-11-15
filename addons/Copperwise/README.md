@@ -73,7 +73,14 @@ after the entire chain succeeds. Add behavior checks for the concrete schema
 change at the login/Inventory boundary. No account schema change is needed yet.
 Unsupported versions, malformed data and failed upgrades leave the saved data
 intact and disable market reads/scans with a visible explanation.
-Stale-warning configuration and destination buttons belong to later tickets.
+AH recommendations show “stale price” only when the original observation is
+older than the threshold (default 60 minutes); exactly 60 minutes is fresh.
+Use `/cw stale 30` to set a positive threshold in minutes for this character,
+or `/cw stale` to see the current setting and usage. Settings survive reload
+and logout; invalid input preserves the previous value. Vendor recommendations
+and unavailable comparisons have no stale warning. The warning updates while
+Inventory is open and never changes a recommendation or source timestamp.
+Ticket 04 will use the same warning on destination marking controls.
 
 ## Actual-client acceptance
 
@@ -116,6 +123,13 @@ are supporting checks only.
    where reproducible. None may publish partial data as a complete snapshot or
    turn missing buyout into zero. Verify unavailable/known-zero vendor metadata.
 
+9. With an AH-recommended commodity selected, use `/cw stale 0.01` on a scan
+   older than one second. Confirm “stale price” on its AH recommendation and a
+   warning in its detail. Use `/cw stale 60` to restore the default; warnings
+   disappear if the observation is within an hour. Confirm Vendor recommendations
+   have no warning. Reload and use `/cw stale` to confirm the chosen setting.
+   Exact threshold boundaries are covered by the synthetic checks below.
+
 No posting or other transaction is performed by this version.
 
 For reproducible simulated edge cases, see the separate
@@ -148,3 +162,14 @@ and commission-aware ordering. Market request stubs fail if selection queries
 the AH. They verify behavior in code, not native layout or server semantics.
 The owner approved these code-only cases to complete ticket 02 alongside its
 recorded real-client evidence; this does not replace later release acceptance.
+
+
+## Scan lifecycle checks
+
+Run `luajit addons/Copperwise/tests/scan.lua`. These checks load the current
+production modules and exercise native events with simulated APIs and time.
+They cover cumulative pagination, throttling, cancellation, AH closure/tab
+changes, competing work, failure/timeouts, late responses, reopen recovery,
+market isolation, complete-empty coverage and missing buyout. Inventory checks
+also cover stale-warning boundaries and per-character setting restoration.
+These checks support the client evidence; they do not establish server behavior.

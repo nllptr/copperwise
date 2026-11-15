@@ -1,7 +1,7 @@
 -- Synthetic acceptance through production login, Inventory rows and row clicks.
 -- Run from the repository root: luajit addons/Copperwise/tests/inventory.lua
 -- Native APIs/widgets are simulated; no game process or real saved data is used.
-local function inventory(items, prices)
+local function inventory(items, prices, character)
     local env = setmetatable({}, {__index=_G})
     local state = {clock=0, frames={}, widgets={}}
     local methods = {}
@@ -34,7 +34,7 @@ local function inventory(items, prices)
         return value
     end
     env.GetTime = function() return state.clock end
-    env.time = function() return 1000 end
+    env.time = function() return state.now or 1000 end
     env.date = function() return "synthetic source time" end
     env.CursorHasItem = function() return false end
     env.GetCoinTextureString = function(value) return value .. "c" end
@@ -68,6 +68,7 @@ local function inventory(items, prices)
     for id, price in pairs(prices or {}) do
         summaries[tostring(id)] = {key={itemID=id}, minimum=price, units=10}
     end
+    env.CopperwiseDB = character
     env.CopperwiseAccountDB = {version=1, markets={}}
     if prices then
         env.CopperwiseAccountDB.markets["3:10:Test Realm:Alliance"] = {
@@ -106,6 +107,8 @@ local function inventory(items, prices)
         end
         error("No selected item detail")
     end
+    state.env = env
+    function state:command(text) env.SlashCmdList.COPPERWISE(text) end
     state:refresh()
     env.SlashCmdList.COPPERWISE()
     return state
@@ -184,4 +187,42 @@ test("ranking compares net AH proceeds with vendor totals rather than gross aski
     contains(ui:rows()[1].label.text, "Z vendor wins")
     contains(ui:rows()[1].value.text, "96c — Vendor")
     contains(ui:rows()[2].value.text, "95c — AH")
+end)
+
+
+test("AH recommendations warn strictly after the default hour", function()
+    local ui = inventory({{id=1, name="AH", sell=1}}, {[1]=100})
+    ui.now = 4500 -- retained source is 900
+    ui:refresh()
+    assert(not ui:rows()[1].value.text:find("stale", 1, true))
+    ui.now = 4501
+    ui:refresh()
+    contains(ui:rows()[1].value.text, "AH (stale price)")
+    contains(ui:select(1), "Warning: AH price exceeds the stale threshold (60 minutes).")
+end)
+
+test("stale configuration survives login and rejects invalid input without changing intent", function()
+    local character = {saleIntent={[1]=3}}
+    local ui = inventory({{id=1, name="AH", sell=1}}, {[1]=100}, character)
+    ui:command("stale 1")
+    contains(ui:rows()[1].value.text, "AH (stale price)")
+    assert(character.staleMinutes == 1 and character.saleIntent[1] == 3)
+    ui = inventory({{id=1, name="AH", sell=1}}, {[1]=100}, character)
+    contains(ui:rows()[1].value.text, "AH (stale price)")
+    for _, input in ipairs({"stale 0", "stale -1", "stale nan", "stale inf", "stale 1 extra"}) do
+        ui:command(input)
+        assert(character.staleMinutes == 1)
+    end
+    ui:command("stale 2")
+    assert(not ui:rows()[1].value.text:find("stale", 1, true))
+end)
+
+test("old Vendor recommendations and unavailable comparisons have no stale warning", function()
+    local ui = inventory({{id=1, name="Vendor", sell=100}, {id=2, name="Empty", sell=1}}, {[1]=100})
+    ui.now = 10000
+    ui:refresh()
+    for index, row in ipairs(ui:rows()) do
+        assert(not row.value.text:find("stale", 1, true))
+        assert(not ui:select(index):find("Warning:", 1, true))
+    end
 end)

@@ -47,6 +47,18 @@ local function comparison(item)
     return values
 end
 
+-- Re-evaluate against wall time even when holdings/comparisons are retained.
+local function staleMinutes()
+    local minutes = type(CopperwiseDB) == "table" and CopperwiseDB.staleMinutes
+    if type(minutes) ~= "number" or minutes <= 0 or minutes ~= minutes or minutes == math.huge then return 60 end
+    return minutes
+end
+
+local function stale(values)
+    return values.destination == "AH" and values.observation
+        and time() - values.observation.observedAt > staleMinutes() * 60
+end
+
 local function renderList()
     local ready = settled and not CursorHasItem()
     local choices = {}
@@ -104,7 +116,7 @@ local function renderList()
         button.icon:SetTexture(item.icon or "Interface\\Icons\\INV_Misc_QuestionMark")
         button.label:SetText((selected == item.id and "|cffffd100" or "") .. item.name
             .. " (" .. item.quantity .. ")")
-        button.value:SetText(values.value ~= nil and (money(values.value) .. " — " .. values.destination)
+        button.value:SetText(values.value ~= nil and (money(values.value) .. " — " .. values.destination .. (stale(values) and " (stale price)" or ""))
             or ("Unavailable — " .. values.reason))
         button:Show()
     end
@@ -126,6 +138,9 @@ function CW.Render()
             .. "\nAH estimated proceeds (5% cut): " .. money(values.proceeds)
             .. "\nPreferred destination: " .. (values.destination or "unavailable (both values required)")
             .. "\nSupport: " .. item.support
+    end
+    if values and stale(values) then
+        text = text .. "\nWarning: AH price exceeds the stale threshold (" .. staleMinutes() .. " minutes)."
     end
     local observation = values and values.observation
     if observation then
@@ -217,7 +232,26 @@ end
 
 SLASH_COPPERWISE1 = "/copperwise"
 SLASH_COPPERWISE2 = "/cw"
-SlashCmdList.COPPERWISE = open
+SlashCmdList.COPPERWISE = function(message)
+    message = message or ""
+    if message:match("^%s*stale") then
+        local value = tonumber(message:match("^%s*stale%s+(%S+)%s*$"))
+        if value and value > 0 and value < math.huge then
+            if CopperwiseDB == nil then CopperwiseDB = {} end
+            if type(CopperwiseDB) ~= "table" then
+                print("Copperwise: Character settings unavailable; saved data preserved.")
+                return
+            end
+            CopperwiseDB.staleMinutes = value
+            CW.Render()
+        else
+            print("Copperwise: Use /cw stale <positive minutes>.")
+        end
+        print("Copperwise: Stale-price threshold: " .. staleMinutes() .. " minutes (this character).")
+        return
+    end
+    open()
+end
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("BAG_UPDATE")
 frame:RegisterEvent("BAG_UPDATE_DELAYED")

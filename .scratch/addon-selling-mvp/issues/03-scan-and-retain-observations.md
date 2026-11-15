@@ -2,9 +2,9 @@
 
 **What to build:** The player scans the full AH market from the Copperwise AH tab and can review the latest successful local observations after reload/logout and away from the AH on any character of the same account, with honest age and refresh status.
 
-**Blocked by:** 02: Browse and rank bag items.
+**Blocked by:** None — ticket 02 resolved (2026-11-15).
 
-**Status:** ready-for-agent
+**Status:** implemented — remaining target-client acceptance pending
 
 **Labels:** ready-for-agent
 
@@ -93,3 +93,26 @@ same realm/faction reads those observations; a new full scan completes and
 survives `/reload`. Record these checks as owner-reported passed. No legacy
 migration check is required. Incompatible-market client verification and the
 remaining broader scan-ticket acceptance are not covered by this confirmation.
+
+
+### Ticket 03 implementation — 2026-11-15
+
+Added `/cw stale <positive minutes>` with a per-character persisted threshold,
+default 60 minutes. AH recommendations show a warning strictly after the
+threshold; Vendor/unavailable comparisons do not. Source times are unchanged.
+Destination marking buttons remain ticket 04 scope and must reuse this warning
+behavior when introduced. Existing settings and sale intent are preserved.
+
+Owner approved synthetic tests through public UI/events with simulated WoW APIs
+and time. Current-production scan tests cover cumulative pagination/readiness,
+cancellation, AH closure/tab changes, competing requests, failed/timeout refreshes,
+late results, reopen recovery, realm/faction/region isolation, complete-empty
+coverage and missing buyout. Inventory tests cover exact-hour/one-second-later
+boundaries, setting restoration, invalid input and Vendor warning exclusion.
+
+Reuse ticket 01's recorded native and controlled-client evidence for existing
+scan behavior, and this ticket's owner confirmations for account-wide persistence.
+Still pending: target-client verification of the new configuration/warning display
+and persistence (README step 9), incompatible-market isolation, and integrated
+review of the ticket 03 acceptance list. Synthetic checks do not establish native
+server behavior; this ticket is not resolved yet.
