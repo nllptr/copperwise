@@ -146,3 +146,14 @@ First-login availability remains unavailable until an actual settled snapshot;
 saved intent cannot manufacture observed zero holdings. Actual bag changes are
 published only after the existing settling interval. Updated the spec and
 README hover/split/move checklist; client verification of this fix is pending.
+
+### Quiet revalidation client feedback — 2026-11-15
+
+After installing `3e75856` and being asked to repeat native bag-item hovering,
+the owner reports it “seems to be working now.” Record the reported hover
+flicker (disappearing buttons and bags checking labels) as resolved in the
+production client. The preceding owner-confirmed window warning, shortages,
+Vendor intent and split/reload behavior remain accepted within their recorded
+scope. Character isolation, logout restoration and destination preservation
+across changed prices still lack explicit client confirmation; ticket 04
+remains implemented with remaining acceptance pending.
