@@ -323,16 +323,18 @@ The XML button follows the verified posting probe; transactions never originate
 from timers, queries, login, reopening or selection. Native confirmations remain
 native. Sources, intent and deposit are revalidated at click time.
 
-One click posts at most the first supported source stack. When reviewed quantity
-spans stacks, the button shows that click's quantity and the status explains how
-many reviewed units remain. After confirmed owned-listing and settled-bag evidence,
-intent decreases by that source quantity and the form retains the reviewed
-remainder. Click the same Post item control again to continue. No automatic stack
-consolidation or Post all execution is introduced. A completed intent disappears
-and the next marked item is selected.
+One click posts the full reviewed commodity quantity, including units across
+multiple bag stacks, using the native GetAvailablePostCount limit like native
+Max/Auctionator. The default and Max are capped to eligible AH-marked holdings;
+optional quantity edits stay bounded by the saved intent. All contributing source
+stacks and the native quantity limit are revalidated at click time. The native
+deposit is calculated once for the full reviewed quantity. No consolidation or
+extra per-stack click is required. A completed intent disappears and the next
+marked item is selected. Post all remains a placeholder.
 
-A before/after owned-listing identity comparison, exact item/quantity/unit buyout
-match, unchanged in-session intent revision and settled matching bag decrease are required for automatic confirmation.
+A before/after owned-listing identity comparison, matching new listing units
+summed at the reviewed item/unit buyout, unchanged in-session intent revision
+and settled matching bag decrease are required for automatic confirmation.
 Shared events or API returns alone never consume intent. Conflicts, failures and
 uncertainty preserve intent and block another post. The character-specific
 `pendingPost` version-1 ledger survives ordinary logout/reload; restored pending
@@ -367,8 +369,8 @@ visible marks and tabs, not acceptance of this replacement layout.
    quantity stays fixed. Edit quantity and denominations, use Max, select another
    item and return. Explicit prices persist until leaving the tab/closing AH.
    Refresh item keeps overrides. Duration radios select exactly one of 2/8/24h;
-   native deposit and total reflect selected terms. Compare deposits per source
-   stack, including multiple stacks, zero, unavailable and insufficient funds.
+   native deposit and total reflect selected terms. Compare the native deposit for the full reviewed quantity, including quantities
+   spanning multiple stacks, zero, unavailable and insufficient funds.
 4. Exercise Full scan, Cancel scan and Refresh item separately, including during
    native/Auctionator work. Verify global scans preserve their existing full-market
    completeness, cancel/closure behavior and original saved-data semantics. A
@@ -376,8 +378,8 @@ visible marks and tabs, not acceptance of this replacement layout.
 5. Before posting, choose one inexpensive commodity and explicit safe terms.
    Click Post item once; inspect native owned listings for matching item, quantity,
    price and duration, and compare bag change. Intent must decrease only after
-   confirmation. For multiple stacks continue the same reviewed remainder through
-   deliberate clicks. Verify duplicate clicks cannot submit another unresolved post.
+   confirmation. For multiple stacks, the full reviewed quantity must post from one click;
+   confirm all its new listing units sum to that quantity. Verify duplicate clicks cannot submit another unresolved post.
 6. Test shortage, changed holdings/terms, blocked/native-error paths and uncertain
    outcomes. Inspect Auctions before operator reconciliation; neither a shared
    event nor bag decrease alone can claim a successful post. Reload with an

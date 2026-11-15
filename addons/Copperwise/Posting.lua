@@ -45,16 +45,16 @@ local function confirm()
     local item = CW.AvailableItem(pending.id)
     local available = item and item.quantity or 0
     if pending.beforeUnits - available ~= pending.quantity then return end
-    local matches = 0
+    local matchedUnits = 0
     for _, row in ipairs(pending.rows) do
         if not pending.beforeIDs[tostring(row.auctionID)] and row.itemKey and row.itemKey.itemID == pending.id
-            and row.quantity == pending.quantity and row.buyoutAmount == pending.price then
+            and CW.IsPositiveWhole(row.quantity) and row.buyoutAmount == pending.price then
             -- Commodity owned buyout is per unit (as used by Auctionator's
             -- Cancelling provider); target-client acceptance checks this too.
-            matches = matches + 1
+            matchedUnits = matchedUnits + row.quantity
         end
     end
-    if matches ~= 1 then return end
+    if matchedUnits ~= pending.quantity then return end
     local ok, reason = CW.ConfirmPostedIntent(pending.id, pending.quantity, pending.intentQuantity, pending.intentRevision)
     if not ok then notice = reason; return end
     local id, units = pending.id, pending.quantity
@@ -118,33 +118,45 @@ function CW.PostReviewedItem(review)
         or not CW.HoldingsSettled() then
         notice = "Intent or holdings changed; review again."; return
     end
-    if not C_Item.DoesItemExist(sourceStack.location) or C_Item.GetItemLink(sourceStack.location) ~= sourceStack.link
-        or C_Item.GetStackCount(sourceStack.location) ~= sourceStack.count
-        or not C_AuctionHouse.IsSellItemValid(sourceStack.location, false)
-        or C_AuctionHouse.GetItemCommodityStatus(sourceStack.location) ~= Enum.ItemCommodityStatus.Commodity then
-        notice = "Source stack changed; review again."; return
+    if not CW.IsPositiveWhole(review.quantity) or review.quantity > review.eligible then
+        notice = "Reviewed quantity changed; review again."; return
     end
-    local deposit = C_AuctionHouse.CalculateCommodityDeposit(review.id, sourceStack.duration, sourceStack.quantity)
-    if type(deposit) ~= "number" or deposit ~= sourceStack.deposit or GetMoney() < deposit then
+    -- Revalidate every reviewed contributor, then use one native anchor location.
+    for _, source in ipairs(review.stacks) do
+        local bagItem = C_Container.GetContainerItemInfo(source.bag, source.slot)
+        if not bagItem or bagItem.isLocked or bagItem.itemID ~= review.id or bagItem.stackCount ~= source.count
+            or not C_Item.DoesItemExist(source.location) or C_Item.GetItemLink(source.location) ~= source.link
+            or C_Item.GetStackCount(source.location) ~= source.count
+            or not C_AuctionHouse.IsSellItemValid(source.location, false)
+            or C_AuctionHouse.GetItemCommodityStatus(source.location) ~= Enum.ItemCommodityStatus.Commodity then
+            notice = "Source stacks changed; review again."; return
+        end
+    end
+    local limit = C_AuctionHouse.GetAvailablePostCount(sourceStack.location)
+    if type(limit) ~= "number" or limit < review.quantity then
+        notice = "Native available quantity changed; review again."; return
+    end
+    local deposit = C_AuctionHouse.CalculateCommodityDeposit(review.id, review.duration, review.quantity)
+    if type(deposit) ~= "number" or deposit ~= review.deposit or GetMoney() < deposit then
         notice = "Deposit or funds changed; review again."; return
     end
     local item = CW.AvailableItem(review.id)
     if not item then notice = "Bag holdings changed; review again."; return end
     -- This ledger survives reload/logout. Never retry an unresolved native call.
-    store({version=1, id=review.id, quantity=sourceStack.quantity, price=sourceStack.price, duration=sourceStack.duration,
+    store({version=1, id=review.id, quantity=review.quantity, price=review.price, duration=review.duration,
         intentQuantity=intent.quantity, intentRevision=CW.IntentRevision(review.id),
         beforeUnits=item.quantity, beforeIDs=baseline.ids,
         started=time(), conflict=false})
     baseline, ownPost = nil, true
-    notice = "Posting " .. sourceStack.quantity .. " units; awaiting owned listings and settled bags."
-    local needsConfirmation = C_AuctionHouse.PostCommodity(sourceStack.location, sourceStack.duration, sourceStack.quantity, sourceStack.price)
+    notice = "Posting " .. review.quantity .. " units; awaiting owned listings and settled bags."
+    local needsConfirmation = C_AuctionHouse.PostCommodity(sourceStack.location, review.duration, review.quantity, review.price)
     ownPost = false
     if needsConfirmation then
         pending.conflict = true
         -- Preserve the native confirmation path rather than bypassing it.
         local nativeSell = AuctionHouseFrame and AuctionHouseFrame.CommoditiesSellFrame
         if nativeSell and nativeSell.CachePendingPost then
-            nativeSell:CachePendingPost(sourceStack.location, sourceStack.duration, sourceStack.quantity, sourceStack.price)
+            nativeSell:CachePendingPost(sourceStack.location, review.duration, review.quantity, review.price)
         end
         notice = "Native confirmation required; resolve it, then inspect Auctions and reconcile."
     end

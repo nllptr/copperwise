@@ -46,3 +46,10 @@ listing + bag reconciliation, a persistent pending-outcome blocker and explicit
 operator reconciliation. This is supporting infrastructure, not completion of
 this ticket: Post all remains disabled, multi-item execution and automatic
 advancement are unimplemented, and production client posting acceptance is pending.
+
+2026-11-15 follow-up: owner verified one real 20-unit post, then requested the
+full reviewed commodity quantity across stacks in one native call, matching
+native Max/Auctionator. Ticket 05's individual path now uses GetAvailablePostCount
+and total-quantity deposit/PostCommodity, with multi-listing quantity reconciliation.
+This supersedes the earlier mandatory source-stack-sized calls for comparable
+commodities; multi-item Post all remains separate and unimplemented.

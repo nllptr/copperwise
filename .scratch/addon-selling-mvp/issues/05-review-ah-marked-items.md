@@ -151,3 +151,24 @@ item count instead of inventing a percentage. Processing the final complete cach
 shows its actual processed-row percentage, capped below 100 until publication.
 The panel moved up 25 UI units and the item area another 46, reclaiming 71 total.
 Target-client visual verification of this spacing change is pending.
+
+### Full selected-item quantity — 2026-11-15
+
+Owner confirms the compact top layout and scanning work to satisfaction. Owner
+also confirms Post item created a real listing, but only posted 20 of the reviewed
+26 units (20 + 6). This verifies the previous single-source path, not full reviewed
+quantity acceptance or all reconciliation cases. Owner expects native Max /
+Auctionator behavior: a single Post item posts the chosen quantity across stacks.
+
+Installed Auctionator `SaleItem.lua` uses GetAvailablePostCount(location), caps
+against its holdings count, computes native commodity deposit for the entire
+chosen quantity and passes that quantity to PostCommodity with one anchor location.
+Production now follows that path, bounded by marked intent, eligible bag units and
+the native quantity limit. Every contributing source stack is revalidated. Deposit
+is calculated once for the total, rather than summed from stack-level minimums.
+Reconciliation sums new owned-listing units at the reviewed price so either one
+aggregate listing or several native listings can establish the full quantity,
+still requiring the matching settled bag decrease and unchanged intent revision.
+The previous one-source-per-click limitation is superseded. Full-quantity posting
+and native deposit/reconciliation need a new target-client check; Post all remains
+disabled and ticket 06 remains open.

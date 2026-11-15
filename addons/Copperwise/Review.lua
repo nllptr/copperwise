@@ -15,7 +15,7 @@ local function native(fn, ...)
     if ok then return value end
 end
 local function prepare(id, intent, quantity, price)
-    local row = {id=id, name=intent.name, intended=intent.quantity, intentRevision=CW.IntentRevision(id), stacks={}, eligible=0}
+    local row = {id=id, name=intent.name, intended=intent.quantity, intentRevision=CW.IntentRevision(id), quantity=quantity, duration=duration, stacks={}, eligible=0}
     local observation = CW.ObservationFor(id)
     row.price = price
     row.observedAt = observation and observation.observedAt
@@ -39,11 +39,9 @@ local function prepare(id, intent, quantity, price)
                     elseif status ~= Enum.ItemCommodityStatus.Commodity then rejected["native commodity classification unavailable or unsupported"] = true
                     else
                         local units = math.min(remaining, info.stackCount)
-                        local deposit = native(C_AuctionHouse.CalculateCommodityDeposit, id, duration, units)
-                        if type(deposit) ~= "number" or deposit < 0 or deposit % 1 ~= 0 then deposit = nil end
                         row.stacks[#row.stacks+1] = {bag=bag, slot=slot, location=location,
                             itemID=id, link=info.hyperlink, count=info.stackCount,
-                            quantity=units, price=row.price, duration=duration, deposit=deposit}
+                            quantity=units}
                         row.eligible = row.eligible + units
                         remaining = remaining - units
                     end
@@ -60,10 +58,22 @@ local function prepare(id, intent, quantity, price)
     end
     row.shortage = item and math.max(0, intent.quantity - item.quantity) or nil
     if CW.HoldingsSettled() and not item then row.shortage = intent.quantity end
-    row.deposit = #row.stacks > 0 and 0 or nil
-    for _, stack in ipairs(row.stacks) do
-        if stack.deposit == nil then row.deposit = nil; break end
-        row.deposit = row.deposit + stack.deposit
+    local anchor = row.stacks[1]
+    if anchor then
+        local limit = native(C_AuctionHouse.GetAvailablePostCount, anchor.location)
+        if type(limit) ~= "number" or limit < 0 or limit % 1 ~= 0 then
+            row.reason = row.reason or "Native posting quantity unavailable"
+            row.eligible = 0
+        else
+            row.eligible = math.min(row.eligible, limit)
+            if row.eligible == 0 then row.reason = row.reason or "No units currently available for native posting" end
+        end
+        -- Like native Max/Auctionator, one commodity post may span bag stacks.
+        -- The native fee applies to the reviewed total, not a sum of stack fees.
+        if whole(quantity) and quantity <= row.eligible then
+            local deposit = native(C_AuctionHouse.CalculateCommodityDeposit, id, duration, quantity)
+            if type(deposit) == "number" and deposit >= 0 and deposit % 1 == 0 then row.deposit = deposit end
+        end
     end
     if not row.reason and not row.price then row.reason = "Unit buyout unavailable; enter copper or run Full scan" end
     if not row.reason and row.deposit == nil then row.reason = "Native deposit unavailable" end
@@ -259,14 +269,10 @@ function CW.RenderReview()
     for index, radio in ipairs(radios) do radio:SetChecked(index == duration) end
     local postingReason = CW.PostingReason()
     postButton:SetEnabled(row.ready and not postingReason)
-    local stack = row.stacks[1]
-    postButton:SetText(stack and stack.quantity < (draft.quantity or 0) and ("Post item (" .. stack.quantity .. ")") or "Post item")
+    postButton:SetText("Post item")
     local notice, pending = CW.PostingNotice()
     reconcileButton:SetShown(pending)
     local status = notice or row.reason or row.pendingReason or postingReason or "Ready. Click a listing price to use it."
-    if stack and draft.quantity and stack.quantity < draft.quantity then
-        status = status .. "\nThis click posts " .. stack.quantity .. " of " .. draft.quantity .. " reviewed units; continue after confirmation."
-    end
     message:SetText(status)
     refreshButton:SetEnabled(not CW.PostingBlocksScan())
     preview = row
