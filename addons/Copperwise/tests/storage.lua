@@ -56,7 +56,9 @@ test("unsupported versions are preserved and unavailable", function()
 end)
 
 test("malformed account data is preserved rather than reset", function()
-    for _, account in ipairs({"invalid", {version=1}, {markets={}}}) do
+    for _, account in ipairs({"invalid", {version=1}, {markets={}},
+        {version=1, markets={[key]={items="invalid"}}},
+        {version=1, markets={[key]={items={bad={}}, full=true, count=1, observedAt=100, context="Realm"}}}}) do
         assert(login(account, nil) == nil)
         assert(CopperwiseAccountDB == account and Copperwise.notice)
     end

@@ -5,6 +5,21 @@ local VERSION = 1
 -- Keep every intervening migration so updates can skip addon releases.
 local migrations = {}
 
+local function validMarkets(markets)
+    if type(markets) ~= "table" then return false end
+    for key, snapshot in pairs(markets) do
+        if type(key) ~= "string" or type(snapshot) ~= "table" or snapshot.full ~= true
+            or type(snapshot.items) ~= "table" or type(snapshot.observedAt) ~= "number"
+            or type(snapshot.count) ~= "number" or type(snapshot.context) ~= "string" then return false end
+        for identity, row in pairs(snapshot.items) do
+            if type(identity) ~= "string" or type(row) ~= "table" or type(row.key) ~= "table"
+                or type(row.key.itemID) ~= "number" or type(row.units) ~= "number"
+                or (row.minimum ~= nil and type(row.minimum) ~= "number") then return false end
+        end
+    end
+    return true
+end
+
 local function copy(value)
     if type(value) ~= "table" then return value end
     local result = {}
@@ -31,7 +46,7 @@ function CW.LoadStorage()
                 db.version = version + 1
             end
         end
-        assert(type(db.markets) == "table", "Invalid saved market data; data preserved.")
+        assert(validMarkets(db.markets), "Invalid saved market data; data preserved.")
         return db
     end)
     if not ok then CW.notice = tostring(result); return end
