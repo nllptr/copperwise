@@ -64,3 +64,10 @@ baseline smells. Spec found missing reasons for partially ineligible quantities
 (fixed by recording native eligibility/classification/locked-stack reasons) and
 pending required actual-client acceptance (still outstanding). No transaction
 calls were added. Native layout/coexistence and integrated handoff remain unverified.
+
+Owner client run 2026-11-15 21:51:33: opening the review failed at
+`Review.lua:10` because `GetCoinTextureString` is absent in this client, including
+when rendering the zero-valued empty summary. Fixed by sharing Inventory's
+existing currency formatter with Review: prefer available native texture/money
+formatters, then use explicit gold/silver/copper text. Missing values remain
+unavailable and known zero remains numeric zero. Reload verification is pending.

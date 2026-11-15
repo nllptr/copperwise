@@ -5,10 +5,7 @@ local duration = 3 -- Target client: 2 / 8 / 24 hours, not retail durations.
 local hours = {2, 8, 24}
 local elapsed = 0
 
-local function money(value)
-    if value == nil then return "unavailable" end
-    return GetCoinTextureString(value)
-end
+local money = CW.FormatMoney
 
 local function whole(value)
     return type(value) == "number" and value > 0 and value <= 2147483647 and value % 1 == 0

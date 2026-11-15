@@ -11,7 +11,7 @@ local rows, selected, candidate, candidateAt, dirtyAt = {}, nil, nil, 0, 0
 local settled, hasSnapshot = false, false
 local selectedMarked = false
 
-local function money(value)
+function CW.FormatMoney(value)
     if value == nil then return "unavailable" end
     if type(GetCoinTextureString) == "function" then return GetCoinTextureString(value) end
     if type(GetMoneyString) == "function" then return GetMoneyString(value) end
@@ -20,6 +20,7 @@ local function money(value)
     local copper = value % 100
     return string.format("%dg %ds %dc", gold, silver, copper)
 end
+local money = CW.FormatMoney
 
 function CW.AvailableItem(id)
     if settled and not CursorHasItem() then return rows[id] end
