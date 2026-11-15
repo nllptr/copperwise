@@ -140,3 +140,12 @@ after close/reopen and selecting Copperwise, run
 seconds, then inspect `/cw`. Cancellation and preservation of saved prices
 pass on AH closure for this run. Exact source-time/coverage preservation and
 competing-addon coexistence remain separate pending checks.
+
+Owner screenshot after the Auctionator coexistence instruction shows Copperwise
+refusing a new scan: "other AH work is outstanding; wait or close/reopen AH".
+The latest attempt remains a prior cancelled attempt (started 2026-11-15
+01:39:35 CET, one request, zero processed summaries; reason Copperwise AH tab
+hidden). The retained complete scan remains visible: 2026-11-15 01:36:59 CET,
+6,061 item summaries, one repeated key, zero conflicting keys, same market.
+This verifies outstanding-work refusal and retained-snapshot display for this
+interaction. Auctionator's normal completion has not yet been confirmed.
