@@ -132,3 +132,22 @@ Latest screenshot demonstrates selected Waylaid Crate detail with known-zero
 vendor sell value, AH total 11s99c for one owned unit, AH recommendation and
 retained observation details. Visible rows show descending AH totals. This
 evidence does not establish native price correctness, ties or changed holdings.
+
+### Owner-run production-client acceptance — 2026-11-15
+
+Owner reported the following guided checks passed:
+
+- Selecting Strange Dust (18) and Greater Magic Essence (6): own bag quantities,
+  AH unit-times-quantity totals (21s60c and 18s respectively), vendor
+  unit-times-quantity totals and selection changes without starting a scan.
+- Strange Dust split/merge, cursor hold and movement between bag slots: combined
+  quantity remains 18 and AH total 21s60c, with retained display and no flicker,
+  duplicate rows or transient quantity increases.
+- Selecting Beaded Britches and Linen Bag: independent quantities and vendor
+  values, unavailable AH comparison/destination, unsupported noncommodity label,
+  and placement after complete comparisons.
+
+These passes complement the prior screenshot evidence for numeric-zero vendor
+value on Waylaid Crate. Vendor-preferred comparisons, equal-total/name/identity
+ties, missing vendor metadata and observed-empty/no-scan cases remain unverified
+for ticket 02; do not infer full acceptance from the above samples.
