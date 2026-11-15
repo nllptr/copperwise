@@ -189,12 +189,12 @@ local function open()
         window:SetScript("OnDragStop", window.StopMovingOrSizing)
         window.TitleText:SetText("Copperwise — Inventory")
         table.insert(UISpecialFrames, "CopperwiseInventory")
-        -- Use the native gray dialog texture rather than the dark frame inset.
-        local background = window.Inset and window.Inset.Bg or window.Bg
-        if background then
-            background:SetTexture("Interface\\DialogFrame\\UI-DialogBox-Background")
-            background:SetVertexColor(1, 1, 1, 1)
-        end
+        -- Use a neutral gray fill; native dialog textures remain nearly black.
+        local surface = window.Inset or window
+        local background = surface:CreateTexture(nil, "BORDER", nil, -1)
+        background:SetPoint("TOPLEFT", window, "TOPLEFT", 6, -28)
+        background:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", -6, 6)
+        background:SetColorTexture(0.24, 0.24, 0.24, 1)
         list = CreateFrame("ScrollFrame", nil, window, "UIPanelScrollFrameTemplate")
         list:SetPoint("TOPLEFT", 22, -65)
         list:SetPoint("BOTTOMLEFT", 22, 25)

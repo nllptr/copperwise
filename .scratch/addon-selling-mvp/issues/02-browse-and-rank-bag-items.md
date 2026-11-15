@@ -116,3 +116,7 @@ heading/update status: settling stays internal, while the last settled display
 remains visible. Removed that heading and tried the native gray dialog background
 (`Interface\DialogFrame\UI-DialogBox-Background`) in the Inventory inset.
 Background appearance still needs owner confirmation in the target client.
+
+Owner found the native dialog texture still too dark in-client. Replaced the
+inset with an opaque neutral gray fill (0.24 per RGB channel), retaining native
+frame borders and controls. Appearance awaits owner confirmation.
