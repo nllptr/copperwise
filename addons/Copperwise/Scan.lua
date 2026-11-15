@@ -179,7 +179,7 @@ local function receive()
     active.waiting = false
     if #rows > MAX_ROWS then finish("partial", "Market exceeds the processing bound; prior scan preserved."); return end
     -- Each response is a cumulative native cache snapshot, never an additive delta.
-    active.batch = {rows=rows, full=full, index=1, items={}, count=0, duplicates=0, ambiguous=0}
+    active.batch = {rows=rows, full=full, index=1, items={}, zeros={}, count=0, duplicates=0, ambiguous=0}
     attempt.state, attempt.reason = "processing", "Processing market summaries."
 end
 
@@ -210,9 +210,24 @@ local function process()
                     batch.ambiguous = batch.ambiguous + 1
                 end
             else
-                batch.items[identity] = {key=key, units=row.totalQuantity, minimum=minimum}
+                local ambiguous = batch.zeros[identity] == true
+                if ambiguous then
+                    batch.duplicates = batch.duplicates + 1
+                    batch.ambiguous = batch.ambiguous + 1
+                end
+                batch.items[identity] = {key=key, units=row.totalQuantity, minimum=minimum, ambiguous=ambiguous}
                 batch.count = batch.count + 1
             end
+        elseif type(key) == "table" and type(key.itemID) == "number" and key.itemID > 0 then
+            local identity = key.itemID .. ":" .. (key.itemLevel or 0) .. ":" .. (key.itemSuffix or 0)
+                .. ":" .. (key.battlePetSpeciesID or 0)
+            local previous = batch.items[identity]
+            if previous or batch.zeros[identity] then batch.duplicates = batch.duplicates + 1 end
+            if previous and not previous.ambiguous then
+                previous.ambiguous = true
+                batch.ambiguous = batch.ambiguous + 1
+            end
+            batch.zeros[identity] = true
         end
     end
     batch.index = batch.index + 250
