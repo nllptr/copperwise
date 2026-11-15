@@ -61,7 +61,12 @@ local function read()
     if count == 0 and not full then return end
     r.waiting = false
     if selected ~= r.id or not visible then
-        request, CW.AHOperation, result = nil, nil, nil
+        if not full and visible then
+            r.more = true -- Drain the old item completely before switching cache keys.
+        else
+            if not full then CW.AHResponseUncertain = true end
+            request, CW.AHOperation, result = nil, nil, nil
+        end
         return
     end
     if count > MAX_ROWS then finish("partial", "Item row limit reached; prices withheld."); return end
@@ -97,7 +102,13 @@ frame:SetScript("OnUpdate", function()
         if request then
             if GetTime() > request.totalDeadline then finish("failed", "Item search timed out; close/reopen AH if a response is outstanding.")
             elseif request.waiting and GetTime() > request.deadline then finish("failed", "Item response timed out; close/reopen AH.")
-            elseif request.more then dispatch(true) end
+            elseif request.more then
+                if visible then dispatch(true)
+                else
+                    CW.AHResponseUncertain = true
+                    finish("cancelled", "Left item results before completeness; close/reopen AH.")
+                end
+            end
         elseif queued and visible then
             local reason = CW.AHReadiness("listings", 2)
             if reason then return end

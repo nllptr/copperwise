@@ -332,7 +332,7 @@ consolidation or Post all execution is introduced. A completed intent disappears
 and the next marked item is selected.
 
 A before/after owned-listing identity comparison, exact item/quantity/unit buyout
-match and settled matching bag decrease are required for automatic confirmation.
+match, unchanged in-session intent revision and settled matching bag decrease are required for automatic confirmation.
 Shared events or API returns alone never consume intent. Conflicts, failures and
 uncertainty preserve intent and block another post. The character-specific
 `pendingPost` version-1 ledger survives ordinary logout/reload; restored pending

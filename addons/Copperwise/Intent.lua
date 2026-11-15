@@ -1,9 +1,20 @@
 local CW = Copperwise
 local entries
+local revisions, revision = {}, 0
 local MAX_UNITS = 2147483647
 
-local function whole(value)
+function CW.IsPositiveWhole(value)
     return type(value) == "number" and value > 0 and value <= MAX_UNITS and value % 1 == 0
+end
+local whole = CW.IsPositiveWhole
+
+function CW.IntentRevision(id)
+    return revisions[id] or 0
+end
+
+local function changed(id)
+    revision = revision + 1
+    revisions[id] = revision
 end
 
 function CW.SaleIntent(id)
@@ -46,12 +57,14 @@ function CW.ChangeIntent(id, action, quantity, destination)
     local entry = entries[id]
     if action == "remove" then
         entries[id] = nil
+        changed(id)
         return true
     end
     if not whole(quantity) then return false, "Enter positive whole item units (maximum " .. MAX_UNITS .. ")." end
     if action == "edit" then
         if not entry then return false, "Select a marked item first." end
         entry.quantity = quantity
+        changed(id)
         return true
     end
     if action ~= "mark" then return false, "Unknown sale-intent action." end
@@ -66,18 +79,21 @@ function CW.ChangeIntent(id, action, quantity, destination)
     else
         entries[id] = {quantity=quantity, destination=destination, name=item.name}
     end
+    changed(id)
     return true
 end
 
 -- A confirmed native post can consume only the reviewed intent revision.
-function CW.ConfirmPostedIntent(id, quantity, intended)
+function CW.ConfirmPostedIntent(id, quantity, intended, expectedRevision)
     local entry = entries and entries[id]
-    if not entry or entry.destination ~= "AH" or entry.quantity ~= intended then
+    if not entry or entry.destination ~= "AH" or entry.quantity ~= intended
+        or (expectedRevision ~= nil and CW.IntentRevision(id) ~= expectedRevision) then
         return false, "Sale intent changed while posting; saved intent was not reduced."
     end
     if not whole(quantity) or quantity > entry.quantity then return false, "Posted quantity is invalid." end
     entry.quantity = entry.quantity - quantity
     if entry.quantity == 0 then entries[id] = nil end
+    changed(id)
     return true
 end
 

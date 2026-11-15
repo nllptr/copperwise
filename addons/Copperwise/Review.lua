@@ -7,9 +7,7 @@ local duration, elapsed, painting = 3, 0, false
 local preview, listingStamp
 local money = CW.FormatMoney
 
-local function whole(value)
-    return type(value) == "number" and value > 0 and value <= 2147483647 and value % 1 == 0
-end
+local whole = CW.IsPositiveWhole
 
 local function native(fn, ...)
     if type(fn) ~= "function" then return nil end
@@ -17,7 +15,7 @@ local function native(fn, ...)
     if ok then return value end
 end
 local function prepare(id, intent, quantity, price)
-    local row = {id=id, name=intent.name, intended=intent.quantity, stacks={}, eligible=0}
+    local row = {id=id, name=intent.name, intended=intent.quantity, intentRevision=CW.IntentRevision(id), stacks={}, eligible=0}
     local observation = CW.ObservationFor(id)
     row.price = price
     row.observedAt = observation and observation.observedAt
@@ -205,6 +203,8 @@ function CW.RenderReview()
             b.icon = b:CreateTexture(nil, "ARTWORK"); b.icon:SetSize(28, 28); b.icon:SetPoint("TOPLEFT", 3, -6)
             b.name = label(b, 37, -5, 116)
             b.name:SetWordWrap(false)
+            b.selection = b:CreateTexture(nil, "BACKGROUND")
+            b.selection:SetAllPoints(); b.selection:SetColorTexture(0.6,0.48,0.2,0.3)
             b.count = label(b, 155, -5, 30)
             b.state = label(b, 37, -23, 145)
             buttons[index] = b
@@ -214,6 +214,7 @@ function CW.RenderReview()
         local _, _, _, _, _, _, _, _, _, icon = C_Item.GetItemInfo(row.id)
         b.icon:SetTexture(icon or "Interface\\Icons\\INV_Misc_QuestionMark")
         b.name:SetText((row.id == selected and "|cffffd36b" or "|cffffffff") .. row.intent.name .. "|r")
+        b.selection:SetShown(row.id == selected)
         b.count:SetText(tostring(row.intent.quantity))
         b.state:SetText(item and (item.quantity < row.intent.quantity and ("Short " .. (row.intent.quantity-item.quantity)) or "Marked for AH")
             or (CW.HoldingsSettled() and "Not in bags" or "Availability pending"))
@@ -290,7 +291,9 @@ function CW.SetupReview(parent)
     panel = parent
     rail = CreateFrame("Frame", nil, panel)
     rail:SetPoint("TOPLEFT", 12, -92); rail:SetPoint("BOTTOMLEFT", 12, 30); rail:SetWidth(205)
-    label(rail, 0, 0, 190, "Marked for AH", "GameFontNormal")
+    local railBackground = rail:CreateTexture(nil, "BACKGROUND")
+    railBackground:SetAllPoints(); railBackground:SetColorTexture(0,0,0,0.2)
+    label(rail, 3, -3, 190, "Marked for AH", "GameFontNormal")
     local railScroll = CreateFrame("ScrollFrame", nil, rail, "UIPanelScrollFrameTemplate")
     railScroll:SetPoint("TOPLEFT", 0, -26); railScroll:SetPoint("BOTTOMRIGHT", -23, 0)
     railContent = CreateFrame("Frame", nil, railScroll); railContent:SetSize(182, 1); railScroll:SetScrollChild(railContent)
@@ -315,10 +318,12 @@ function CW.SetupReview(parent)
     eligibilityText = label(detail, 86, -85, 220)
     label(detail, 0, -116, 80, "Unit buyout")
     priceInputs = {}
-    local coins = {"|cffffd166g|r", "|cffc9d4des|r", "|cffd59a6fc|r"}
+    local coins = {"Gold", "Silver", "Copper"}
     for i = 1, 3 do
         priceInputs[i] = input(detail, 86+(i-1)*66, -110, 45, i==1 and 6 or 2, editTerms)
-        label(detail, 133+(i-1)*66, -115, 15, coins[i])
+        local coin = detail:CreateTexture(nil, "ARTWORK")
+        coin:SetSize(14,14); coin:SetPoint("TOPLEFT", 133+(i-1)*66, -114)
+        coin:SetTexture("Interface\\MoneyFrame\\UI-" .. coins[i] .. "Icon")
     end
     label(detail, 0, -154, 80, "Duration")
     for i, hours in ipairs({2,8,24}) do

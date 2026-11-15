@@ -126,3 +126,12 @@ scan regression suites and `CGO_ENABLED=0 go test ./...` pass. The native owned
 listings path explicitly requires native completeness. Commodity owned buyout is
 matched per unit, consistent with installed Auctionator's Cancelling provider;
 actual-client verification of that attribution remains required.
+
+Review against `83b9b88`: Standards found no documented violations; two judgment
+smells (duplicated numeric validation and an unclear source-stack name) were
+addressed. Its coordination concern prompted conservative external-request
+completeness checks, including partial result continuations. Spec found an intent
+remove/re-mark or edit-away/back race; per-item in-session revisions now prevent
+an earlier outcome from automatically consuming changed intent, even at an equal
+quantity. Reloaded outcomes still require explicit operator reconciliation.
+Client acceptance remains outstanding for both layout and native execution.

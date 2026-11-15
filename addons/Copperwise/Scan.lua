@@ -100,8 +100,9 @@ local function externalRequest(name, argument)
     if CW.InterruptPosting then CW.InterruptPosting("Other AH activity; inspect native Auctions before retrying.") end
     local kind = responseEvents[name]
     local token = requestToken(kind, argument)
-    if externalPending[token] then externalPending.uncertain = true end
-    externalPending[token] = true
+    local previous = externalPending[token]
+    if previous and not previous.responseSeen then externalPending.uncertain = true end
+    externalPending[token] = {argument=argument}
     if active then
         reopenRequired = true
         finish("cancelled", "Other AH activity interrupted collection; close/reopen AH before retrying.")
@@ -344,7 +345,8 @@ end))
 
 frame:SetScript("OnEvent", guard(function(_, event, argument)
     local kind
-    if event == "COMMODITY_SEARCH_RESULTS_UPDATED" or event == "ITEM_SEARCH_RESULTS_UPDATED" then
+    if event == "COMMODITY_SEARCH_RESULTS_UPDATED" or event == "ITEM_SEARCH_RESULTS_UPDATED"
+        or event == "COMMODITY_SEARCH_RESULTS_ADDED" or event == "ITEM_SEARCH_RESULTS_ADDED" then
         kind = "search"
     elseif event == "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED" or event == "AUCTION_HOUSE_BROWSE_RESULTS_ADDED" then
         kind = "browse"
@@ -353,7 +355,25 @@ frame:SetScript("OnEvent", guard(function(_, event, argument)
     elseif event == "REPLICATE_ITEM_LIST_UPDATE" then kind = "replicate" end
     local token = kind and requestToken(kind, argument)
     if token and externalPending[token] then
-        externalPending[token] = nil
+        local pendingRequest = externalPending[token]
+        pendingRequest.responseSeen = true
+        local full
+        if kind == "browse" then full = C_AuctionHouse.HasFullBrowseResults
+        elseif kind == "owned" then full = C_AuctionHouse.HasFullOwnedAuctionResults
+        elseif kind == "bids" then full = C_AuctionHouse.HasFullBidResults
+        elseif kind == "search" then
+            local key = type(argument) == "table" and argument
+                or (C_AuctionHouse.MakeItemKey and C_AuctionHouse.MakeItemKey(argument,0,0,0))
+            local info = key and C_AuctionHouse.GetItemKeyInfo(key)
+            if info and info.isCommodity == true then
+                full = function() return C_AuctionHouse.HasFullCommoditySearchResults(key.itemID) end
+            elseif info and info.isCommodity == false then
+                full = function() return C_AuctionHouse.HasFullItemSearchResults(key) end
+            end
+        end
+        local ok, complete = false, false
+        if type(full) == "function" then ok, complete = pcall(full) end
+        if ok and complete == true then externalPending[token] = nil end
         lastTraffic = GetTime()
     end
     if event == "PLAYER_LOGIN" then
@@ -379,7 +399,8 @@ end))
 
 for _, event in ipairs({"PLAYER_LOGIN", "AUCTION_HOUSE_SHOW", "AUCTION_HOUSE_CLOSED",
     "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED", "AUCTION_HOUSE_BROWSE_RESULTS_ADDED",
-    "COMMODITY_SEARCH_RESULTS_UPDATED", "ITEM_SEARCH_RESULTS_UPDATED", "OWNED_AUCTIONS_UPDATED",
+    "COMMODITY_SEARCH_RESULTS_UPDATED", "ITEM_SEARCH_RESULTS_UPDATED",
+    "COMMODITY_SEARCH_RESULTS_ADDED", "ITEM_SEARCH_RESULTS_ADDED", "OWNED_AUCTIONS_UPDATED",
     "BIDS_UPDATED", "REPLICATE_ITEM_LIST_UPDATE", "AUCTION_HOUSE_THROTTLED_MESSAGE_DROPPED",
     "AUCTION_HOUSE_BROWSE_FAILURE", "AUCTION_HOUSE_SHOW_ERROR"}) do
     pcall(frame.RegisterEvent, frame, event)
