@@ -1,6 +1,6 @@
 # 03: Full market summary scan and retained observations
 
-**What to build:** The player scans the full AH market from the Copperwise AH tab and can review the latest successful local observations after reload/logout and away from the AH, with honest age and refresh status.
+**What to build:** The player scans the full AH market from the Copperwise AH tab and can review the latest successful local observations after reload/logout and away from the AH on any character of the same account, with honest age and refresh status.
 
 **Blocked by:** 02: Browse and rank bag items.
 
@@ -10,7 +10,15 @@
 
 - [ ] Offer a user-initiated full-market summary scan in the Copperwise AH tab using all native browse pages with visible progress, throttling and cancellation; respect other AH activity and stop further work on AH closure.
 - [ ] Keep each item's latest successful observation separate from its latest attempt state; failed/cancelled refreshes preserve previous usable results without advancing source time or completeness.
-- [ ] Persist comparable identity, native market context, source time and coverage; prevent observations from incompatible markets or characters being mixed.
+- [ ] Persist market scans account-wide so all characters on the same account
+  can read compatible observations; retain comparable identity, native market
+  context, source time and coverage, and never mix incompatible markets.
+- [ ] Migrate existing per-character scan snapshots without losing observations
+  or changing source times; retain the newer complete snapshot for each market
+  rather than letting an older character's data overwrite it.
+- [ ] Verify character A scans and saves on reload/logout, then character B
+  logs in/reloads and sees the same compatible prices, supply and source time
+  away from AH. Keep each character's bag holdings and sale intent separate.
 - [ ] Treat complete empty observations as valid empty results with unavailable buyout; partial observations remain identifiable and cannot become complete comparison estimates.
 - [ ] Restore cached observations across reload/logout and show age away from the AH without implying live or offline collection.
 - [ ] Provide an easily changed stale-price threshold defaulting to one hour; warn on AH destination buttons only when source age exceeds it, with exactly one hour not exceeding it.
@@ -29,3 +37,16 @@ market summary scanning like Auctionator. The scan tab and baseline retained
 snapshots are brought forward into revised ticket 01; this ticket completes their
 coverage, persistence/scoping, stale configuration and integrated acceptance.
 Inventory has no market request controls.
+
+### Account-wide scans — owner decision 2026-11-15
+
+The owner uses an AH-parked character to scan and wants an adventuring character
+to use that data when sorting its own bags for vendor sale or manual mailing to
+the auction character. Same account only; ordinary saved-variable persistence
+across character switches is sufficient. No live cross-client synchronization,
+mail automation or shared sale intent is required.
+
+Current scans are per-character, so the acceptance above is implementation work,
+not already passed. Account-wide bag/bank observations are only an undecided
+future possibility without a sufficient use case; do not implement them here.
+See the specification's account-wide data decision for the requirement and scope.

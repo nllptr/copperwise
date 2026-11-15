@@ -13,8 +13,8 @@ posting capabilities have already been demonstrated in the target client.
 
 ## Solution
 
-Ship one standalone addon for the current character: review supported bag
-items, run a full auction-house summary scan from the Copperwise AH tab, compare total
+Ship one standalone addon with account-wide market observations and current-character
+holdings and sale intent: review supported bag items, run a full auction-house summary scan from the Copperwise AH tab, compare total
 AH asking value with total vendor sell value, mark quantities for sale, and
 review and deliberately post the next eligible AH item from Copperwise.
 
@@ -102,10 +102,16 @@ merchant UI to sell. Market history and crafting belong to later releases.
   make it appear newly observed. Complete empty observations are valid results
   with unavailable buyout, not zero buyout. Partial observations cannot masquerade
   as complete estimates or drive a destination recommendation.
-- Persist local observations and sale intent using ordinary addon persistence,
-  scoped so observations from different markets and characters are not mixed.
-  Restore intent before revalidating current holdings. No live prices away from AH
-  and no offline collection are implied.
+- Share retained market scan observations across all characters on the same
+  account using account-wide addon persistence. Separate incompatible native
+  markets (realm/faction/region); scanning character identity must not restrict
+  access to a compatible market observation. Preserve its original source time,
+  coverage and comparable item identities when another character reads it.
+- Keep current bag holdings and sale intent character-specific. Restore intent
+  before revalidating that character's current holdings. No live prices away
+  from AH, offline collection, cross-account sharing or simultaneous-client
+  synchronization is implied. Ordinary save on reload/logout and load on
+  login/reload is sufficient for the intended character-switching workflow.
 - Inventory totals use observed unit buyout times owned units and vendor sell
   value times the same units. Rank complete comparisons by the greater total,
   descending; ties sort by name and stable identity. Unavailable comparisons
@@ -233,3 +239,27 @@ coverage or the revised two-surface workflow. Installed Auctionator source uses
 `HasFullBrowseResults`, collecting `minPrice` and `totalQuantity` per native key.
 The screenshot establishes Auctionator's reported success for 3,758 items; it
 is not yet Copperwise full-scan acceptance.
+
+### Account-wide data decision — 2026-11-15
+
+Required: market scan data must be available to all characters on the same
+account, subject to native market compatibility. The owner typically parks one
+character at the AH to scan. An adventuring character uses those observations
+to review its own bags, vendor some items and manually mail the rest to the
+auction character. The receiving character handles its own holdings and sale
+intent. This rationale does not add mail automation or a cross-character queue.
+
+Implementation follow-up belongs to ticket 03: current code still stores scans
+in per-character saved variables. Move market snapshots to account-wide storage,
+preserve existing data and source times, and avoid an older character's migrated
+snapshot replacing a newer snapshot for the same market. The existing
+per-character implementation and its passed reload test do not establish
+cross-character sharing.
+
+Undecided future possibility: retain each character's bag and bank holdings so
+other characters on the account can view them. The owner has not identified a
+strong enough use case to commit to this. Do not implement it, treat it as an
+MVP requirement, or merge different characters' holdings. Account-wide scan
+sharing does not authorize account-wide inventory collection; bank/other-character
+holdings remain outside the current release scope. Revisit when a concrete
+workflow justifies the additional data and freshness rules.
