@@ -4,21 +4,21 @@
 
 **Blocked by:** None — ticket 01 resolved (2026-11-15).
 
-**Status:** in-progress
+**Status:** resolved
 
 **Labels:** ready-for-agent
 
-- [ ] List bag item kinds with icons, names and aggregated quantities; identify unsupported auction items and retain understandable missing-data states.
-- [ ] Selecting a row changes detail independently of future marking controls
+- [x] List bag item kinds with icons, names and aggregated quantities; identify unsupported auction items and retain understandable missing-data states.
+- [x] Selecting a row changes detail independently of future marking controls
   and reads the retained full-scan observation for that item; selecting a row
   never sends a market query.
-- [ ] Keep Full scan and cancellation exclusively in the Copperwise native AH
+- [x] Keep Full scan and cancellation exclusively in the Copperwise native AH
   tab. Missing Inventory data remains unavailable and directs the player there;
   do not add selected-item or sequential bag-item queries to Inventory.
-- [ ] For the same owned quantity, show gross AH asking total, estimated AH proceeds after the faction 5% cut and vendor sell total; rank complete comparisons by the larger of estimated AH proceeds and vendor total descending, then name and stable identity, with unavailable comparisons last.
-- [ ] Choose Vendor when estimated AH proceeds equal vendor total; withhold the destination action when either comparison value is unavailable, while keeping known numeric zero distinct.
-- [ ] Refresh settled holdings and metadata without presenting transient stack moves/splits as actionable extra inventory.
-- [ ] Verify multiple item selections, rankings, ties, zero and unavailable values and changed holdings through visible production-addon behavior in the target client.
+- [x] For the same owned quantity, show gross AH asking total, estimated AH proceeds after the faction 5% cut and vendor sell total; rank complete comparisons by the larger of estimated AH proceeds and vendor total descending, then name and stable identity, with unavailable comparisons last.
+- [x] Choose Vendor when estimated AH proceeds equal vendor total; withhold the destination action when either comparison value is unavailable, while keeping known numeric zero distinct.
+- [x] Refresh settled holdings and metadata without presenting transient stack moves/splits as actionable extra inventory.
+- [x] Verify multiple item selections, rankings, zero and unavailable values and changed holdings through visible production-addon behavior in the target client, complemented by owner-approved code-only synthetic tests for the remaining edge cases.
 
 ## Scope and verification
 
@@ -198,3 +198,35 @@ check minor enough to defer, fixing later if a defect appears. Record the
 name/identity tie-order acceptance case as owner-deferred, not failed or passed.
 No tie-order defect was observed. This does not waive net AH/Vendor destination
 ties or missing-data checks.
+
+### Resolution — owner-approved synthetic acceptance — 2026-11-15
+
+Owner confirmed that finding the remaining real-data cases would take
+unreasonable effort and authorized synthetic tests in code only, without
+additional in-game tests, as sufficient to settle this ticket. This overrides
+the earlier client-only boundary for these remaining cases and the prior
+deferral of equal-value ordering.
+
+Added `addons/Copperwise/tests/inventory.lua`, loading the actual production
+Inventory, Storage and Scan modules with simulated native APIs/widgets, clock
+and retained snapshots. Observes displayed list values, ordering and details
+through row clicks, without calling private comparison helpers. Five cases pass:
+
+- Equal net AH proceeds/vendor totals choose Vendor and retain gross detail.
+- Missing vendor metadata withholds recommendation and sorts last, then known
+  zero metadata refreshes the selected detail and re-ranks normally.
+- No retained observation leaves AH values unavailable and directs the player
+  to Full scan in the AH tab, without manufacturing observed-empty coverage.
+- Equal complete totals sort by name and stable item ID, before incomplete
+  comparisons; duplicate-name identity order is observed through clicked detail.
+- Net-proceeds ranking correctly prefers vendor 96c over net AH 95c even when
+  the latter has higher gross asking value.
+
+Market query stubs throw if Inventory selection attempts a request. Sensitivity
+checks using in-memory source mutations detect reversed destination tie handling,
+reversed name ordering and missing vendor values coerced to zero. Production
+source was not changed by those checks. No in-game pass is claimed for these
+synthetic cases. Combined with the recorded owner-run client passes above,
+these results satisfy ticket 02 under the owner's revised acceptance boundary.
+Marking actions remain ticket 04; neutral AH and noncommodity support remain
+deferred. This closes ticket 02 only, not the parent specification or release.

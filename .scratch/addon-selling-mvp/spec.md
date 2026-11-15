@@ -289,3 +289,12 @@ Neutral/cross-faction AH support, including its 15% cut and compatible market
 identification, belongs to a later release. Perform MVP scans and posts only
 at faction auction houses; existing faction market context does not establish
 neutral-house support. Earlier gross-total ranking decisions are superseded.
+
+### Ticket 02 acceptance exception — 2026-11-15
+
+Owner approved code-only synthetic tests, with no additional in-game run, for
+remaining ticket 02 cases that cannot reasonably be found in real holdings:
+net AH/vendor ties, missing vendor metadata, missing retained observations and
+equal-value ordering. These tests complement the recorded client workflow
+passes and suffice to settle ticket 02. The exception is limited to this ticket;
+it does not claim native-server evidence or waive later ticket/release testing.

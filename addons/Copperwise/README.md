@@ -136,3 +136,15 @@ Use faction auction houses for MVP scans and posting. Neutral/cross-faction
 auction houses and their 15% cut are deferred to a later release. Inventory
 assumes faction AH commission (5%); it does not detect or support neutral
 markets. Estimated proceeds are conditional on a sale, not guaranteed profit.
+
+## Inventory synthetic acceptance
+
+Run `luajit addons/Copperwise/tests/inventory.lua` from the repository root.
+These checks load the production Inventory, storage and scan modules with
+synthetic native APIs, saved observations, clock and widgets. Assertions observe
+rendered rows and selection detail, covering net destination ties, missing
+vendor metadata resolving to zero, absent observations, equal ranking values
+and commission-aware ordering. Market request stubs fail if selection queries
+the AH. They verify behavior in code, not native layout or server semantics.
+The owner approved these code-only cases to complete ticket 02 alongside its
+recorded real-client evidence; this does not replace later release acceptance.
