@@ -166,3 +166,27 @@ ranking. Recheck Strange Dust gross 21s60c → estimated proceeds 20s52c, and
 Greater Magic Essence gross 18s → estimated proceeds 17s10c (if observations
 and quantities remain unchanged). Commission rounding is a conservative
 whole-copper display estimate, not verified native settlement accounting.
+
+### Commission-aware production-client evidence — 2026-11-15
+
+Owner supplied screenshots from a different character after the commission
+change. Earlier Strange Dust/Essence examples do not apply to these holdings.
+
+- Heavy Linen Bandage (38): vendor unit 20c, vendor total 760c, gross AH
+  asking total 760c, estimated AH proceeds 722c; Vendor chosen and row displays
+  760c, above Lesser Healing Potion at 752c. Passes Vendor preference and
+  mixed-destination ranking; gross equality is not a net-total tie test.
+- Lesser Healing Potion (8): observed asking unit 99c, gross total 792c,
+  estimated proceeds 752c, vendor total 200c; AH chosen and list/detail agree.
+  Confirms whole-copper estimate and descending order below the bandage.
+- Worn Parchment (1): comparable commodity, known-zero vendor unit/total,
+  retained complete-market observation with item absent, supply 0 and
+  unavailable buyout/proceeds; destination unavailable. Row explicitly says
+  observed empty supply. Fine Moonstalker Pelt also has that row state.
+- Screenshot shows complete rows before unavailable rows; visible unavailable
+  rows sort alphabetically, including supported-empty and unsupported items.
+
+Retained observation context shown: CAMWOW EU5 Realm 10 RP / Alliance / region
+3, source time 2026-11-15 15:50:39 CET. No scan attempted in the shown session.
+Net destination ties, equal ranking-value name/identity ties, missing vendor
+metadata and supported items with no retained observation remain pending.
