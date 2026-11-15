@@ -133,3 +133,10 @@ wait several seconds, verify cancelled remains visible and prior saved prices
 remain available in `/cw`. Cancellation stability and preservation of retained
 prices pass for the full collector in this run. This does not establish unchanged
 source time/coverage, AH-closure cancellation or competing-addon coexistence.
+
+Owner confirms "works" for the revised full collector's AH-closure check:
+after close/reopen and selecting Copperwise, run
+`/run Copperwise.Scan(); C_AuctionHouse.CloseAuctionHouse()`, wait several
+seconds, then inspect `/cw`. Cancellation and preservation of saved prices
+pass on AH closure for this run. Exact source-time/coverage preservation and
+competing-addon coexistence remain separate pending checks.
