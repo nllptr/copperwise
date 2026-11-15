@@ -58,8 +58,11 @@ function CW.ChangeIntent(id, action, quantity, destination)
     local item = CW.AvailableItem(id)
     if not item or item.id ~= id then return false, "Wait for current bag holdings to settle." end
     if destination ~= "AH" and destination ~= "Vendor" then return false, "A complete destination comparison is required." end
+    local remaining = math.max(0, item.quantity - (entry and entry.quantity or 0))
+    if quantity > remaining then return false, "Only unmarked bag units can be added." end
     if entry then
-        return false, "Item is already marked; edit its quantity or unmark it explicitly."
+        if entry.quantity > MAX_UNITS - quantity then return false, "Intended quantity is too large." end
+        entry.quantity = entry.quantity + quantity
     else
         entries[id] = {quantity=quantity, destination=destination, name=item.name}
     end

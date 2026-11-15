@@ -322,3 +322,22 @@ marked quantity explicitly through a labeled Units to sell field and Save
 quantity. This supersedes the earlier duplicate-addition rule for the MVP sale
 marking flow; craft-queue rules and other future workflows are unchanged.
 Preserve existing saved intent quantities; the UI change does not reset plans.
+
+### Partial sale intent and quantity totals — 2026-11-15
+
+Owner verified Units to sell survives reload, then requested splitting partial
+intent from unmarked remainder. If bags contain 11 units and intent is 5, show
+5 in Marked for sale and 6 in the upper inventory section. The upper row's
+destination action adds only those 6 to the existing intent, preserving its
+chosen destination; once all observed bags are intended, no upper row remains.
+The marked row's × action removes the whole intent. This extends the preceding
+prototype correction: additive marking is permitted only for currently unmarked
+bag remainder, with no general Add bag units control or double counting.
+
+Rank and display each portion using its own quantity. Selecting the marked
+portion shows totals for intended units (5 in the example), and selecting the
+upper portion shows totals for remaining unmarked units (6). Keep total bag
+holdings, intended units, coverage and shortages distinct. An intent above
+current bags retains its full planned quantity and shortage, with zero upper
+remainder. Editing or changing observed bags recalculates the split; no saved
+schema change or silent intent change is needed.

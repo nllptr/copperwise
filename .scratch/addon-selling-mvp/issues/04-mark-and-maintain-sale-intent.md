@@ -74,3 +74,24 @@ case is inferred: reload/logout restoration, character isolation, zero-holding
 shortages, price-change destination preservation and absence of transactions
 across the complete lifecycle still require explicit verification. Ticket 04
 remains implemented with acceptance pending.
+
+### Partial intent and selected totals — 2026-11-15
+
+Owner explicitly confirms Units to sell survives reload. This passes that
+bounded reload quantity-restoration check; logout and character isolation are
+not implied. Owner requests that a partial mark leave its unmarked remainder
+in the top list and allow adding it to the existing sale plan. Owner also
+reports totals still showing all bag units after editing intent to 5.
+
+Implemented quantity-based split rows: 11 bags / 5 intent shows marked 5 and
+unmarked 6, each ranked and valued for its own quantity. Selecting each portion
+shows that portion's gross/net AH and vendor totals, separately from total bag
+holdings. The upper AH +/Vendor + adds only current unmarked remainder and
+preserves the saved destination; marked × still removes all intent. Intended
+shortages remain; no zero remainder row or duplicate bag allocation is created.
+Cached comparisons and retained list order distinguish item portions. Saved
+plan format and prior quantities are unchanged. The spec records this extension
+to the earlier toggle-only interaction decision.
+
+Revised split-row/quantity-total behavior requires client verification using
+the updated README worked example. Remaining acceptance stays pending.

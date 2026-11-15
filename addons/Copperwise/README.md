@@ -188,10 +188,18 @@ its tooltip warn about stale prices.
 Marked rows move below unmarked inventory into **Marked for sale**. Their
 button reads **AH ×** or **Vendor ×**; click it to unmark and return the item to
 inventory. Selecting the name/icon only changes the detail. Each section retains
-its value ordering. Marked rows also show intended units, bag availability and
-any shortage. Marking never adds repeated copies to an existing plan.
+its value ordering, calculated for its own quantity. Marked rows show the
+intended quantity, and the top list shows only remaining unmarked bag units.
+For example, 11 in bags and 5 intended produces a marked row of 5 and an
+unmarked row of 6. The latter has **AH +** or **Vendor +**, which adds only those
+6 remaining units to the existing destination. The top row then disappears.
+The marked × button always removes the whole mark. Changed holdings recalculate
+the remainder without silently changing intended units.
 
-Select a marked item to edit the labeled **Units to sell** field. Enter positive
+Select either portion to inspect totals for that portion's quantity; overall
+bag quantity stays visible separately. Marked totals use intended units even
+when holdings fall short, with coverage and shortage shown separately.
+Select the marked portion to edit the labeled **Units to sell** field. Enter positive
 whole item units and press **Save quantity** to replace the intended quantity
 (maximum 2,147,483,647). Typing alone changes nothing; zero is rejected. To change
 a saved destination after prices change, unmark and mark again. There is no
@@ -227,7 +235,14 @@ addon with probes disabled. Repository checks do not pass these cases.
    Select the marked item by its name/icon; that must not change its mark.
 3. Click its AH ×/Vendor × button: it returns to unmarked inventory. Mark it
    again: the intended quantity must equal current bags, with no accumulation.
-   Select it, enter 5 in Units to sell and Save quantity: confirm replacement.
+   Select its marked row, enter 5 in Units to sell and Save quantity: confirm
+   replacement. With 11 bags, verify marked 5 and unmarked 6, with totals based
+   on each quantity. For Bolt of Linen Cloth at 50c AH and 40c vendor per unit:
+   marked 5 gives 250c gross AH, 237c net and 200c vendor; unmarked 6 gives 300c
+   gross, 285c net and 240c vendor. Select each portion and check its detail.
+   Click the top AH +/Vendor +: intended becomes 11, and the top row disappears.
+   No action may add the same available remainder twice. Edit to 5 again, reload
+   and verify the 5/6 split. Unmark and confirm one unmarked row of 11.
    Reject blank, zero, negative, fractional and oversized values. Typing without
    saving must leave the plan unchanged. Unmarking must also work at zero bags.
 4. Split/merge stacks and move an item onto the cursor: additions disappear

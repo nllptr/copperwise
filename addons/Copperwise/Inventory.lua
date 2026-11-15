@@ -9,6 +9,7 @@ local lastOrder = {}
 local displayedComparisons = {}
 local rows, selected, candidate, candidateAt, dirtyAt = {}, nil, nil, 0, 0
 local settled = false
+local selectedMarked = false
 
 local function money(value)
     if value == nil then return "unavailable" end
@@ -28,9 +29,15 @@ function CW.SelectedItem()
     return CW.AvailableItem(selected)
 end
 
+local function withQuantity(item, quantity)
+    return {id=item.id, name=item.name, quantity=quantity, sell=item.sell,
+        icon=item.icon, link=item.link, support=item.support}
+end
+
 local function comparison(item)
     local ready = settled and not CursorHasItem()
-    if not ready and displayedComparisons[item.id] then return displayedComparisons[item.id] end
+    local identity = item.id .. ":" .. item.quantity
+    if not ready and displayedComparisons[identity] then return displayedComparisons[identity] end
     local observation = CW.ObservationFor and CW.ObservationFor(item.id)
     local asking, proceeds, vendor, destination, value
     -- Display the last settled holdings during bag/cursor activity. Actions
@@ -49,7 +56,7 @@ local function comparison(item)
             or "no comparable retained AH value"
     elseif vendor == nil then reason = "vendor metadata loading" end
     local values = {observation=observation, asking=asking, proceeds=proceeds, vendor=vendor, destination=destination, value=value, reason=reason}
-    if ready then displayedComparisons[item.id] = values end
+    if ready then displayedComparisons[identity] = values end
     return values
 end
 
@@ -68,22 +75,30 @@ end
 local function renderList()
     local ready = settled and not CursorHasItem()
     local choices = {}
-    for _, row in pairs(rows) do
-        choices[#choices+1] = {item=row, comparison=comparison(row)}
+    if ready then displayedComparisons = {} end
+    for id, row in pairs(rows) do
+        local intent = CW.SaleIntent and CW.SaleIntent(id)
+        local remaining = math.max(0, row.quantity - (intent and intent.quantity or 0))
+        if remaining > 0 then
+            local item = withQuantity(row, remaining)
+            choices[#choices+1] = {item=item, comparison=comparison(item), marked=false, identity=id .. ":inventory"}
+        end
+        if intent then
+            local item = withQuantity(row, intent.quantity)
+            choices[#choices+1] = {item=item, comparison=comparison(item), marked=true, identity=id .. ":marked"}
+        end
     end
     for id, intent in pairs(CW.SaleIntents and CW.SaleIntents() or {}) do
         if not rows[id] then
-            local item = {id=id, name=intent.name, quantity=0, support="not currently in bags"}
-            choices[#choices+1] = {item=item, comparison={reason="not currently in bags"}}
+            local item = {id=id, name=intent.name, quantity=intent.quantity, support="not currently in bags"}
+            choices[#choices+1] = {item=item, comparison=comparison(item), marked=true, identity=id .. ":marked"}
         end
     end
     table.sort(choices, function(a, b)
-        local am = CW.SaleIntent and CW.SaleIntent(a.item.id) ~= nil
-        local bm = CW.SaleIntent and CW.SaleIntent(b.item.id) ~= nil
-        if am ~= bm then return bm end
+        if a.marked ~= b.marked then return b.marked end
         -- Keep the last settled order throughout bag/cursor activity.
         if not ready then
-            local ai, bi = lastOrder[a.item.id], lastOrder[b.item.id]
+            local ai, bi = lastOrder[a.identity], lastOrder[b.identity]
             if ai ~= bi then return (ai or math.huge) < (bi or math.huge) end
         end
         local av, bv = a.comparison.value, b.comparison.value
@@ -94,10 +109,7 @@ local function renderList()
     end)
     if ready then
         lastOrder = {}
-        for index, choice in ipairs(choices) do lastOrder[choice.item.id] = index end
-        for id in pairs(displayedComparisons) do
-            if not rows[id] then displayedComparisons[id] = nil end
-        end
+        for index, choice in ipairs(choices) do lastOrder[choice.identity] = index end
     end
     local height = #choices * 40 + 48
     listContent:SetHeight(math.max(1, height))
@@ -106,7 +118,7 @@ local function renderList()
     local offset, previousSection, sections = 0, nil, 0
     for index, choice in ipairs(choices) do
         local intent = CW.SaleIntent and CW.SaleIntent(choice.item.id)
-        local section = intent and "Marked for sale" or "Unmarked inventory"
+        local section = choice.marked and "Marked for sale" or "Unmarked inventory"
         if section ~= previousSection then
             sections = sections + 1
             local label = sectionLabels[sections]
@@ -149,14 +161,16 @@ local function renderList()
                 local id = button.itemID
                 local intent = CW.SaleIntent(id)
                 local ok, reason
-                if intent then
+                if button.marked then
                     ok, reason = CW.ChangeIntent(id, "remove")
                 else
                     local item = CW.AvailableItem(id)
                     if not item then return end
-                    local values = comparison(item)
+                    local remaining = math.max(0, item.quantity - (intent and intent.quantity or 0))
+                    if remaining == 0 then return end
+                    local values = comparison(withQuantity(item, remaining))
                     if values.reason or not values.destination then return end
-                    ok, reason = CW.ChangeIntent(id, "mark", item.quantity, values.destination)
+                    ok, reason = CW.ChangeIntent(id, "mark", remaining, intent and intent.destination or values.destination)
                 end
                 actionMessage = ok and nil or reason
                 if selected == id then
@@ -174,6 +188,7 @@ local function renderList()
             button.toggle:SetScript("OnLeave", function() GameTooltip:Hide() end)
             button:SetScript("OnClick", function(self)
                 selected = self.itemID
+                selectedMarked = self.marked
                 actionMessage = nil
                 local intent = CW.SaleIntent and CW.SaleIntent(selected)
                 if quantityInput then quantityInput:SetText(intent and tostring(intent.quantity) or "") end
@@ -187,23 +202,25 @@ local function renderList()
         button.toggle:SetPoint("TOPLEFT", 284, -offset)
         offset = offset + 40
         local item, values = choice.item, choice.comparison
-        button.itemID = item.id
+        button.itemID, button.marked = item.id, choice.marked
         button.icon:SetTexture(item.icon or "Interface\\Icons\\INV_Misc_QuestionMark")
-        button.label:SetText((selected == item.id and "|cffffd100" or "") .. item.name
+        button.label:SetText((selected == item.id and selectedMarked == choice.marked and "|cffffd100" or "") .. item.name
             .. " (" .. item.quantity .. ")")
         button.value:SetText(values.value ~= nil and money(values.value) or "—")
-        button.status:SetText(intent and ("Sell " .. intent.quantity .. "; bags "
-            .. (ready and item.quantity or "checking")
-            .. (ready and item.quantity < intent.quantity and ("; short " .. (intent.quantity - item.quantity)) or ""))
-            or (values.reason and ("Unavailable — " .. values.reason) or ""))
+        local bagQuantity = rows[item.id] and rows[item.id].quantity or 0
+        button.status:SetText(choice.marked and ("Sell " .. intent.quantity .. "; bags "
+            .. (ready and bagQuantity or "checking")
+            .. (ready and bagQuantity < intent.quantity and ("; short " .. (intent.quantity - bagQuantity)) or ""))
+            or (values.reason and ("Unavailable — " .. values.reason) or (intent and "Unmarked remainder" or "")))
         local destination = intent and intent.destination or values.destination
         local oldPrice = destination == "AH" and values.observation
             and time() - values.observation.observedAt > staleMinutes() * 60
-        if intent or (ready and not values.reason and destination) then
+        if choice.marked or (ready and not values.reason and destination) then
             button.toggle:SetText((destination == "AH" and "|cffffd100" or "|cff99ddaa")
-                .. destination .. (intent and " ×" or "") .. (oldPrice and " !" or "") .. "|r")
-            button.toggle.help = intent and ("Unmark " .. item.name .. " from " .. destination .. ". No sale is made.")
-                or ("Mark " .. item.name .. " for " .. destination .. " (" .. item.quantity .. " units). No sale is made.")
+                .. destination .. (choice.marked and " ×" or (intent and " +" or "")) .. (oldPrice and " !" or "") .. "|r")
+            button.toggle.help = choice.marked and ("Unmark " .. item.name .. " from " .. destination .. ". No sale is made.")
+                or ((intent and "Add " or "Mark ") .. item.quantity .. " units of " .. item.name
+                    .. " for " .. destination .. ". No sale is made.")
             if oldPrice then button.toggle.help = button.toggle.help .. " AH price exceeds " .. staleMinutes() .. " minutes." end
             button.toggle:Show()
         else button.toggle:Hide() end
@@ -215,18 +232,24 @@ end
 
 function CW.Render()
     if not output then return end
-    renderList()
     local intent = CW.SaleIntent and CW.SaleIntent(selected)
-    local item = rows[selected]
+    local owned = rows[selected]
+    local remaining = math.max(0, (owned and owned.quantity or 0) - (intent and intent.quantity or 0))
+    if selectedMarked and not intent then selectedMarked = false end
+    if intent and remaining == 0 then selectedMarked = true end
+    renderList()
+    local item = owned
     if not item and intent then item = {id=selected, name=intent.name, quantity=0, support="not currently in bags"} end
+    if item then item = withQuantity(item, selectedMarked and intent.quantity or remaining) end
     local text = "Select a bag item from the list.\nBackpack and bags only; bank and equipment excluded."
     local values = item and comparison(item)
     if item then
         text = (item.link or item.name) .. "\nItem ID: " .. item.id
-            .. "\nBag quantity (last settled): " .. item.quantity
+            .. "\nBag quantity (last settled): " .. (owned and owned.quantity or 0)
+            .. "\nSelected quantity: " .. item.quantity .. (selectedMarked and " marked units" or " unmarked units")
             .. "\nVendor sell / unit: " .. money(item.sell)
-            .. "\nVendor sell / owned quantity: " .. money(values.vendor)
-            .. "\nAH asking / owned quantity: " .. money(values.asking)
+            .. (intent and "\nVendor sell / selected quantity: " or "\nVendor sell / owned quantity: ") .. money(values.vendor)
+            .. (intent and "\nAH asking / selected quantity: " or "\nAH asking / owned quantity: ") .. money(values.asking)
             .. "\nAH estimated proceeds (5% cut): " .. money(values.proceeds)
             .. "\nPreferred destination: " .. (values.destination or "unavailable (both values required)")
             .. "\nSupport: " .. item.support
@@ -242,7 +265,7 @@ function CW.Render()
     if CW.intentNotice then text = text .. "\n" .. CW.intentNotice end
     if actionMessage then text = text .. "\n" .. actionMessage end
     if quantityInput then
-        if intent then
+        if intent and selectedMarked then
             quantityLabel:Show(); quantityInput:Show(); editButton:Show()
         else
             quantityLabel:Hide(); quantityInput:Hide(); editButton:Hide()
