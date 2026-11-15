@@ -64,3 +64,12 @@ partial/undated rejection, complete-empty results and market isolation. These
 are supporting checks, not actual-client acceptance. The two-character
 reload/logout journey and migration checks in the addon README remain pending;
 this storage change does not close the broader scan ticket.
+
+### Owner verification — 2026-11-15
+
+After installing the updated addon and receiving the two-character verification
+guide, the owner reported: "works as expected". Record the account-wide sharing
+workflow as owner-reported passed in the target client. Separate checks for an
+older legacy snapshot failing to overwrite newer shared data and incompatible
+market isolation have not been individually confirmed. The broader ticket
+remains open.

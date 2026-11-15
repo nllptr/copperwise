@@ -82,8 +82,10 @@ collector. Lua syntax and Go checks are supporting checks only.
    from AH. Confirm the same observations and original source time against that
    character's own bag quantities. Log into a character with an older legacy
    scan and confirm it cannot replace the newer shared scan. Verify another
-   realm/faction/region cannot read incompatible data. Account-wide persistence
-   and migration acceptance remain pending until these client checks pass.
+   realm/faction/region cannot read incompatible data. The owner reported the
+   account-wide sharing workflow working as expected on 2026-11-15. Older-legacy
+   overwrite protection and incompatible-market isolation still await separate
+   client confirmation.
 5. Cancel immediately after dispatch from the open Copperwise AH tab:
    `/run Copperwise.Scan(); Copperwise.Cancel()`.
    Wait for late responses; state must remain cancelled and retained data must
