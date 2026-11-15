@@ -120,3 +120,8 @@ Background appearance still needs owner confirmation in the target client.
 Owner found the native dialog texture still too dark in-client. Replaced the
 inset with an opaque neutral gray fill (0.24 per RGB channel), retaining native
 frame borders and controls. Appearance awaits owner confirmation.
+
+Owner deferred noncommodity support and requested the Currency window's brown
+textured scheme instead of flat gray. Replaced the gray fill with the native
+character-window inset material `Interface\FrameGeneral\UI-Background-Marble`,
+tiled rather than stretched. Native-client visual match remains pending.

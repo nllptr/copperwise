@@ -189,12 +189,15 @@ local function open()
         window:SetScript("OnDragStop", window.StopMovingOrSizing)
         window.TitleText:SetText("Copperwise — Inventory")
         table.insert(UISpecialFrames, "CopperwiseInventory")
-        -- Use a neutral gray fill; native dialog textures remain nearly black.
+        -- Use the native character-window inset material, tiled at native scale.
         local surface = window.Inset or window
         local background = surface:CreateTexture(nil, "BORDER", nil, -1)
         background:SetPoint("TOPLEFT", window, "TOPLEFT", 6, -28)
         background:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", -6, 6)
-        background:SetColorTexture(0.24, 0.24, 0.24, 1)
+        background:SetTexture("Interface\\FrameGeneral\\UI-Background-Marble")
+        background:SetHorizTile(true)
+        background:SetVertTile(true)
+        background:SetTexCoord(0, (920 - 12) / 256, 0, (640 - 34) / 256)
         list = CreateFrame("ScrollFrame", nil, window, "UIPanelScrollFrameTemplate")
         list:SetPoint("TOPLEFT", 22, -65)
         list:SetPoint("BOTTOMLEFT", 22, 25)
