@@ -30,6 +30,8 @@ Verified in the production addon:
   completeness. The observed retained scan has 6,061 item summaries, one repeated
   key and zero conflicting keys.
 - [x] Confirm full-scan prices are correct and survive closing AH and `/reload`.
+- [x] Independently compare revised full-collector price and supply with native
+  AH: fresh Rough Stone observations match at 8 copper/unit and 1,804 units.
 - [x] Distinguish no scan, failed, cancelled and complete attempts in visible
   outcomes. The initial duplicate-key failure was observed and subsequently fixed.
 - [x] Cancel a full scan immediately after dispatch; after waiting, it remains
@@ -46,9 +48,6 @@ Remaining ticket-01 acceptance checks (not implied by the passes above):
 
 - [ ] Verify unavailable/loading vendor metadata versus a known numeric zero
   through visible client behavior; metadata availability must not send a scan.
-- [ ] Independently compare displayed supply from the revised full collector
-  against the native AH. Earlier bounded-query supply matched, but used the
-  superseded collector. Full-scan prices are already confirmed correct.
 - [ ] Exercise complete-empty and incomplete/partial coverage; missing buyout
   must remain unavailable, and incomplete data cannot become a recommendation.
 - [ ] Observe native throttling and bound/timeout behavior without publishing a
@@ -235,3 +234,19 @@ while watching the displayed quantity. The settled total remains unchanged and
 transient quantities are withheld rather than showing extra units. Cross-bag
 movement acceptance passes alongside the earlier split/merge and cursor checks.
 Six ticket-01 acceptance checks remain; the ticket stays open.
+
+### Full-collector native comparison — 2026-11-15
+
+Owner supplied fresh native AH and Copperwise screenshots for Rough Stone
+(2835). Both show 1,804 available units and minimum asking price 8 copper/unit.
+Copperwise records complete market-summary coverage observed locally at
+2026-11-15 12:03:55 CET, age zero minutes, in CAMWOW EU5 Realm 10 RP /
+Alliance / region 3. The latest full scan is complete with 5,677 item summaries
+retained. This passes the independent price/supply comparison for the revised
+full collector on this sample.
+
+The preceding comparison showed an older retained observation (11:57:52 CET,
+1,690 units at 15 copper/unit) against native AH at 1,804 units and 8 copper/unit.
+That mismatched comparison did not pass acceptance; the fresh matching pair
+above supplies the acceptance evidence without inferring why the older values
+differed. Five ticket-01 acceptance checks remain; the ticket stays open.
