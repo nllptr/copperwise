@@ -10,8 +10,8 @@ Run `/cw` or `/copperwise` to open the standalone Inventory window. Select an
 owned item to inspect bag quantity and vendor sell values. Backpack and bags
 0–4 are covered. Identical unlocked slot snapshots must persist for 0.75 seconds
 after bag/cursor changes before new quantities replace the last settled view.
-During updates, retain displayed quantities, totals and order with an updating
-status; holdings remain unavailable to actions until settled. This is a settling heuristic, not an atomic guarantee.
+During updates, retain displayed quantities, totals and order without a visible
+status change; holdings remain unavailable to actions until settled. This is a settling heuristic, not an atomic guarantee.
 
 Inventory displays retained full-scan asking values for comparable native
 commodities. Missing observations are unavailable; go to the AH to refresh.

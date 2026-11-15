@@ -1,7 +1,7 @@
 Copperwise = {}
 local CW = Copperwise
 local frame = CreateFrame("Frame")
-local window, output, list, listContent, listStatus
+local window, output, list, listContent
 local buttons = {}
 local lastOrder = {}
 local displayedComparisons = {}
@@ -71,8 +71,6 @@ local function renderList()
             if not rows[id] then displayedComparisons[id] = nil end
         end
     end
-    listStatus:SetText(not ready and "Updating bags — showing last settled values"
-        or (#choices == 0 and "No bag items" or "Highest total destination value first"))
     listContent:SetHeight(math.max(1, #choices * 54))
     local maxScroll = math.max(0, #choices * 54 - list:GetHeight())
     list:SetVerticalScroll(math.min(list:GetVerticalScroll(), maxScroll))
@@ -191,8 +189,12 @@ local function open()
         window:SetScript("OnDragStop", window.StopMovingOrSizing)
         window.TitleText:SetText("Copperwise — Inventory")
         table.insert(UISpecialFrames, "CopperwiseInventory")
-        listStatus = window:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        listStatus:SetPoint("TOPLEFT", 22, -40)
+        -- Use the native gray dialog texture rather than the dark frame inset.
+        local background = window.Inset and window.Inset.Bg or window.Bg
+        if background then
+            background:SetTexture("Interface\\DialogFrame\\UI-DialogBox-Background")
+            background:SetVertexColor(1, 1, 1, 1)
+        end
         list = CreateFrame("ScrollFrame", nil, window, "UIPanelScrollFrameTemplate")
         list:SetPoint("TOPLEFT", 22, -65)
         list:SetPoint("BOTTOMLEFT", 22, 25)

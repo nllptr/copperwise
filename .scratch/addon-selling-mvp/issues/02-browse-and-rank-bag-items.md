@@ -108,3 +108,11 @@ acceptance instruction to hide displayed totals during transient bag changes;
 no transient snapshot is published. Recheck screenshot capture and actual stack
 moves/splits/removal, confirming the display stays stable then updates to the
 settled quantities and ranking. Client confirmation remains pending.
+
+### Display acceptance follow-up — 2026-11-15
+
+Owner confirmed displayed values stay steady. Requested removal of the list
+heading/update status: settling stays internal, while the last settled display
+remains visible. Removed that heading and tried the native gray dialog background
+(`Interface\DialogFrame\UI-DialogBox-Background`) in the Inventory inset.
+Background appearance still needs owner confirmation in the target client.
