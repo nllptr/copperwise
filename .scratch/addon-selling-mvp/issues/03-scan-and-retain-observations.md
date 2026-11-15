@@ -83,3 +83,13 @@ sequential migration registry for future schema updates, copy-before-upgrade and
 publish-on-success behavior. Unknown/malformed stores are preserved and market
 reads/scans are disabled with an explanation. No schema upgrade is needed today;
 each future schema change must supply its migration and behavior tests.
+
+### Post-update owner verification — 2026-11-15
+
+After the storage-loader update, the owner reported "it works as expected" for
+the requested client checks: existing account-wide prices, supply and source
+timestamp remain available after reinstall/restart; another character on the
+same realm/faction reads those observations; a new full scan completes and
+survives `/reload`. Record these checks as owner-reported passed. No legacy
+migration check is required. Incompatible-market client verification and the
+remaining broader scan-ticket acceptance are not covered by this confirmation.

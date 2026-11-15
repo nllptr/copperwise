@@ -87,10 +87,11 @@ collector. Lua syntax and Go checks are supporting checks only.
    observations must retain prices, supply, source time, market and coverage.
    Switch to another character on the same account and compatible market, away
    from AH. Confirm the same observations and original source time against that
-   character's own bag quantities. Verify another
-   realm/faction/region cannot read incompatible data. The owner reported the
-   account-wide sharing workflow working as expected on 2026-11-15. Incompatible
-   market isolation still awaits separate client confirmation.
+   character's own bag quantities. Verify another realm/faction/region cannot
+   read incompatible data. On 2026-11-15 the owner confirmed existing observations
+   survived reinstall/restart with the versioned loader, compatible characters
+   shared those observations, and a new full scan completed and survived reload.
+   Incompatible-market isolation still awaits separate client confirmation.
 5. Cancel immediately after dispatch from the open Copperwise AH tab:
    `/run Copperwise.Scan(); Copperwise.Cancel()`.
    Wait for late responses; state must remain cancelled and retained data must
