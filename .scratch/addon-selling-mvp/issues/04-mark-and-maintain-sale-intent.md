@@ -157,3 +157,14 @@ Vendor intent and split/reload behavior remain accepted within their recorded
 scope. Character isolation, logout restoration and destination preservation
 across changed prices still lack explicit client confirmation; ticket 04
 remains implemented with remaining acceptance pending.
+
+### Character isolation and logout restoration — 2026-11-15
+
+Owner confirms the guided character-switching check works: note a bank-character
+mark, log into another character and verify the first plan is absent, create a
+different mark, then return and verify the original plan remains without the
+other character's mark. This passes current-character isolation and persistence
+through logout/login within the tested environment. Earlier acceptance notes
+listing these cases as pending are superseded by this confirmation. Preservation
+of an existing destination and quantity across a price-refresh/recommendation
+change remains the next unconfirmed client check.
