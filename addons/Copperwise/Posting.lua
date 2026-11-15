@@ -1,0 +1,230 @@
+local CW = Copperwise
+local frame = CreateFrame("Frame")
+local baseline, query, wanted, visible, ownPost, pending, notice
+local loaded = false
+
+local function validLedger(value)
+    if type(value) ~= "table" or value.version ~= 1 or type(value.beforeIDs) ~= "table" then return false end
+    for _, key in ipairs({"id", "quantity", "price", "intentQuantity", "beforeUnits"}) do
+        local n = value[key]
+        if type(n) ~= "number" or n <= 0 or n % 1 ~= 0 or n > 2147483647 then return false end
+    end
+    return value.quantity <= value.intentQuantity and value.quantity <= value.beforeUnits
+        and (value.duration == 1 or value.duration == 2 or value.duration == 3)
+end
+
+local function changed()
+    if CW.RenderReview then CW.RenderReview() end
+end
+
+local function store(value)
+    pending = value
+    CopperwiseDB.pendingPost = value
+end
+
+local function owned()
+    if type(C_AuctionHouse.HasFullOwnedAuctionResults) ~= "function"
+        or not C_AuctionHouse.HasFullOwnedAuctionResults() then
+        error("Native owned listings are incomplete; posting attribution unavailable.")
+    end
+    local count = C_AuctionHouse.GetNumOwnedAuctions()
+    if type(count) ~= "number" or count < 0 or count % 1 ~= 0 or count > 10000 then error("Owned-listing coverage unavailable") end
+    local rows, ids = {}, {}
+    for index = 1, count do
+        local row = C_AuctionHouse.GetOwnedAuctionInfo(index)
+        if not row or not row.auctionID or ids[tostring(row.auctionID)] then error("Owned-listing identity unavailable") end
+        ids[tostring(row.auctionID)] = true
+        rows[#rows+1] = row
+    end
+    return rows, ids
+end
+
+local function confirm()
+    if not validLedger(pending) or pending.conflict or not pending.rows then return end
+    if not CW.HoldingsSettled() then return end
+    local item = CW.AvailableItem(pending.id)
+    local available = item and item.quantity or 0
+    if pending.beforeUnits - available ~= pending.quantity then return end
+    local matches = 0
+    for _, row in ipairs(pending.rows) do
+        if not pending.beforeIDs[tostring(row.auctionID)] and row.itemKey and row.itemKey.itemID == pending.id
+            and row.quantity == pending.quantity and row.buyoutAmount == pending.price then
+            -- Commodity owned buyout is per unit (as used by Auctionator's
+            -- Cancelling provider); target-client acceptance checks this too.
+            matches = matches + 1
+        end
+    end
+    if matches ~= 1 then return end
+    local ok, reason = CW.ConfirmPostedIntent(pending.id, pending.quantity, pending.intentQuantity)
+    if not ok then notice = reason; return end
+    local id, units = pending.id, pending.quantity
+    store(nil)
+    baseline = nil
+    wanted = visible
+    notice = "Confirmed " .. units .. " posted units (item " .. id .. ") against owned listings and bags."
+    if CW.PostConfirmed then CW.PostConfirmed(id, units) end
+    if CW.Render then CW.Render() end
+    changed()
+end
+
+function CW.OpenPosting()
+    visible, wanted = true, true
+    if not pending then notice = nil end
+end
+
+function CW.ClosePosting()
+    visible, wanted, baseline = false, false, nil
+    if pending then
+        if type(pending) == "table" then pending.conflict = true end
+        notice = "Posting stopped. Inspect Auctions and reconcile the pending outcome." end
+end
+
+function CW.PostingBlocksScan()
+    return pending ~= nil
+end
+
+function CW.PostingNotice()
+    return notice, pending ~= nil
+end
+
+function CW.PostingReason()
+    if not loaded then return "Posting state is loading." end
+    if pending then return "Pending post: inspect native Auctions and reconcile before another post." end
+    if query then return "Loading owned listings for posting attribution." end
+    if not baseline or GetTime() - baseline.at > 60 then
+        wanted = true
+        return "Waiting for fresh owned listings."
+    end
+    return CW.AHReadiness("posting", 0.2)
+end
+
+function CW.InterruptPosting(reason)
+    baseline = nil
+    if query then query = nil; CW.AHOperation = nil; CW.AHResponseUncertain = true end
+    if pending then
+        if type(pending) == "table" then pending.conflict = true end
+        notice = reason end
+end
+
+-- Called only by XML OnClick -> parent:PostItem(), matching the verified probe.
+-- No pcall, rendering, printing or disabling the button before the native post.
+function CW.PostReviewedItem(review)
+    local reason = CW.PostingReason()
+    if reason then notice = reason; return end
+    local p = review and review.stacks and review.stacks[1]
+    local intent = review and CW.SaleIntent(review.id)
+    if not p or not review.ready or not intent or intent.destination ~= "AH"
+        or intent.quantity ~= review.intended or not CW.HoldingsSettled() then
+        notice = "Intent or holdings changed; review again."; return
+    end
+    if not C_Item.DoesItemExist(p.location) or C_Item.GetItemLink(p.location) ~= p.link
+        or C_Item.GetStackCount(p.location) ~= p.count
+        or not C_AuctionHouse.IsSellItemValid(p.location, false)
+        or C_AuctionHouse.GetItemCommodityStatus(p.location) ~= Enum.ItemCommodityStatus.Commodity then
+        notice = "Source stack changed; review again."; return
+    end
+    local deposit = C_AuctionHouse.CalculateCommodityDeposit(review.id, p.duration, p.quantity)
+    if type(deposit) ~= "number" or deposit ~= p.deposit or GetMoney() < deposit then
+        notice = "Deposit or funds changed; review again."; return
+    end
+    local item = CW.AvailableItem(review.id)
+    if not item then notice = "Bag holdings changed; review again."; return end
+    -- This ledger survives reload/logout. Never retry an unresolved native call.
+    store({version=1, id=review.id, quantity=p.quantity, price=p.price, duration=p.duration,
+        intentQuantity=intent.quantity, beforeUnits=item.quantity, beforeIDs=baseline.ids,
+        started=time(), conflict=false})
+    baseline, ownPost = nil, true
+    notice = "Posting " .. p.quantity .. " units; awaiting owned listings and settled bags."
+    local needsConfirmation = C_AuctionHouse.PostCommodity(p.location, p.duration, p.quantity, p.price)
+    ownPost = false
+    if needsConfirmation then
+        pending.conflict = true
+        -- Preserve the native confirmation path rather than bypassing it.
+        local nativeSell = AuctionHouseFrame and AuctionHouseFrame.CommoditiesSellFrame
+        if nativeSell and nativeSell.CachePendingPost then
+            nativeSell:CachePendingPost(p.location, p.duration, p.quantity, p.price)
+        end
+        notice = "Native confirmation required; resolve it, then inspect Auctions and reconcile."
+    end
+    wanted = true
+end
+
+function CW.ResolvePost(posted)
+    if not pending then return end
+    if not validLedger(pending) then
+        notice = "Unsupported or malformed pending-post data preserved; manual recovery required."; changed(); return
+    end
+    if posted then
+        local ok, reason = CW.ConfirmPostedIntent(pending.id, pending.quantity, pending.intentQuantity)
+        if not ok then notice = reason .. " Adjust intent in Inventory, then choose Keep intent."; changed(); return end
+        if CW.PostConfirmed then CW.PostConfirmed(pending.id, pending.quantity) end
+    end
+    store(nil)
+    notice = posted and "Operator confirmed posting; intent reduced." or "Operator reconciled outcome; current intent kept."
+    baseline, wanted = nil, visible
+    changed()
+    if CW.Render then CW.Render() end
+end
+
+frame:SetScript("OnUpdate", function()
+    if not loaded then return end
+    if ownPost then
+        ownPost = false
+        if type(pending) == "table" then pending.conflict = true end
+        notice = "Native posting did not return normally; inspect Auctions and reconcile."
+    end
+    local ok, err = pcall(function()
+        confirm()
+        if query and GetTime() > query.deadline then
+            query, CW.AHOperation, CW.AHResponseUncertain = nil, nil, true
+            notice = "Owned-listing response timed out; close/reopen AH. Pending intent is preserved."
+        elseif wanted and visible and not query and not CW.AHReadiness("posting", 2) then
+            wanted = false
+            CW.AHOperation = "posting"
+            query = {deadline=GetTime()+20}
+            local sent, reason = CW.AHRequest("QueryOwnedAuctions", {})
+            if not sent then query, CW.AHOperation = nil, nil; notice = tostring(reason) end
+        end
+    end)
+    if not ok then
+        if query then CW.AHResponseUncertain = true; query, CW.AHOperation = nil, nil end
+        notice = tostring(err)
+    end
+end)
+frame:SetScript("OnEvent", function(_, event, addon)
+    if event == "PLAYER_LOGIN" then
+        loaded = type(CopperwiseDB) == "table"
+        if loaded then pending = CopperwiseDB.pendingPost end
+        if pending then
+            if type(pending) == "table" then pending.conflict = true end
+            notice = "Restored unresolved post. Inspect native Auctions and bags; reconcile before posting."
+        end
+        for _, name in ipairs({"PostCommodity", "PostItem", "CancelAuction"}) do
+            if type(C_AuctionHouse[name]) == "function" then
+                hooksecurefunc(C_AuctionHouse, name, function()
+                    if not ownPost then CW.InterruptPosting("Other posting/cancellation activity; reconcile Copperwise's pending outcome.") end
+                end)
+            end
+        end
+    elseif event == "AUCTION_HOUSE_CLOSED" then
+        CW.ClosePosting()
+        query, CW.AHOperation = nil, nil
+    elseif event == "OWNED_AUCTIONS_UPDATED" and query then
+        if C_AuctionHouse.HasFullOwnedAuctionResults and not C_AuctionHouse.HasFullOwnedAuctionResults() then return end
+        query, CW.AHOperation = nil, nil
+        local ok, rows, ids = pcall(owned)
+        if ok then
+            if pending and type(pending) == "table" and pending.version == 1 then pending.rows = rows; confirm()
+            elseif not pending then baseline = {ids=ids, at=GetTime()} end
+        else notice = tostring(rows) end
+    elseif pending and (event == "AUCTION_MULTISELL_UPDATE" or event == "AUCTION_MULTISELL_FAILURE"
+        or event == "AUCTION_HOUSE_SHOW_ERROR") then wanted = true
+    elseif pending and (event == "ADDON_ACTION_BLOCKED" or event == "ADDON_ACTION_FORBIDDEN") and addon == "Copperwise" then
+        ownPost = false
+        if type(pending) == "table" then pending.conflict = true end
+        notice = "Client blocked posting. No automatic retry; inspect Auctions and reconcile."
+    end
+end)
+for _, event in ipairs({"PLAYER_LOGIN", "AUCTION_HOUSE_CLOSED", "OWNED_AUCTIONS_UPDATED",
+    "AUCTION_MULTISELL_UPDATE", "AUCTION_MULTISELL_FAILURE", "AUCTION_HOUSE_SHOW_ERROR",
+    "ADDON_ACTION_BLOCKED", "ADDON_ACTION_FORBIDDEN"}) do pcall(frame.RegisterEvent, frame, event) end

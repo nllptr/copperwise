@@ -6,5 +6,8 @@
 Inventory.lua
 Storage.lua
 Intent.lua
+Listings.lua
+Posting.lua
+Posting.xml
 Review.lua
 Scan.lua

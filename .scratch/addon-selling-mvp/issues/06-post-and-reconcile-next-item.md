@@ -39,3 +39,10 @@ This supersedes the earlier requirement for a separate deliberate action and
 review for each post, while preserving attribution, reconciliation and native
 permission requirements. User-started batch advancement is authorized within
 the active reviewed session; background/unprompted batch starts remain excluded.
+
+2026-11-15: Owner-approved ticket 05 prototype now includes selected-item Post.
+Its implementation supplies deliberate single-source posting, before/after owned
+listing + bag reconciliation, a persistent pending-outcome blocker and explicit
+operator reconciliation. This is supporting infrastructure, not completion of
+this ticket: Post all remains disabled, multi-item execution and automatic
+advancement are unimplemented, and production client posting acceptance is pending.

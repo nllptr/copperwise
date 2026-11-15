@@ -137,7 +137,7 @@ are supporting checks only.
    disappears if the observation is within an hour. Reload and use `/cw stale` to confirm the chosen setting.
    Exact threshold boundaries are covered by the synthetic checks below.
 
-No posting or other transaction is performed by this version.
+The AH tab now includes deliberate selected-item posting; see its acceptance checklist below.
 
 For reproducible simulated edge cases, see the separate
 [ticket 01 diagnostics](../../probes/ticket-01/README.md). Those checks run isolated
@@ -281,62 +281,110 @@ pass client acceptance.
    restoration and window/tab changes never query or post an auction or sell
    to a merchant. AH queue display and posting belong to tickets 05 and 06.
 
-## AH batch review (ticket 05)
+## Selected-item AH layout (ticket 05, approved prototype)
 
-Open the native Copperwise AH tab to see every AH-marked entry, including restored
-intent and items no longer held or supported. Vendor intent and unmarked bags are
-excluded. Full scan and native tab navigation remain available. No transaction
-API is called; **Post all (soon)** is deliberately disabled until ticket 06.
+The AH tab follows `probes/ah-layout/index.html`: Full scan / Cancel scan and the
+Post all placeholder share the top section. The left sidebar contains all AH
+intent, including restored, unavailable and unsupported entries. Vendor intent
+and unmarked holdings are excluded. The first item is selected automatically.
+Select another row to change the posting form and current-listings table.
 
-Owner-approved defaults (2026-11-15): use the compatible retained complete scan's
-lowest unit buyout without undercutting. New complete scans refresh unedited
-prices; failed/cancelled scans preserve them. Prices are cached asking values,
-not live offers. Enter a positive whole copper price and Apply for an optional
-item override; Use scan price removes it. Edits are session-only. Shared duration
-defaults to 24 hours; clicking Duration cycles the target client's 2/8/24-hour
-choices. Cancel review, tab departure or AH closure discards edits/preparation
-and resets duration; returning rebuilds defaults without changing saved intent.
+The form shows marked/bag/eligible units, editable quantity (Max restores eligible
+marked units), unit buyout in gold/silver/copper, native deposit, total buyout and
+2/8/24-hour duration radios. Duration defaults to 24 hours and is shared. Edits
+are ephemeral and survive item selection; tab departure/AH closure discards them.
+Neither editing nor selecting changes saved intent or posts an auction.
 
-Rows show intended and eligible units, shortages, unit price, eligible total,
-duration, summed native deposit and source-stack count. Multiple supported stacks
-cover one intent without consolidation. Unavailable values are labeled, never
-invented as zero. Partial coverage can be ready while its remainder stays pending.
-The summary includes known totals and counts entries with unknown terms; estimated
-proceeds deduct 5% and exclude deposits. Insufficient funds are flagged. Every
-half-second the visible review rebuilds from current intent, settled holdings,
-native eligibility, price and deposit. Unsettled bags invalidate preparation.
-Ticket 06 must revalidate each individual dispatch; this review authorizes none.
+Selected-item searches use native commodity search and bounded pagination, separate
+from the retained full-market summary. The two-column table groups available item
+units by unit buyout. Click any row, including a higher price, to adopt its unit
+buyout without changing quantity. Refresh item starts a new selected-item query.
+Only complete attributed results populate selectable price levels. Empty supply
+has no automatic price; unavailable prices/deposits are never rendered as zero.
+Unedited unit prices initially use compatible retained observations, then use the
+lowest complete current-item result. Explicit edits/listing choices survive item
+refresh. The full-scan source time and current-item observation time stay separate.
+Selected queries never replace account-wide full-scan observations.
 
-### Ticket 05 target-client acceptance — pending
+Requests wait for throttling and quiet native/Auctionator activity. Item searches
+are bounded to 20 requests, 10,000 rows, 20 seconds per response and 90 seconds
+total. Changing selection drains an outstanding item response before querying the
+new item. Tab departure stops further pages; closure resets local request state.
+An uncertain response blocks further work until close/reopen. If Full scan is
+clicked while item/owned-listing work is outstanding, let it finish then click
+again. Global scans block selected-item queries until they finish/cancel.
 
-Run production Copperwise with probes disabled at the faction AH; record build,
-realm/faction/region, UI scale and Auctionator version/presence. These checks are
-the agreed acceptance seam, and repository checks do not pass them.
+### Post item (individual execution; Post all still deferred)
 
-1. Mark at least two commodities AH and one Vendor; leave some holdings unmarked.
-   Use partial intended units and an intent above available bags. Reload and open
-   Copperwise at AH: all and only AH marks appear, with correct intended quantities,
-   shortages and eligible totals. Restore a saved AH mark with zero bags; keep it
-   visible with a reason. Unsupported/ineligible marks also stay visible.
-2. Use a commodity spanning multiple stacks. Compare eligible units with bags,
-   intended units and source-stack count. No consolidation or per-stack review is
-   required. Move/lock a stack, reduce holdings, change intent in Inventory and
-   remove a mark: preparation must invalidate/update without losing saved intent.
-3. Compare proposed unit price with the compatible retained scan minimum and
-   eligible total with quantity × price. No scan/empty supply means unavailable
-   price; enter an explicit price to propose terms. Reject blank, zero, negative,
-   fractional and oversized input. Apply one override without selecting every row.
-4. Compare native deposits for each prepared stack quantity at 24 hours and sum
-   them. Cycle 2/8/24 hours and compare native deposit/labels again. Verify known
-   zero remains zero and unavailable deposit is labeled. Compare summary totals
-   and insufficient-funds warnings, including partially covered entries.
-5. Full scan refreshes unedited prices but preserves edits. Failed/cancelled scan
-   preserves prior prices and source time. Review text identifies edited prices
-   or source time. No scan or review action posts an auction.
-6. Cancel review, leave the tab and close AH separately: saved intent survives,
-   overrides disappear, duration returns to 24 hours and reopening rebuilds the
-   list without posting. Confirm Post all is disabled throughout.
-7. Check scrolling, long item names, input focus and readable native coin labels
-   at normal UI scale. Verify Full scan, Cancel scan and all native tabs remain
-   usable, both with Auctionator installed/idle/active and without it. Record
-   observations and any Lua errors before accepting the ticket.
+**Post item sends a real native auction request and can spend a deposit.** It is
+only enabled for reviewed supported commodity sources, known positive prices,
+valid quantities, sufficient money and current owned-listing attribution data.
+The XML button follows the verified posting probe; transactions never originate
+from timers, queries, login, reopening or selection. Native confirmations remain
+native. Sources, intent and deposit are revalidated at click time.
+
+One click posts at most the first supported source stack. When reviewed quantity
+spans stacks, the button shows that click's quantity and the status explains how
+many reviewed units remain. After confirmed owned-listing and settled-bag evidence,
+intent decreases by that source quantity and the form retains the reviewed
+remainder. Click the same Post item control again to continue. No automatic stack
+consolidation or Post all execution is introduced. A completed intent disappears
+and the next marked item is selected.
+
+A before/after owned-listing identity comparison, exact item/quantity/unit buyout
+match and settled matching bag decrease are required for automatic confirmation.
+Shared events or API returns alone never consume intent. Conflicts, failures and
+uncertainty preserve intent and block another post. The character-specific
+`pendingPost` version-1 ledger survives ordinary logout/reload; restored pending
+outcomes always require operator reconciliation. It does not change either saved
+market or sale-plan schemas. Unsupported ledger data is preserved and blocks posts.
+
+Use Reconcile post only after checking native Auctions and bags. Count as posted
+consumes the unchanged reviewed intent; Keep intent clears the blocker without
+changing intent; Cancel changes nothing. An edited intent cannot be silently
+reduced. Explicit operator reconciliation is necessary when attribution cannot
+establish the result. No automatic retry occurs. AH closure/tab departure stops
+preparation and makes any outstanding post require reconciliation. No automatic
+posting resumes after reopening or reloading.
+
+### Target-client acceptance — pending
+
+Existing Lua syntax and regression checks support the implementation but cannot
+establish native layout, query/server behavior or successful production posting.
+Use the usual faction AH with probes disabled. Record client build, market, UI
+scale and Auctionator version/presence. The original review screenshots established
+visible marks and tabs, not acceptance of this replacement layout.
+
+1. Reload, open Copperwise: the sidebar includes all and only AH marks, first item
+   selected. Check sidebar scrolling, icon/name/count, current quantity and shortages.
+   Verify restored absent/unsupported marks stay visible. Compare layout with the
+   approved prototype at normal UI scale; check no overlap or clipped controls.
+2. Wait for item listings; compare price levels and grouped Available units with
+   native/Auctionator listings. Switch items rapidly during loading. Only the
+   selected item's complete results may appear. Empty/failed/partial results stay
+   distinct; malformed/uncertain data never supplies automatic defaults.
+3. Click a non-lowest price: unit buyout and quantity-times-price total change,
+   quantity stays fixed. Edit quantity and denominations, use Max, select another
+   item and return. Explicit prices persist until leaving the tab/closing AH.
+   Refresh item keeps overrides. Duration radios select exactly one of 2/8/24h;
+   native deposit and total reflect selected terms. Compare deposits per source
+   stack, including multiple stacks, zero, unavailable and insufficient funds.
+4. Exercise Full scan, Cancel scan and Refresh item separately, including during
+   native/Auctionator work. Verify global scans preserve their existing full-market
+   completeness, cancel/closure behavior and original saved-data semantics. A
+   selected query must never publish into the full-market cache.
+5. Before posting, choose one inexpensive commodity and explicit safe terms.
+   Click Post item once; inspect native owned listings for matching item, quantity,
+   price and duration, and compare bag change. Intent must decrease only after
+   confirmation. For multiple stacks continue the same reviewed remainder through
+   deliberate clicks. Verify duplicate clicks cannot submit another unresolved post.
+6. Test shortage, changed holdings/terms, blocked/native-error paths and uncertain
+   outcomes. Inspect Auctions before operator reconciliation; neither a shared
+   event nor bag decrease alone can claim a successful post. Reload with an
+   unresolved outcome: ledger and intent survive and no posting auto-resumes.
+7. Leave tab/close AH during queries and pending posting; reopen. No extra pages
+   or posts may dispatch while closed. Defaults rebuild; saved intent survives.
+   Verify normal native/Auctionator tabs still work. Test without Auctionator too.
+
+Ticket 06 remains open for reviewed multi-item Post all execution and its actual
+click/advancement requirements. This individual path does not resolve that ticket.

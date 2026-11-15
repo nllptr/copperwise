@@ -1,6 +1,6 @@
 local CW = Copperwise
 local frame = CreateFrame("Frame")
-local active, attempt, panel, output, scanButton, cancelButton
+local active, attempt, panel, output, scanButton
 local houseOpen, ownRequest, hooksReady, reopenRequired = false, false, false, false
 local lastTraffic, externalPending = 0, {}
 local mode = {"CopperwiseMarketPanel"}
@@ -60,21 +60,13 @@ local function render()
     CW.attempt = attempt
     if CW.Render then CW.Render() end
     if not output then return end
-    scanButton:SetEnabled(active == nil)
-    cancelButton:SetEnabled(active ~= nil)
-    local text = "Full market summary scan — retained asking values, not completed sales.\n"
-    if attempt then
-        text = text .. "Latest scan: " .. attempt.state .. "\n" .. attempt.reason
-            .. "\nRequests: " .. attempt.requests .. "; item summaries processed: " .. attempt.count
-    else text = text .. "No scan attempted this session." end
+    scanButton:SetEnabled(not (CW.PostingBlocksScan and CW.PostingBlocksScan()))
+    scanButton:SetText(active and "Cancel scan" or "Full scan")
     local snapshot = cache()
-    if snapshot then
-        text = text .. "\nLast complete full scan: " .. date("%Y-%m-%d %H:%M:%S %Z", snapshot.observedAt)
-            .. "\n" .. snapshot.count .. " item summaries; " .. snapshot.context
-            .. "\nRepeated keys: " .. (snapshot.duplicates or 0)
-            .. "; conflicting keys withheld: " .. (snapshot.ambiguous or 0)
-    else text = text .. "\n\nNo complete scan retained for this market." end
-    if CW.notice then text = text .. "\n\n" .. CW.notice end
+    local text = snapshot and ("Last complete: " .. date("%H:%M %d/%m", snapshot.observedAt)
+        .. " · " .. snapshot.count .. " items · " .. snapshot.context) or "No complete market scan retained."
+    if attempt then text = text .. "\n" .. attempt.state .. ": " .. attempt.reason end
+    if CW.notice then text = text .. "\n" .. CW.notice end
     output:SetText(text)
     if CW.RenderReview then CW.RenderReview() end
 end
@@ -104,6 +96,8 @@ end
 local function externalRequest(name, argument)
     lastTraffic = GetTime()
     if ownRequest then return end
+    if CW.InterruptListings then CW.InterruptListings("Other AH activity interrupted item results; refresh after it finishes.") end
+    if CW.InterruptPosting then CW.InterruptPosting("Other AH activity; inspect native Auctions before retrying.") end
     local kind = responseEvents[name]
     local token = requestToken(kind, argument)
     if externalPending[token] then externalPending.uncertain = true end
@@ -131,6 +125,26 @@ end
 local function queueBusy()
     local queue = Auctionator and Auctionator.AH and Auctionator.AH.Queue
     return queue and type(queue.queue) == "table" and #queue.queue > 0
+end
+
+-- Share native request ownership across Copperwise's three AH operations.
+-- Queries issued here must not be mistaken for competing addon activity.
+function CW.AHReadiness(operation, quiet)
+    if not houseOpen or not panel or not panel:IsShown() then return "Open the Copperwise AH tab." end
+    if active then return "Full scan is running." end
+    if reopenRequired or CW.AHResponseUncertain then return "Close/reopen AH; a previous response is uncertain." end
+    if CW.AHOperation and CW.AHOperation ~= operation then return "Wait for current Copperwise AH work." end
+    if next(externalPending) or queueBusy() then return "Wait for native/Auctionator work to finish." end
+    if GetTime() - lastTraffic < (quiet or 2) then return "Waiting for a quiet AH." end
+    if not C_AuctionHouse.IsThrottledMessageSystemReady() then return "AH is throttled; waiting." end
+end
+
+function CW.AHRequest(name, ...)
+    ownRequest = true
+    local ok, value = pcall(C_AuctionHouse[name], ...)
+    ownRequest = false
+    lastTraffic = GetTime()
+    return ok, value
 end
 
 local function dispatch(more)
@@ -164,6 +178,9 @@ local function start()
     if not CW.markets then error(CW.notice or "Saved market data unavailable; scanning disabled.") end
     CW.notice = nil
     if active then error("scan already in progress") end
+    if CW.PostingBlocksScan and CW.PostingBlocksScan() then error("Resolve the pending post before scanning.") end
+    if CW.AHOperation or CW.AHResponseUncertain then error("Wait for item work, or close/reopen AH after an uncertain response.") end
+    if CW.CloseListings then CW.CloseListings() end
     if not houseOpen or not panel or not panel:IsShown() then error("open the Copperwise AH tab first") end
     if reopenRequired then error("close/reopen AH before scanning; previous response attribution is uncertain") end
     setupHooks()
@@ -273,16 +290,15 @@ local function setupPanel()
     panel:Hide()
     ah.CopperwiseMarketPanel = panel
     AuctionHouseFrameDisplayMode.CopperwiseMarket = mode
-    local function button(label, x, action)
-        local b = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-        b:SetSize(180, 25); b:SetPoint("TOPLEFT", x, -10); b:SetText(label)
-        b:SetScript("OnClick", guard(action))
-        return b
-    end
-    scanButton = button("Full scan", 12, start)
-    cancelButton = button("Cancel scan", 205, function() cancel() end)
-    output = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    output:SetPoint("TOPLEFT", 12, -42); output:SetPoint("BOTTOMRIGHT", panel, "TOPRIGHT", -12, -162)
+    local heading = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    heading:SetPoint("TOPLEFT", 12, -6); heading:SetText("Market scan")
+    scanButton = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    scanButton:SetSize(125, 25); scanButton:SetPoint("TOPRIGHT", -145, -5); scanButton:SetText("Full scan")
+    scanButton:SetScript("OnClick", guard(function() if active then cancel() else start() end end))
+    local postAll = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    postAll:SetSize(125, 25); postAll:SetPoint("TOPRIGHT", -12, -5); postAll:SetText("Post all"); postAll:SetEnabled(false)
+    output = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    output:SetPoint("TOPLEFT", 12, -36); output:SetPoint("BOTTOMRIGHT", panel, "TOPRIGHT", -12, -82)
     output:SetJustifyH("LEFT"); output:SetJustifyV("TOP")
     local tab = CreateFrame("Button", "CopperwiseMarketTab", ah, "AuctionHouseFrameDisplayModeTabTemplate")
     tab:SetText("Copperwise")
@@ -351,7 +367,7 @@ frame:SetScript("OnEvent", guard(function(_, event, argument)
         if panel then panel:Hide() end
         if CW.DiscardReview then CW.DiscardReview() end
         cancel("Auction house closed; previous complete scan preserved.")
-        reopenRequired, externalPending = false, {}
+        reopenRequired, externalPending, CW.AHResponseUncertain = false, {}, nil
     elseif active and (event == "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED" or event == "AUCTION_HOUSE_BROWSE_RESULTS_ADDED") then
         receive()
     elseif active and (event == "AUCTION_HOUSE_THROTTLED_MESSAGE_DROPPED"

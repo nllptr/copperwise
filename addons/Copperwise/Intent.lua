@@ -69,6 +69,18 @@ function CW.ChangeIntent(id, action, quantity, destination)
     return true
 end
 
+-- A confirmed native post can consume only the reviewed intent revision.
+function CW.ConfirmPostedIntent(id, quantity, intended)
+    local entry = entries and entries[id]
+    if not entry or entry.destination ~= "AH" or entry.quantity ~= intended then
+        return false, "Sale intent changed while posting; saved intent was not reduced."
+    end
+    if not whole(quantity) or quantity > entry.quantity then return false, "Posted quantity is invalid." end
+    entry.quantity = entry.quantity - quantity
+    if entry.quantity == 0 then entries[id] = nil end
+    return true
+end
+
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:SetScript("OnEvent", function() CW.LoadIntent(); CW.Render() end)

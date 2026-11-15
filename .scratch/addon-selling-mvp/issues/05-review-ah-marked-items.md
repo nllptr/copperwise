@@ -92,3 +92,37 @@ Current-listing depth requires selected-item queries beyond the retained summary
 price defaults/refresh for that new workflow need reconciliation. Actual posting
 remains ticket 06. Screenshots establish rendered marked rows and native/Auctionator
 tabs, not full layout approval, deposit acceptance or posting evidence.
+
+### Approved layout implementation — 2026-11-15
+
+Owner approved `probes/ah-layout/index.html` and requested implementing it in the
+addon, including the selected-item form, clickable current-listing price levels,
+radio duration, individual Post item and global scan/Post all header. This
+supersedes the earlier textual whole-list visual presentation. The AH-marked
+plan remains complete in the sidebar; Post all stays a placeholder.
+
+Production now separates full-market summary scans from ephemeral selected-item
+commodity listings, grouping item units by unit buyout. Unedited defaults use the
+compatible retained minimum until complete current-item results supply their
+lowest price. Explicit price choices/edits survive item switching/refresh, and
+closure/tab departure resets ephemeral terms. This implements the approved
+prototype's current-listings behavior without replacing the global saved scan.
+
+Individual Post item uses the verified XML/native path and one revalidated source
+stack per click; the same form retains reviewed remainder after confirmation.
+New owned-listing identity + exact terms + settled bag decrease confirm intent
+consumption. A persisted unresolved-post ledger blocks retries and supports
+explicit operator reconciliation. Post all/automatic batch advancement remain
+in ticket 06. No synthetic posting is used in production.
+
+Native acceptance is pending under the replacement checklist in the addon README.
+The old screenshots establish the earlier marked-list handoff and native tab
+navigation only; the owner rejected that layout. This ticket remains open until
+the new integrated flow is verified in the actual client.
+
+
+Supporting implementation checks: LuaJIT compilation, existing Inventory/storage/
+scan regression suites and `CGO_ENABLED=0 go test ./...` pass. The native owned
+listings path explicitly requires native completeness. Commodity owned buyout is
+matched per unit, consistent with installed Auctionator's Cancelling provider;
+actual-client verification of that attribution remains required.
