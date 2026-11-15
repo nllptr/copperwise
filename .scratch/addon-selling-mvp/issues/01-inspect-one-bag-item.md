@@ -56,7 +56,7 @@ Remaining ticket-01 acceptance checks (not implied by the passes above):
   price, supply, source time and coverage. Cancellation preservation already passes.
 - [ ] Exercise competing AH activity during an active Copperwise scan; current
   evidence confirms stopping and normal native search completion during the
-  tab-switch/search sequence. Retained observation preservation remains pending;
+  tab-switch/search sequence, with the retained observation unchanged;
   this sequence does not isolate competing-request detection from tab hiding.
 
 Ticket 01 remains open for these checks. This reconciliation neither waives
@@ -264,3 +264,9 @@ competing-request detection while the Copperwise tab remains active. Owner did
 not explicitly confirm preservation of the retained 12:03:55 observation, so
 that outcome remains pending rather than inferred. Five acceptance checks
 remain open, with this additional partial coexistence evidence recorded.
+
+Owner subsequently confirms the retained observation still shows source time
+12:03:55, supply 1,804 units, asking price 8 copper/unit and complete coverage
+after the tab-switch/native-search interruption. Preservation passes for this
+sequence. The separate failed-refresh check and competing-request detection
+while Copperwise remains active are not established by this cancellation path.
