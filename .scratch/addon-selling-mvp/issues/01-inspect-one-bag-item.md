@@ -126,3 +126,10 @@ close-AH, `/reload`, reopen-Inventory sequence. Retained full-scan prices surviv
 reload and are owner-confirmed correct. No separate explicit timestamp comparison,
 supply comparison, logout/login test or cross-market scoping test was supplied;
 those remain unverified rather than inferred from price persistence.
+
+Owner confirms "it works" for the revised full-scan cancellation check:
+from the Copperwise AH tab, `/run Copperwise.Scan(); Copperwise.Cancel()`,
+wait several seconds, verify cancelled remains visible and prior saved prices
+remain available in `/cw`. Cancellation stability and preservation of retained
+prices pass for the full collector in this run. This does not establish unchanged
+source time/coverage, AH-closure cancellation or competing-addon coexistence.
