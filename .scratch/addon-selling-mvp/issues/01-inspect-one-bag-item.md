@@ -164,3 +164,9 @@ workflow. This establishes no Auctionator dependency for the exercised path.
 Owner supplied `GetBuildInfo()` for the current production run: version
 1.60.1, build 70938, build date Nov 12 2026, interface 16001. This is direct
 current-run build evidence, replacing the earlier build-recording gap.
+
+When asked to compare an item's retained observation time before and after
+cancelling a full-scan refresh, owner confirms this was already tested.
+Unchanged source time after cancellation is confirmed; do not request this
+same check again. Cancellation preservation now covers saved prices and their
+observation time, in addition to cancelled-state stability.
