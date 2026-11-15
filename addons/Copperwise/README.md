@@ -388,3 +388,12 @@ visible marks and tabs, not acceptance of this replacement layout.
 
 Ticket 06 remains open for reviewed multi-item Post all execution and its actual
 click/advancement requirements. This individual path does not resolve that ticket.
+
+### Compact scan header
+
+The single status to the left of Full scan shows the successful scan's relative
+age, updating while the AH tab is open: <1 minute, minutes, approximate hours,
+days or weeks. Collection shows processed item count (no native total is known);
+processing the final complete cache shows a percentage. A successful publication
+immediately shows <1 minute ago. Failed/cancelled attempts retain the prior scan's
+age. Hover the scan button for detailed status, exact source time and market.

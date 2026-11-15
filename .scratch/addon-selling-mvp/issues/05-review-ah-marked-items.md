@@ -135,3 +135,19 @@ remove/re-mark or edit-away/back race; per-item in-session revisions now prevent
 an earlier outcome from automatically consuming changed intent, even at an equal
 quantity. Reloaded outcomes still require explicit operator reconciliation.
 Client acceptance remains outstanding for both layout and native execution.
+
+### Compact scan header — 2026-11-15
+
+Owner reports the replacement layout is a very good start and requests reclaiming
+vertical space. Removed Market scan heading and the multi-line status block.
+One right-aligned status now sits immediately left of Full scan/Cancel scan;
+relative successful-scan age updates each second while visible, from <1 minute
+through minutes, approximate hours, days and weeks. Completion immediately resets
+the label from the newly published snapshot; cancellation/failure retains the
+previous complete scan's age with a concise status. Full details are on hover.
+
+During collection the native summary API does not expose a total, so show processed
+item count instead of inventing a percentage. Processing the final complete cache
+shows its actual processed-row percentage, capped below 100 until publication.
+The panel moved up 25 UI units and the item area another 46, reclaiming 71 total.
+Target-client visual verification of this spacing change is pending.

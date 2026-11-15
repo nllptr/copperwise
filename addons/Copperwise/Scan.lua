@@ -3,6 +3,7 @@ local frame = CreateFrame("Frame")
 local active, attempt, panel, output, scanButton
 local houseOpen, ownRequest, hooksReady, reopenRequired = false, false, false, false
 local lastTraffic, externalPending = 0, {}
+local ageElapsed = 0
 local mode = {"CopperwiseMarketPanel"}
 local MAX_REQUESTS, MAX_ROWS, RESPONSE_TIMEOUT, TOTAL_TIMEOUT = 2000, 100000, 30, 180
 local responseEvents = {
@@ -56,18 +57,49 @@ function CW.ObservationFor(id)
         empty=found == nil, rows=snapshot.count}
 end
 
+local function scanAge(observedAt)
+    local seconds = math.max(0, time() - observedAt)
+    if seconds < 60 then return "<1 minute ago" end
+    local count, unit, approximate
+    if seconds < 3600 then count, unit = math.floor(seconds / 60), "minute"
+    elseif seconds < 86400 then count, unit, approximate = math.floor(seconds / 3600 + 0.5), "hour", true
+    elseif seconds < 604800 then count, unit = math.floor(seconds / 86400), "day"
+    else count, unit = math.floor(seconds / 604800), "week" end
+    return (approximate and "~" or "") .. count .. " " .. unit .. (count == 1 and "" or "s") .. " ago"
+end
+
+local function renderScanStatus()
+    if not output then return end
+    local text
+    if active then
+        local batch = active.batch
+        if batch and batch.full then
+            -- Only the final complete cache has a known total. Pagination does not.
+            local percent = #batch.rows == 0 and 0 or math.min(99, math.floor((batch.index - 1) * 100 / #batch.rows))
+            text = "Processing: " .. percent .. "%"
+        else
+            text = "Scanning: " .. attempt.count .. " items"
+            if attempt.state == "throttled" then text = text .. " · waiting" end
+        end
+    else
+        local snapshot = cache()
+        text = snapshot and ("Last scan: " .. scanAge(snapshot.observedAt)) or "No scan yet"
+        if CW.notice then text = "Scan unavailable · " .. text
+        elseif attempt and attempt.state ~= "complete" then
+            local state = attempt.state == "cancelled" and "Cancelled" or "Incomplete"
+            text = state .. " · " .. text
+        end
+    end
+    output:SetText(text)
+end
+
 local function render()
     CW.attempt = attempt
     if CW.Render then CW.Render() end
     if not output then return end
     scanButton:SetEnabled(not (CW.PostingBlocksScan and CW.PostingBlocksScan()))
     scanButton:SetText(active and "Cancel scan" or "Full scan")
-    local snapshot = cache()
-    local text = snapshot and ("Last complete: " .. date("%H:%M %d/%m", snapshot.observedAt)
-        .. " · " .. snapshot.count .. " items · " .. snapshot.context) or "No complete market scan retained."
-    if attempt then text = text .. "\n" .. attempt.state .. ": " .. attempt.reason end
-    if CW.notice then text = text .. "\n" .. CW.notice end
-    output:SetText(text)
+    renderScanStatus()
     if CW.RenderReview then CW.RenderReview() end
 end
 
@@ -286,21 +318,32 @@ local function setupPanel()
         error("native modern AH frame unavailable")
     end
     panel = CreateFrame("Frame", nil, ah)
-    panel:SetPoint("TOPLEFT", 20, -65)
+    panel:SetPoint("TOPLEFT", 20, -40)
     panel:SetPoint("BOTTOMRIGHT", -20, 35)
     panel:Hide()
     ah.CopperwiseMarketPanel = panel
     AuctionHouseFrameDisplayMode.CopperwiseMarket = mode
-    local heading = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    heading:SetPoint("TOPLEFT", 12, -6); heading:SetText("Market scan")
     scanButton = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
     scanButton:SetSize(125, 25); scanButton:SetPoint("TOPRIGHT", -145, -5); scanButton:SetText("Full scan")
     scanButton:SetScript("OnClick", guard(function() if active then cancel() else start() end end))
     local postAll = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
     postAll:SetSize(125, 25); postAll:SetPoint("TOPRIGHT", -12, -5); postAll:SetText("Post all"); postAll:SetEnabled(false)
     output = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    output:SetPoint("TOPLEFT", 12, -36); output:SetPoint("BOTTOMRIGHT", panel, "TOPRIGHT", -12, -82)
-    output:SetJustifyH("LEFT"); output:SetJustifyV("TOP")
+    output:SetPoint("TOPLEFT", 12, -5); output:SetPoint("BOTTOMRIGHT", panel, "TOPRIGHT", -285, -30)
+    output:SetJustifyH("RIGHT"); output:SetJustifyV("MIDDLE")
+    scanButton:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:AddLine("Full market scan")
+        if attempt then GameTooltip:AddLine(attempt.reason, 1, 1, 1, true) end
+        if CW.notice then GameTooltip:AddLine(CW.notice, 1, 0.8, 0.3, true) end
+        local snapshot = cache()
+        if snapshot then
+            GameTooltip:AddLine(date("%Y-%m-%d %H:%M:%S", snapshot.observedAt), 1, 1, 1)
+            GameTooltip:AddLine(snapshot.count .. " items · " .. snapshot.context, 1, 1, 1, true)
+        end
+        GameTooltip:Show()
+    end)
+    scanButton:SetScript("OnLeave", function() GameTooltip:Hide() end)
     local tab = CreateFrame("Button", "CopperwiseMarketTab", ah, "AuctionHouseFrameDisplayModeTabTemplate")
     tab:SetText("Copperwise")
     PanelTemplates_TabResize(tab, 20, nil, 70)
@@ -332,8 +375,16 @@ local function setupPanel()
     render()
 end
 
-frame:SetScript("OnUpdate", guard(function()
-    if not active then return end
+frame:SetScript("OnUpdate", guard(function(_, dt)
+    ageElapsed = ageElapsed + dt
+    if not active then
+        if ageElapsed >= 1 then
+            ageElapsed = 0
+            if panel and panel:IsShown() then renderScanStatus() end
+        end
+        return
+    end
+    ageElapsed = 0
     if GetTime() - active.started > TOTAL_TIMEOUT then
         finish("failed", "Full scan timed out; prior complete scan preserved.")
     elseif active.waiting and GetTime() > active.deadline then
