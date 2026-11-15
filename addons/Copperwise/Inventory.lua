@@ -43,6 +43,11 @@ function CW.Render()
     else
         text = text .. "\n\nAH values unavailable for this selection."
     end
+    if CW.attempt then
+        text = text .. "\n\nLatest full scan: " .. CW.attempt.state .. "\n" .. CW.attempt.reason
+    else
+        text = text .. "\n\nNo scan attempted this session."
+    end
     text = text .. "\n\nRefresh market data with Full scan in the Copperwise auction-house tab."
         .. "\nRetained asking values are not live prices or completed sales."
     output:SetText(text)

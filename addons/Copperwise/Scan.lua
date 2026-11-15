@@ -88,12 +88,16 @@ local function guard(fn)
     end
 end
 
+local function requestToken(kind, argument)
+    local id = kind == "search" and (type(argument) == "table" and argument.itemID or argument) or kind
+    return kind .. ":" .. tostring(id)
+end
+
 local function externalRequest(name, argument)
     lastTraffic = GetTime()
     if ownRequest then return end
     local kind = responseEvents[name]
-    local id = kind == "search" and (type(argument) == "table" and argument.itemID or argument) or kind
-    local token = kind .. ":" .. tostring(id)
+    local token = requestToken(kind, argument)
     if externalPending[token] then externalPending.uncertain = true end
     externalPending[token] = true
     if active then
@@ -182,17 +186,22 @@ local function process()
     for index = batch.index, math.min(batch.index + 249, #batch.rows) do
         local row = batch.rows[index]
         local key = row and row.itemKey
-        if type(key) ~= "table" or type(key.itemID) ~= "number" or key.itemID <= 0
-            or type(row.totalQuantity) ~= "number" or row.totalQuantity <= 0
-            or row.totalQuantity ~= math.floor(row.totalQuantity)
-            or type(row.minPrice) ~= "number" or row.minPrice < 0 then
-            error("Incomplete market summary; prior complete scan preserved.")
+        if not row or type(row.totalQuantity) ~= "number" or row.totalQuantity < 0
+            or row.totalQuantity ~= math.floor(row.totalQuantity) then
+            error("Incomplete supply metadata; prior complete scan preserved.")
         end
-        local identity = key.itemID .. ":" .. (key.itemLevel or 0) .. ":" .. (key.itemSuffix or 0)
-            .. ":" .. (key.battlePetSpeciesID or 0)
-        if batch.items[identity] then error("Duplicate market identity; coverage unresolved.") end
-        batch.items[identity] = {key=key, units=row.totalQuantity, minimum=row.minPrice > 0 and row.minPrice or nil}
-        batch.count = batch.count + 1
+        -- Native browse caches can retain a row after its last listing disappears.
+        if row.totalQuantity > 0 then
+            if type(key) ~= "table" or type(key.itemID) ~= "number" or key.itemID <= 0
+                or type(row.minPrice) ~= "number" or row.minPrice < 0 then
+                error("Incomplete market summary; prior complete scan preserved.")
+            end
+            local identity = key.itemID .. ":" .. (key.itemLevel or 0) .. ":" .. (key.itemSuffix or 0)
+                .. ":" .. (key.battlePetSpeciesID or 0)
+            if batch.items[identity] then error("Duplicate market identity; coverage unresolved.") end
+            batch.items[identity] = {key=key, units=row.totalQuantity, minimum=row.minPrice > 0 and row.minPrice or nil}
+            batch.count = batch.count + 1
+        end
     end
     batch.index = batch.index + 250
     attempt.count = batch.count
@@ -243,7 +252,13 @@ local function setupPanel()
     local tab = CreateFrame("Button", "CopperwiseMarketTab", ah, "AuctionHouseFrameDisplayModeTabTemplate")
     tab:SetText("Copperwise")
     PanelTemplates_TabResize(tab, 20, nil, 70)
-    tab:SetPoint("LEFT", ah.AuctionsTab, "RIGHT", -15, 0)
+    local previous = ah.Tabs[#ah.Tabs - 1] or ah.AuctionsTab
+    -- LibAHTab uses a separate tab array. If its row already exists, append to it;
+    -- if created later, its own root anchors after our newly registered native tab.
+    local library = LibStub and LibStub:GetLibrary("LibAHTab-1-0", true)
+    local libraryTabs = library and library.internalState and library.internalState.Tabs
+    if libraryTabs and #libraryTabs > 0 then previous = libraryTabs[#libraryTabs] end
+    tab:SetPoint("LEFT", previous, "RIGHT", -15, 0)
     tab.displayMode = mode
     tab:SetID(#ah.Tabs)
     ah.tabsForDisplayMode[mode] = #ah.Tabs
@@ -276,16 +291,17 @@ frame:SetScript("OnUpdate", guard(function()
 end))
 
 frame:SetScript("OnEvent", guard(function(_, event, argument)
-    local kind, id
+    local kind
     if event == "COMMODITY_SEARCH_RESULTS_UPDATED" or event == "ITEM_SEARCH_RESULTS_UPDATED" then
-        kind, id = "search", type(argument) == "table" and argument.itemID or argument
+        kind = "search"
     elseif event == "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED" or event == "AUCTION_HOUSE_BROWSE_RESULTS_ADDED" then
-        kind, id = "browse", "browse"
-    elseif event == "OWNED_AUCTIONS_UPDATED" then kind, id = "owned", "owned"
-    elseif event == "BIDS_UPDATED" then kind, id = "bids", "bids"
-    elseif event == "REPLICATE_ITEM_LIST_UPDATE" then kind, id = "replicate", "replicate" end
-    if kind and externalPending[kind .. ":" .. tostring(id)] then
-        externalPending[kind .. ":" .. tostring(id)] = nil
+        kind = "browse"
+    elseif event == "OWNED_AUCTIONS_UPDATED" then kind = "owned"
+    elseif event == "BIDS_UPDATED" then kind = "bids"
+    elseif event == "REPLICATE_ITEM_LIST_UPDATE" then kind = "replicate" end
+    local token = kind and requestToken(kind, argument)
+    if token and externalPending[token] then
+        externalPending[token] = nil
         lastTraffic = GetTime()
     end
     if event == "PLAYER_LOGIN" then
