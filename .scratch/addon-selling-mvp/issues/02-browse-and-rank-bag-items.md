@@ -94,3 +94,17 @@ cursor/lock settling. Preserve the last settled order during this interval,
 while continuing to withhold totals and recommendations. Re-rank after holdings
 settle. Screenshot-specific event attribution and the fix still require client
 confirmation; no additional acceptance criteria are marked passed.
+
+### Owner-approved retained display — 2026-11-15
+
+Owner confirmed row order stays intact during screenshot capture, but prices
+still briefly become unavailable. Owner requested retaining last known display
+values through mouse events and refreshing when those interactions finish.
+Keep last settled quantities, comparisons and order visible with a single
+updating status. Replace holdings only after the existing settling checks pass.
+`SelectedItem()` remains unavailable while unsettled/cursor-held, so retained
+display values cannot authorize future sale actions. This supersedes the earlier
+acceptance instruction to hide displayed totals during transient bag changes;
+no transient snapshot is published. Recheck screenshot capture and actual stack
+moves/splits/removal, confirming the display stays stable then updates to the
+settled quantities and ranking. Client confirmation remains pending.

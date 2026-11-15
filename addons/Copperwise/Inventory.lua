@@ -24,17 +24,16 @@ end
 local function comparison(item)
     local observation = CW.ObservationFor and CW.ObservationFor(item.id)
     local asking, vendor, destination, value
-    if settled and not CursorHasItem() then
-        if observation and observation.minimum ~= nil then asking = observation.minimum * item.quantity end
-        if item.sell ~= nil then vendor = item.sell * item.quantity end
-        if asking ~= nil and vendor ~= nil then
-            destination = asking > vendor and "AH" or "Vendor"
-            value = math.max(asking, vendor)
-        end
+    -- Display the last settled holdings during bag/cursor activity. Actions
+    -- must use SelectedItem(), which remains unavailable until holdings settle.
+    if observation and observation.minimum ~= nil then asking = observation.minimum * item.quantity end
+    if item.sell ~= nil then vendor = item.sell * item.quantity end
+    if asking ~= nil and vendor ~= nil then
+        destination = asking > vendor and "AH" or "Vendor"
+        value = math.max(asking, vendor)
     end
     local reason
-    if not settled or CursorHasItem() then reason = "bags updating"
-    elseif item.support ~= "comparable commodity" then reason = item.support
+    if item.support ~= "comparable commodity" then reason = item.support
     elseif asking == nil then
         reason = observation and (observation.empty and "observed empty supply" or "asking price unavailable")
             or "no comparable retained AH value"
@@ -49,8 +48,7 @@ local function renderList()
         choices[#choices+1] = {item=row, comparison=comparison(row)}
     end
     table.sort(choices, function(a, b)
-        -- Keep the last settled order while comparisons are withheld. Otherwise
-        -- every cursor/lock notification briefly sorts all rows alphabetically.
+        -- Keep the last settled order throughout bag/cursor activity.
         if not ready then
             local ai, bi = lastOrder[a.item.id], lastOrder[b.item.id]
             if ai ~= bi then return (ai or math.huge) < (bi or math.huge) end
@@ -65,7 +63,7 @@ local function renderList()
         lastOrder = {}
         for index, choice in ipairs(choices) do lastOrder[choice.item.id] = index end
     end
-    listStatus:SetText(not ready and "Bags updating — comparisons withheld"
+    listStatus:SetText(not ready and "Updating bags — showing last settled values"
         or (#choices == 0 and "No bag items" or "Highest total destination value first"))
     listContent:SetHeight(math.max(1, #choices * 54))
     local maxScroll = math.max(0, #choices * 54 - list:GetHeight())
@@ -98,7 +96,7 @@ local function renderList()
         button.itemID = item.id
         button.icon:SetTexture(item.icon or "Interface\\Icons\\INV_Misc_QuestionMark")
         button.label:SetText((selected == item.id and "|cffffd100" or "") .. item.name
-            .. " (" .. (settled and tostring(item.quantity) or "updating") .. ")")
+            .. " (" .. item.quantity .. ")")
         button.value:SetText(values.value ~= nil and (money(values.value) .. " — " .. values.destination)
             or ("Unavailable — " .. values.reason))
         button:Show()
@@ -110,12 +108,11 @@ function CW.Render()
     if not output then return end
     renderList()
     local item = rows[selected]
-    local ready = CW.SelectedItem()
     local text = "Select a bag item from the list.\nBackpack and bags only; bank and equipment excluded."
     local values = item and comparison(item)
     if item then
         text = (item.link or item.name) .. "\nItem ID: " .. item.id
-            .. "\nBag quantity: " .. (ready and tostring(item.quantity) or "updating — totals withheld")
+            .. "\nBag quantity (last settled): " .. item.quantity
             .. "\nVendor sell / unit: " .. money(item.sell)
             .. "\nVendor sell / owned quantity: " .. money(values.vendor)
             .. "\nAH asking / owned quantity: " .. money(values.asking)

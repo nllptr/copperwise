@@ -9,8 +9,9 @@ reload/login. No backend, credentials, companion or Auctionator dependency.
 Run `/cw` or `/copperwise` to open the standalone Inventory window. Select an
 owned item to inspect bag quantity and vendor sell values. Backpack and bags
 0–4 are covered. Identical unlocked slot snapshots must persist for 0.75 seconds
-after bag/cursor changes before quantities are shown. Holding an item on the
-cursor withholds totals. This is a settling heuristic, not an atomic guarantee.
+after bag/cursor changes before new quantities replace the last settled view.
+During updates, retain displayed quantities, totals and order with an updating
+status; holdings remain unavailable to actions until settled. This is a settling heuristic, not an atomic guarantee.
 
 Inventory displays retained full-scan asking values for comparable native
 commodities. Missing observations are unavailable; go to the AH to refresh.
@@ -85,7 +86,7 @@ are supporting checks only.
 1. Record `GetBuildInfo()`, platform, native realm/faction/region, UI scale and
    enabled addons. Disable Copperwise probes. Verify loading without Auctionator.
 2. Open `/cw` away from AH. Confirm no scan controls. Verify bag totals after
-   split/merge/movement and withholding on cursor; compare vendor sell values.
+   split/merge/movement and retained display and updating status on cursor; compare vendor sell values.
 3. Open AH, then its Copperwise tab. Confirm native tab layout and switching.
    Full scan should process all market summaries and reach complete, with a
    retained summary count and timestamp. Independently compare several owned
