@@ -84,3 +84,13 @@ Use `/cw` after installing the updated addon and check:
 6. Confirm selection never sends an AH query, Inventory has no scan controls,
    and native Copperwise Full scan/cancellation still work independently.
 7. Confirm readability, scrolling and selection at the normal target UI scale.
+
+### Acceptance feedback — screenshot capture
+
+Owner reports the initial browsing UI looks good, but screenshot capture briefly
+reorders the list before it returns to its normal order. Code inspection found
+that temporarily withheld comparisons fell back to alphabetical sorting during
+cursor/lock settling. Preserve the last settled order during this interval,
+while continuing to withhold totals and recommendations. Re-rank after holdings
+settle. Screenshot-specific event attribution and the fix still require client
+confirmation; no additional acceptance criteria are marked passed.

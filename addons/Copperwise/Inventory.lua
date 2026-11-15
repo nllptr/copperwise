@@ -3,6 +3,7 @@ local CW = Copperwise
 local frame = CreateFrame("Frame")
 local window, output, list, listContent, listStatus
 local buttons = {}
+local lastOrder = {}
 local rows, selected, candidate, candidateAt, dirtyAt = {}, nil, nil, 0, 0
 local settled = false
 
@@ -42,18 +43,29 @@ local function comparison(item)
 end
 
 local function renderList()
+    local ready = settled and not CursorHasItem()
     local choices = {}
     for _, row in pairs(rows) do
         choices[#choices+1] = {item=row, comparison=comparison(row)}
     end
     table.sort(choices, function(a, b)
+        -- Keep the last settled order while comparisons are withheld. Otherwise
+        -- every cursor/lock notification briefly sorts all rows alphabetically.
+        if not ready then
+            local ai, bi = lastOrder[a.item.id], lastOrder[b.item.id]
+            if ai ~= bi then return (ai or math.huge) < (bi or math.huge) end
+        end
         local av, bv = a.comparison.value, b.comparison.value
         if (av ~= nil) ~= (bv ~= nil) then return av ~= nil end
         if av ~= bv then return av > bv end
         if a.item.name ~= b.item.name then return a.item.name < b.item.name end
         return a.item.id < b.item.id
     end)
-    listStatus:SetText(not settled and "Bags updating — comparisons withheld"
+    if ready then
+        lastOrder = {}
+        for index, choice in ipairs(choices) do lastOrder[choice.item.id] = index end
+    end
+    listStatus:SetText(not ready and "Bags updating — comparisons withheld"
         or (#choices == 0 and "No bag items" or "Highest total destination value first"))
     listContent:SetHeight(math.max(1, #choices * 54))
     local maxScroll = math.max(0, #choices * 54 - list:GetHeight())
