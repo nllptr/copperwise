@@ -2,7 +2,7 @@ Copperwise = {}
 local CW = Copperwise
 local frame = CreateFrame("Frame")
 local window, output, list, listContent
-local markButton, quantityInput, addButton, editButton, removeButton, actionMessage
+local quantityInput, quantityLabel, editButton, actionMessage
 local sectionLabels = {}
 local buttons = {}
 local lastOrder = {}
@@ -20,8 +20,12 @@ local function money(value)
     return string.format("%dg %ds %dc", gold, silver, copper)
 end
 
+function CW.AvailableItem(id)
+    if settled and not CursorHasItem() then return rows[id] end
+end
+
 function CW.SelectedItem()
-    if settled and not CursorHasItem() then return rows[selected] end
+    return CW.AvailableItem(selected)
 end
 
 local function comparison(item)
@@ -30,7 +34,7 @@ local function comparison(item)
     local observation = CW.ObservationFor and CW.ObservationFor(item.id)
     local asking, proceeds, vendor, destination, value
     -- Display the last settled holdings during bag/cursor activity. Actions
-    -- must use SelectedItem(), which remains unavailable until holdings settle.
+    -- must use AvailableItem(), which remains unavailable until holdings settle.
     if observation and observation.minimum ~= nil then asking = observation.minimum * item.quantity end
     if asking ~= nil then proceeds = math.floor(asking * 95 / 100) end
     if item.sell ~= nil then vendor = item.sell * item.quantity end
@@ -76,7 +80,7 @@ local function renderList()
     table.sort(choices, function(a, b)
         local am = CW.SaleIntent and CW.SaleIntent(a.item.id) ~= nil
         local bm = CW.SaleIntent and CW.SaleIntent(b.item.id) ~= nil
-        if am ~= bm then return am end
+        if am ~= bm then return bm end
         -- Keep the last settled order throughout bag/cursor activity.
         if not ready then
             local ai, bi = lastOrder[a.item.id], lastOrder[b.item.id]
@@ -95,7 +99,7 @@ local function renderList()
             if not rows[id] then displayedComparisons[id] = nil end
         end
     end
-    local height = #choices * 54 + 48
+    local height = #choices * 40 + 48
     listContent:SetHeight(math.max(1, height))
     local maxScroll = math.max(0, height - list:GetHeight())
     list:SetVerticalScroll(math.min(list:GetVerticalScroll(), maxScroll))
@@ -119,20 +123,55 @@ local function renderList()
         local button = buttons[index]
         if not button then
             button = CreateFrame("Button", nil, listContent)
-            button:SetSize(330, 52)
-            button:SetPoint("TOPLEFT", 0, -(index - 1) * 54)
+            button:SetSize(280, 38)
+            button:SetPoint("TOPLEFT", 0, -(index - 1) * 40)
             button:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
             button.icon = button:CreateTexture(nil, "ARTWORK")
-            button.icon:SetSize(28, 28)
-            button.icon:SetPoint("LEFT", 2, 0)
-            button.label = button:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-            button.label:SetPoint("TOPLEFT", 36, -4)
-            button.label:SetWidth(290)
+            button.icon:SetSize(22, 22)
+            button.icon:SetPoint("TOPLEFT", 2, -3)
+            button.label = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+            button.label:SetPoint("TOPLEFT", 30, -4)
+            button.label:SetWidth(145)
+            button.label:SetWordWrap(false)
             button.label:SetJustifyH("LEFT")
             button.value = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-            button.value:SetPoint("TOPLEFT", 36, -25)
-            button.value:SetWidth(290)
-            button.value:SetJustifyH("LEFT")
+            button.value:SetPoint("TOPRIGHT", -2, -4)
+            button.value:SetWidth(100)
+            button.value:SetJustifyH("RIGHT")
+            button.status = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+            button.status:SetPoint("TOPLEFT", 30, -21)
+            button.status:SetWidth(248)
+            button.status:SetJustifyH("LEFT")
+            button.status:SetWordWrap(false)
+            button.toggle = CreateFrame("Button", nil, listContent, "UIPanelButtonTemplate")
+            button.toggle:SetSize(72, 26)
+            button.toggle:SetScript("OnClick", function()
+                local id = button.itemID
+                local intent = CW.SaleIntent(id)
+                local ok, reason
+                if intent then
+                    ok, reason = CW.ChangeIntent(id, "remove")
+                else
+                    local item = CW.AvailableItem(id)
+                    if not item then return end
+                    local values = comparison(item)
+                    if values.reason or not values.destination then return end
+                    ok, reason = CW.ChangeIntent(id, "mark", item.quantity, values.destination)
+                end
+                actionMessage = ok and nil or reason
+                if selected == id then
+                    local entry = CW.SaleIntent(id)
+                    quantityInput:SetText(entry and tostring(entry.quantity) or "")
+                    quantityInput:ClearFocus()
+                end
+                CW.Render()
+            end)
+            button.toggle:SetScript("OnEnter", function(self)
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                GameTooltip:SetText(self.help)
+                GameTooltip:Show()
+            end)
+            button.toggle:SetScript("OnLeave", function() GameTooltip:Hide() end)
             button:SetScript("OnClick", function(self)
                 selected = self.itemID
                 actionMessage = nil
@@ -144,19 +183,34 @@ local function renderList()
         end
         button:ClearAllPoints()
         button:SetPoint("TOPLEFT", 0, -offset)
-        offset = offset + 54
+        button.toggle:ClearAllPoints()
+        button.toggle:SetPoint("TOPLEFT", 284, -offset)
+        offset = offset + 40
         local item, values = choice.item, choice.comparison
         button.itemID = item.id
         button.icon:SetTexture(item.icon or "Interface\\Icons\\INV_Misc_QuestionMark")
         button.label:SetText((selected == item.id and "|cffffd100" or "") .. item.name
             .. " (" .. item.quantity .. ")")
-        button.value:SetText(intent and (intent.destination .. " — intended " .. intent.quantity
-            .. "; bags " .. (ready and item.quantity or "checking")) or (values.value ~= nil and (money(values.value) .. " — " .. values.destination .. (stale(values) and " (stale price)" or ""))
-            or ("Unavailable — " .. values.reason)))
+        button.value:SetText(values.value ~= nil and money(values.value) or "—")
+        button.status:SetText(intent and ("Sell " .. intent.quantity .. "; bags "
+            .. (ready and item.quantity or "checking")
+            .. (ready and item.quantity < intent.quantity and ("; short " .. (intent.quantity - item.quantity)) or ""))
+            or (values.reason and ("Unavailable — " .. values.reason) or ""))
+        local destination = intent and intent.destination or values.destination
+        local oldPrice = destination == "AH" and values.observation
+            and time() - values.observation.observedAt > staleMinutes() * 60
+        if intent or (ready and not values.reason and destination) then
+            button.toggle:SetText((destination == "AH" and "|cffffd100" or "|cff99ddaa")
+                .. destination .. (intent and " ×" or "") .. (oldPrice and " !" or "") .. "|r")
+            button.toggle.help = intent and ("Unmark " .. item.name .. " from " .. destination .. ". No sale is made.")
+                or ("Mark " .. item.name .. " for " .. destination .. " (" .. item.quantity .. " units). No sale is made.")
+            if oldPrice then button.toggle.help = button.toggle.help .. " AH price exceeds " .. staleMinutes() .. " minutes." end
+            button.toggle:Show()
+        else button.toggle:Hide() end
         button:Show()
     end
     for index = sections + 1, #sectionLabels do sectionLabels[index]:Hide() end
-    for index = #choices + 1, #buttons do buttons[index]:Hide() end
+    for index = #choices + 1, #buttons do buttons[index]:Hide(); buttons[index].toggle:Hide() end
 end
 
 function CW.Render()
@@ -187,18 +241,11 @@ function CW.Render()
     end
     if CW.intentNotice then text = text .. "\n" .. CW.intentNotice end
     if actionMessage then text = text .. "\n" .. actionMessage end
-    if markButton then
-        local actionable = CW.SelectedItem()
-        local destination = actionable and values and not values.reason and values.destination
-        if destination and not intent then
-            markButton:SetText("Sell on " .. destination .. (stale(values) and " (stale price)" or ""))
-            markButton:Show()
-        else markButton:Hide() end
-        if actionable and intent then addButton:Show() else addButton:Hide() end
+    if quantityInput then
         if intent then
-            quantityInput:Show(); editButton:Show(); removeButton:Show()
+            quantityLabel:Show(); quantityInput:Show(); editButton:Show()
         else
-            quantityInput:Hide(); editButton:Hide(); removeButton:Hide()
+            quantityLabel:Hide(); quantityInput:Hide(); editButton:Hide()
         end
     end
     if values and stale(values) then
@@ -260,7 +307,7 @@ end
 local function open()
     if not window then
         window = CreateFrame("Frame", "CopperwiseInventory", UIParent, "BasicFrameTemplateWithInset")
-        window:SetSize(920, 760)
+        window:SetSize(960, 760)
         window:SetPoint("CENTER")
         window:SetMovable(true)
         window:EnableMouse(true)
@@ -278,13 +325,13 @@ local function open()
         list = CreateFrame("ScrollFrame", nil, window, "UIPanelScrollFrameTemplate")
         list:SetPoint("TOPLEFT", 22, -65)
         list:SetPoint("BOTTOMLEFT", 22, 25)
-        list:SetWidth(330)
+        list:SetWidth(360)
         listContent = CreateFrame("Frame", nil, list)
-        listContent:SetSize(330, 1)
+        listContent:SetSize(360, 1)
         list:SetScrollChild(listContent)
         output = window:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-        output:SetPoint("TOPLEFT", 395, -40)
-        output:SetPoint("BOTTOMRIGHT", -22, 115)
+        output:SetPoint("TOPLEFT", 425, -40)
+        output:SetPoint("BOTTOMRIGHT", -22, 80)
         output:SetJustifyH("LEFT")
         output:SetJustifyV("TOP")
         local function change(action, quantity, destination)
@@ -303,25 +350,16 @@ local function open()
             control:SetScript("OnClick", click)
             return control
         end
-        markButton = button("", 395, 77, 270, function()
-            local item = CW.SelectedItem()
-            if not item then return end
-            local values = comparison(item)
-            if not values.reason then change("add", item.quantity, values.destination) end
-        end)
+        quantityLabel = window:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        quantityLabel:SetPoint("BOTTOMLEFT", 425, 52)
+        quantityLabel:SetText("Units to sell")
         quantityInput = CreateFrame("EditBox", nil, window, "InputBoxTemplate")
         quantityInput:SetSize(90, 24)
-        quantityInput:SetPoint("BOTTOMLEFT", 402, 43)
+        quantityInput:SetPoint("BOTTOMLEFT", 432, 23)
         quantityInput:SetAutoFocus(false)
         quantityInput:SetMaxLetters(10)
         quantityInput:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
-        editButton = button("Set units", 505, 43, 95, function() change("edit", tonumber(quantityInput:GetText())) end)
-        removeButton = button("Remove mark", 610, 43, 120, function() change("remove") end)
-        addButton = button("Add bag units", 675, 77, 140, function()
-            local item = CW.SelectedItem()
-            local intent = CW.SaleIntent(selected)
-            if item and intent then change("add", item.quantity, intent.destination) end
-        end)
+        editButton = button("Save quantity", 535, 23, 130, function() change("edit", tonumber(quantityInput:GetText())) end)
     end
     window:Show()
     CW.Render()

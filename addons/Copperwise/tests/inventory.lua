@@ -13,7 +13,7 @@ local function inventory(items, prices, character)
     for _, name in ipairs({"SetPoint", "SetMovable", "EnableMouse", "RegisterForDrag",
         "StartMoving", "StopMovingOrSizing", "RegisterEvent", "SetJustifyH", "SetJustifyV",
         "SetHighlightTexture", "SetWidth", "SetTexture", "SetColorTexture",
-        "ClearAllPoints", "SetAutoFocus", "SetMaxLetters", "ClearFocus"}) do
+        "ClearAllPoints", "SetAutoFocus", "SetMaxLetters", "ClearFocus", "SetWordWrap"}) do
         methods[name] = function() end
     end
     function methods:SetSize(_, height) self.height = height end
@@ -124,7 +124,8 @@ end
 
 test("equal net proceeds prefer Vendor and preserve gross asking detail", function()
     local ui = inventory({{id=1, name="Tie", sell=95}}, {[1]=100})
-    contains(ui:rows()[1].value.text, "95c — Vendor")
+    contains(ui:rows()[1].value.text, "95c")
+    contains(ui:rows()[1].toggle.text, "Vendor")
     local detail = ui:select(1)
     contains(detail, "AH asking / owned quantity: 100c")
     contains(detail, "AH estimated proceeds (5% cut): 95c")
@@ -135,7 +136,7 @@ test("missing vendor metadata sorts last without choosing a destination, then re
     local unknown = {id=1, name="A missing vendor"}
     local ui = inventory({unknown, {id=2, name="Complete", sell=1}}, {[1]=1000, [2]=100})
     contains(ui:rows()[1].label.text, "Complete")
-    contains(ui:rows()[2].value.text, "Unavailable — vendor metadata loading")
+    contains(ui:rows()[2].status.text, "Unavailable — vendor metadata loading")
     local detail = ui:select(2)
     contains(detail, "Vendor sell / owned quantity: unavailable")
     contains(detail, "AH estimated proceeds (5% cut): 950c")
@@ -143,7 +144,8 @@ test("missing vendor metadata sorts last without choosing a destination, then re
     unknown.sell = 0
     ui:refresh()
     contains(ui:rows()[1].label.text, "A missing vendor")
-    contains(ui:rows()[1].value.text, "950c — AH")
+    contains(ui:rows()[1].value.text, "950c")
+    contains(ui:rows()[1].toggle.text, "AH")
     detail = ui:select(1)
     contains(detail, "Vendor sell / owned quantity: 0c")
     contains(detail, "Preferred destination: AH")
@@ -151,7 +153,7 @@ end)
 
 test("no retained observation withholds AH values and directs the player to the AH tab", function()
     local ui = inventory({{id=1, name="No scan", sell=100}})
-    contains(ui:rows()[1].value.text, "Unavailable — no comparable retained AH value")
+    contains(ui:rows()[1].status.text, "Unavailable — no comparable retained AH value")
     local detail = ui:select(1)
     contains(detail, "AH asking / owned quantity: unavailable")
     contains(detail, "AH estimated proceeds (5% cut): unavailable")
@@ -176,8 +178,11 @@ test("equal ranking totals sort by name then stable identity, incomplete compari
     contains(ui:select(1), "Item ID: 1\n")
     contains(ui:select(2), "Item ID: 2\n")
     contains(ui:select(3), "Item ID: 3\n")
-    for index = 1, 3 do contains(rows[index].value.text, "95c — AH") end
-    contains(rows[4].value.text, "Unavailable — observed empty supply")
+    for index = 1, 3 do
+        contains(rows[index].value.text, "95c")
+        contains(rows[index].toggle.text, "AH")
+    end
+    contains(rows[4].status.text, "Unavailable — observed empty supply")
 end)
 
 test("ranking compares net AH proceeds with vendor totals rather than gross asking", function()
@@ -186,8 +191,10 @@ test("ranking compares net AH proceeds with vendor totals rather than gross aski
         {id=2, name="A gross higher", sell=0},
     }, {[1]=100, [2]=101})
     contains(ui:rows()[1].label.text, "Z vendor wins")
-    contains(ui:rows()[1].value.text, "96c — Vendor")
-    contains(ui:rows()[2].value.text, "95c — AH")
+    contains(ui:rows()[1].value.text, "96c")
+    contains(ui:rows()[1].toggle.text, "Vendor")
+    contains(ui:rows()[2].value.text, "95c")
+    contains(ui:rows()[2].toggle.text, "AH")
 end)
 
 
@@ -195,10 +202,10 @@ test("AH recommendations warn strictly after the default hour", function()
     local ui = inventory({{id=1, name="AH", sell=1}}, {[1]=100})
     ui.now = 4500 -- retained source is 900
     ui:refresh()
-    assert(not ui:rows()[1].value.text:find("stale", 1, true))
+    assert(not ui:rows()[1].toggle.help:find("AH price exceeds", 1, true))
     ui.now = 4501
     ui:refresh()
-    contains(ui:rows()[1].value.text, "AH (stale price)")
+    contains(ui:rows()[1].toggle.help, "AH price exceeds")
     contains(ui:select(1), "Warning: AH price exceeds the stale threshold (60 minutes).")
 end)
 
@@ -206,16 +213,16 @@ test("stale configuration survives login and rejects invalid input without chang
     local character = {saleIntent={[1]=3}}
     local ui = inventory({{id=1, name="AH", sell=1}}, {[1]=100}, character)
     ui:command("stale 1")
-    contains(ui:rows()[1].value.text, "AH (stale price)")
+    contains(ui:rows()[1].toggle.help, "AH price exceeds")
     assert(character.staleMinutes == 1 and character.saleIntent[1] == 3)
     ui = inventory({{id=1, name="AH", sell=1}}, {[1]=100}, character)
-    contains(ui:rows()[1].value.text, "AH (stale price)")
+    contains(ui:rows()[1].toggle.help, "AH price exceeds")
     for _, input in ipairs({"stale 0", "stale -1", "stale nan", "stale inf", "stale 1 extra"}) do
         ui:command(input)
         assert(character.staleMinutes == 1)
     end
     ui:command("stale 2")
-    assert(not ui:rows()[1].value.text:find("stale", 1, true))
+    assert(not ui:rows()[1].toggle.help:find("AH price exceeds", 1, true))
 end)
 
 test("old Vendor recommendations and unavailable comparisons have no stale warning", function()
@@ -223,7 +230,7 @@ test("old Vendor recommendations and unavailable comparisons have no stale warni
     ui.now = 10000
     ui:refresh()
     for index, row in ipairs(ui:rows()) do
-        assert(not row.value.text:find("stale", 1, true))
+        assert(not (row.toggle.help or ""):find("AH price exceeds", 1, true))
         assert(not ui:select(index):find("Warning:", 1, true))
     end
 end)

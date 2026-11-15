@@ -54,13 +54,12 @@ function CW.ChangeIntent(id, action, quantity, destination)
         entry.quantity = quantity
         return true
     end
-    if action ~= "add" then return false, "Unknown sale-intent action." end
-    local item = CW.SelectedItem()
+    if action ~= "mark" then return false, "Unknown sale-intent action." end
+    local item = CW.AvailableItem(id)
     if not item or item.id ~= id then return false, "Wait for current bag holdings to settle." end
     if destination ~= "AH" and destination ~= "Vendor" then return false, "A complete destination comparison is required." end
     if entry then
-        if entry.quantity > MAX_UNITS - quantity then return false, "Intended quantity is too large." end
-        entry.quantity = entry.quantity + quantity
+        return false, "Item is already marked; edit its quantity or unmark it explicitly."
     else
         entries[id] = {quantity=quantity, destination=destination, name=item.name}
     end

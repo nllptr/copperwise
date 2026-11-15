@@ -309,3 +309,16 @@ not gate ticket 03 or release acceptance in the currently verified Forever
 Alliance environment. Existing automated isolation checks remain required.
 Untested environments are not accepted by this deferral, and neutral AH/other
 ruleset support is not added to the MVP scope.
+
+### Prototype marking interaction correction — 2026-11-15
+
+Owner requested closer adherence to `probes/ui-inventory/index.html` after the
+initial ticket 04 Add bag units control made accidental quantity accumulation
+too easy. Use independent per-row AH/Vendor mark buttons, with AH ×/Vendor ×
+to unmark. Keep unmarked inventory above the separate marked section; clicking
+the item name/icon changes selection only. A new mark defaults to current bag
+units. Repeated marking is a mark/unmark toggle, never additive intent. Edit
+marked quantity explicitly through a labeled Units to sell field and Save
+quantity. This supersedes the earlier duplicate-addition rule for the MVP sale
+marking flow; craft-queue rules and other future workflows are unchanged.
+Preserve existing saved intent quantities; the UI change does not reset plans.

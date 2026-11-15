@@ -10,7 +10,7 @@
 
 - [ ] Use the approved destination comparison for the marking action; move marked items into a separate section while row selection remains independent.
 - [ ] Default a new mark to currently observed bag units; accept positive whole item-unit quantities, independent of stack boundaries.
-- [ ] Duplicate additions increase existing intent, edits replace quantity and removal is explicit; preserve the chosen destination across later price changes unless explicitly removed/reselected.
+- [ ] Row buttons toggle marking/removal without accumulating intent; labeled quantity edits replace quantity; preserve the chosen destination across later price changes unless explicitly removed/reselected.
 - [ ] Show intended and currently available quantities separately; revalidate holdings without silently deleting shortages or treating saved intent as current availability.
 - [ ] Persist intent through window/tab changes, AH visits, reload and logout, scoped to the current character.
 - [ ] Keep AH and Vendor intent distinct; Vendor selling uses the normal merchant UI, and a bag decrease alone does not prove a vendor sale.
@@ -46,3 +46,21 @@ client. Follow the [ticket 04 checklist](../../../addons/Copperwise/README.md#ti
 for add/edit/remove, duplicates, shortages, reload/logout, character isolation,
 price changes, layout and absence of transactions. No acceptance box is checked
 by repository validation; target-client verification remains pending.
+
+### Prototype alignment correction — 2026-11-15
+
+Owner screenshot showed repeated Add bag units clicks producing 99 intended
+from 11 bags (88 shortage); the arithmetic followed the original rule, but the
+control was confusing. Owner requested the approved Inventory prototype's
+interaction instead. Added independent row AH/Vendor buttons and AH ×/Vendor ×
+unmarking, with unmarked inventory above the marked section. Row selection
+never changes intent, and marking never changes selection. Removed detail
+mark/remove/add controls; quantity editing is labeled Units to sell with Save
+quantity. Repeated marking no longer accumulates intent. The spec records this
+superseding interaction decision; existing saved quantities remain intact.
+
+The screenshot establishes intended/current/shortage display for Bolt of Linen
+Cloth (11 bags, 99 intended, 88 shortage), but does not establish how many clicks
+were made or pass the revised controls. Revised target-client acceptance remains
+pending. Use the updated README checklist rather than the historical initial
+Add bag units instructions above.
