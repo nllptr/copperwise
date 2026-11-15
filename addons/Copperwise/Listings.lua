@@ -21,7 +21,11 @@ end
 
 function CW.SelectListings(id, refresh)
     visible = true
-    if selected == id and not refresh then return end
+    if selected == id and not refresh then
+        if queued == id or (request and request.id == id) or (result and result.id == id) then return end
+        -- Another AH request can clear an unsent selection. Requeue it once
+        -- the review renders again, rather than leaving the table waiting forever.
+    end
     selected = id
     queued = id -- An old request drains before another item may query the shared cache.
     if not request then result = nil end

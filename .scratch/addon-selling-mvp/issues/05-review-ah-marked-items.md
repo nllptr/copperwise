@@ -172,3 +172,22 @@ still requiring the matching settled bag decrease and unchanged intent revision.
 The previous one-source-per-click limitation is superseded. Full-quantity posting
 and native deposit/reconciliation need a new target-client check; Post all remains
 disabled and ticket 06 remains open.
+
+### Owned-listing failure and stalled market query — 2026-11-15
+
+Owner screenshot after the full-quantity update shows raw `Posting.lua:35:
+Owned-listing identity unavailable`, disabled Post item and a current-listings
+table stuck waiting. The screenshot does not distinguish a nil row/ID from a
+repeated ID, so the exact native row condition remains unverified.
+
+Fixed two independent lifecycle bugs: a selected query discarded by competing
+AH activity can requeue if it has neither a request nor a result; failed owned
+baseline checks now pause instead of being retriggered by every UI render.
+Refresh item explicitly retries both the selected market query and posting check.
+Market browsing does not require a valid owned-listing baseline.
+
+Owned identity maps now use native numeric IDs (avoiding tostring rounding),
+coalesce identical duplicate cache rows without counting more units, and refuse
+missing IDs or conflicting duplicates with user-facing detail instead of a raw
+Lua source path. Posting remains blocked when attribution is unavailable. No
+pending ledger or saved intent is discarded. Reload verification remains pending.

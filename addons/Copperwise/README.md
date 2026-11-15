@@ -399,3 +399,9 @@ days or weeks. Collection shows processed item count (no native total is known);
 processing the final complete cache shows a percentage. A successful publication
 immediately shows <1 minute ago. Failed/cancelled attempts retain the prior scan's
 age. Hover the scan button for detailed status, exact source time and market.
+
+If your owned-auction identity check fails, current market listings can still
+load. Posting pauses rather than polling failed owned data continuously.
+Refresh item explicitly retries both checks. Identical duplicate owned cache rows
+count once; missing or conflicting identities keep posting disabled with a concise
+explanation. Native numeric IDs are used directly, without display-string rounding.

@@ -2,6 +2,7 @@ local CW = Copperwise
 local frame = CreateFrame("Frame")
 local baseline, query, wanted, visible, ownPost, pending, notice
 local loaded = false
+local baselineFailure
 
 local function validLedger(value)
     if type(value) ~= "table" or value.version ~= 1 or type(value.beforeIDs) ~= "table" then return false end
@@ -25,16 +26,32 @@ end
 local function owned()
     if type(C_AuctionHouse.HasFullOwnedAuctionResults) ~= "function"
         or not C_AuctionHouse.HasFullOwnedAuctionResults() then
-        error("Native owned listings are incomplete; posting attribution unavailable.")
+        error("Your owned auctions are still loading. Refresh item to retry the posting check.", 0)
     end
     local count = C_AuctionHouse.GetNumOwnedAuctions()
-    if type(count) ~= "number" or count < 0 or count % 1 ~= 0 or count > 10000 then error("Owned-listing coverage unavailable") end
-    local rows, ids = {}, {}
+    if type(count) ~= "number" or count < 0 or count % 1 ~= 0 or count > 10000 then error("Your owned-auction count is unavailable. Refresh item to retry the posting check.", 0) end
+    local rows, ids, byID = {}, {}, {}
     for index = 1, count do
         local row = C_AuctionHouse.GetOwnedAuctionInfo(index)
-        if not row or not row.auctionID or ids[tostring(row.auctionID)] then error("Owned-listing identity unavailable") end
-        ids[tostring(row.auctionID)] = true
-        rows[#rows+1] = row
+        if not row or type(row.auctionID) ~= "number" or row.auctionID <= 0 or row.auctionID % 1 ~= 0 then
+            error("Owned auction " .. index .. " of " .. count .. " has no usable auction ID. Market listings can still load.", 0)
+        end
+        -- Keep native numeric IDs as keys; tostring can round large IDs and
+        -- make different auctions appear to have the same identity.
+        local previous = byID[row.auctionID]
+        if previous then
+            local a, b = previous.itemKey, row.itemKey
+            if not a or not b or a.itemID ~= b.itemID or a.itemLevel ~= b.itemLevel
+                or a.itemSuffix ~= b.itemSuffix or a.battlePetSpeciesID ~= b.battlePetSpeciesID
+                or previous.quantity ~= row.quantity or previous.buyoutAmount ~= row.buyoutAmount
+                or previous.bidAmount ~= row.bidAmount or previous.status ~= row.status then
+                error("Owned auction ID " .. string.format("%.0f",row.auctionID) .. " has conflicting rows. Market listings can still load.", 0)
+            end
+            -- Repeated identical cache rows describe the same listing, not more units.
+        else
+            ids[row.auctionID], byID[row.auctionID] = true, row
+            rows[#rows+1] = row
+        end
     end
     return rows, ids
 end
@@ -47,7 +64,7 @@ local function confirm()
     if pending.beforeUnits - available ~= pending.quantity then return end
     local matchedUnits = 0
     for _, row in ipairs(pending.rows) do
-        if not pending.beforeIDs[tostring(row.auctionID)] and row.itemKey and row.itemKey.itemID == pending.id
+        if not pending.beforeIDs[row.auctionID] and row.itemKey and row.itemKey.itemID == pending.id
             and CW.IsPositiveWhole(row.quantity) and row.buyoutAmount == pending.price then
             -- Commodity owned buyout is per unit (as used by Auctionator's
             -- Cancelling provider); target-client acceptance checks this too.
@@ -69,7 +86,7 @@ end
 
 function CW.OpenPosting()
     visible, wanted = true, true
-    if not pending then notice = nil end
+    if not pending then notice = nil; baselineFailure = nil end
 end
 
 function CW.ClosePosting()
@@ -91,6 +108,7 @@ function CW.PostingReason()
     if not loaded then return "Posting state is loading." end
     if pending then return "Pending post: inspect native Auctions and reconcile before another post." end
     if query then return "Loading owned listings for posting attribution." end
+    if baselineFailure then return baselineFailure end
     if not baseline or GetTime() - baseline.at > 60 then
         wanted = true
         return "Waiting for fresh owned listings."
@@ -98,8 +116,15 @@ function CW.PostingReason()
     return CW.AHReadiness("posting", 0.2)
 end
 
+function CW.RefreshPosting()
+    if not query then
+        wanted, baselineFailure = true, nil
+        if not pending then notice = nil end
+    end
+end
+
 function CW.InterruptPosting(reason)
-    baseline = nil
+    baseline, baselineFailure = nil, nil
     if query then query = nil; CW.AHOperation = nil; CW.AHResponseUncertain = true end
     if pending then
         if type(pending) == "table" then pending.conflict = true end
@@ -203,7 +228,11 @@ frame:SetScript("OnUpdate", function()
             CW.AHOperation = "posting"
             query = {deadline=GetTime()+20}
             local sent, reason = CW.AHRequest("QueryOwnedAuctions", {})
-            if not sent then query, CW.AHOperation = nil, nil; notice = tostring(reason) end
+            if not sent then
+                query, CW.AHOperation = nil, nil
+                baselineFailure = "Could not refresh your owned auctions. Refresh item to retry."
+                notice = baselineFailure
+            end
         end
     end)
     if not ok then
@@ -235,8 +264,18 @@ frame:SetScript("OnEvent", function(_, event, addon)
         local ok, rows, ids = pcall(owned)
         if ok then
             if pending and type(pending) == "table" and pending.version == 1 then pending.rows = rows; confirm()
-            elseif not pending then baseline = {ids=ids, at=GetTime()} end
-        else notice = tostring(rows) end
+            elseif not pending then
+                baseline = {ids=ids, at=GetTime()}
+                if baselineFailure then notice = nil end
+                baselineFailure = nil
+            end
+        else
+            -- A failed posting check must not retry every review tick and starve
+            -- unrelated market queries. Refresh item/reopening explicitly retries it.
+            wanted = false
+            baselineFailure = "Posting paused: " .. tostring(rows)
+            notice = baselineFailure
+        end
     elseif pending and (event == "AUCTION_MULTISELL_UPDATE" or event == "AUCTION_MULTISELL_FAILURE"
         or event == "AUCTION_HOUSE_SHOW_ERROR") then wanted = true
     elseif pending and (event == "ADDON_ACTION_BLOCKED" or event == "ADDON_ACTION_FORBIDDEN") and addon == "Copperwise" then
