@@ -228,10 +228,15 @@ This introduces a separate character-plan schema without changing the account
 market schema. Future plan schema changes require sequential copy-on-upgrade
 migrations preserving supported saved plans.
 
-### Ticket 04 client acceptance — pending
+### Ticket 04 client acceptance
 
-Record build, platform, realm/faction/region and UI scale. Run the production
-addon with probes disabled. Repository checks do not pass these cases.
+Ticket 04 is resolved from owner-run client checks recorded in its
+[acceptance history](../../.scratch/addon-selling-mvp/issues/04-mark-and-maintain-sale-intent.md).
+The following is the reusable verification checklist; resolution does not claim
+an individually recorded run of every edge-case permutation or posting acceptance.
+Record build, platform, realm/faction/region and UI scale when rerunning it.
+Run the production addon with probes disabled. Repository checks alone do not
+pass client acceptance.
 
 1. With retained prices and multiple stacks, compare an unmarked commodity's
    net AH/vendor values. Confirm its row button names the preferred destination.

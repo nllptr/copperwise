@@ -4,17 +4,17 @@
 
 **Blocked by:** 02: Browse and rank bag items.
 
-**Status:** implemented — target-client acceptance pending
+**Status:** resolved
 
 **Labels:** ready-for-agent
 
-- [ ] Use the approved destination comparison for the marking action; move marked items into a separate section while row selection remains independent.
-- [ ] Default a new mark to currently observed bag units; accept positive whole item-unit quantities, independent of stack boundaries.
-- [ ] Row buttons toggle marking/removal without accumulating intent; labeled quantity edits replace quantity; preserve the chosen destination across later price changes unless explicitly removed/reselected.
-- [ ] Show intended and currently available quantities separately; revalidate holdings without silently deleting shortages or treating saved intent as current availability.
-- [ ] Persist intent through window/tab changes, AH visits, reload and logout, scoped to the current character.
-- [ ] Keep AH and Vendor intent distinct; Vendor selling uses the normal merchant UI, and a bag decrease alone does not prove a vendor sale.
-- [ ] Verify add/edit/remove, duplicates, shortages, persistence and character isolation in the target client; marking, restoration and window changes never post anything.
+- [x] Use the approved destination comparison for the marking action; move marked items into a separate section while row selection remains independent.
+- [x] Default a new mark to currently observed bag units; accept positive whole item-unit quantities, independent of stack boundaries.
+- [x] New marks use available unmarked bag units; remainder additions increase existing intent without double-counting; marked-row buttons remove intent and labeled quantity edits replace quantity; preserve the chosen destination across later price changes unless explicitly removed/reselected.
+- [x] Show intended and currently available quantities separately; revalidate holdings without silently deleting shortages or treating saved intent as current availability.
+- [x] Persist intent through window/tab changes, AH visits, reload and logout, scoped to the current character.
+- [x] Keep AH and Vendor intent distinct; Vendor selling uses the normal merchant UI, and a bag decrease alone does not prove a vendor sale.
+- [x] Verify add/edit/remove, duplicates, shortages, persistence and character isolation in the target client; marking, restoration and window changes never post anything.
 
 ## Scope and verification
 
@@ -42,7 +42,7 @@ Intent module and supports its native controls; no new synthetic acceptance
 boundary is introduced for this ticket.
 
 The agreed primary boundary remains the actual production addon in the target
-client. Follow the [ticket 04 checklist](../../../addons/Copperwise/README.md#ticket-04-client-acceptance--pending)
+client. Follow the [ticket 04 checklist](../../../addons/Copperwise/README.md#ticket-04-client-acceptance)
 for add/edit/remove, duplicates, shortages, reload/logout, character isolation,
 price changes, layout and absence of transactions. No acceptance box is checked
 by repository validation; target-client verification remains pending.
@@ -168,3 +168,29 @@ through logout/login within the tested environment. Earlier acceptance notes
 listing these cases as pending are superseded by this confirmation. Preservation
 of an existing destination and quantity across a price-refresh/recommendation
 change remains the next unconfirmed client check.
+
+### Resolution — 2026-11-15
+
+Owner confirms the guided full-scan refresh check works: existing destination
+and intended quantity remain while market values refresh and the outdated-scan
+warning clears. A recommendation reversal was conditional in the instructions;
+none was explicitly reported, so no naturally reversed-price sample is claimed.
+Destination preservation is additionally established by the implementation:
+scan publication never mutates sale intent, and remainder additions retain the
+existing destination.
+
+Ticket 04 is resolved using the collected owner-run production-client checks
+and supporting repository validation: row marking/unmarking and independent
+selection; quantity replacement and remainder additions; per-portion totals;
+reload restoration; character isolation and logout restoration; shortages and
+zero bag availability; Vendor sale behavior; scan-refresh preservation; shared
+freshness warning; and quiet hover revalidation. Existing Lua regression checks,
+Lua compilation, Go tests and vet passed on the implementation changes, with
+Standards and Spec reviews reporting no actionable findings.
+
+This resolution accepts the exercised current-environment workflow, not every
+possible input/event permutation. No individual native-client invalid-input
+run, artificially forced destination reversal or full posting workflow is
+claimed. Posting-review and transaction acceptance remain tickets 05 and 06;
+release-wide verification remains ticket 07. Parent specs and other ticket
+series are unchanged. Ticket 05's dependency on 04 is now satisfied.
