@@ -320,3 +320,11 @@ timeout, and throttling readiness pause/resume. These are simulated outcomes;
 the target-client `/cwdiag` run is pending. Actual native throttling and
 unavailable-metadata timing are not established by synthetic inputs. No remaining
 native acceptance checkbox is marked passed solely by these supporting checks.
+
+Validation completed: all seven controlled diagnostic cases and six existing
+storage checks pass under LuaJIT; all 17 repository Lua files compile without
+execution; the Python build script parses and its bundle freshness check passes;
+`CGO_ENABLED=0 go test ./...` passes. Independent Standards and Spec reviews of
+the diagnostic change found no issues. The separate diagnostic addon was copied
+into the target client's AddOns folder for the owner's `/cwdiag` run. No target
+client result has been recorded yet; ticket 01 remains open.
