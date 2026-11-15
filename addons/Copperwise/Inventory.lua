@@ -4,6 +4,7 @@ local frame = CreateFrame("Frame")
 local window, output, list, listContent, listStatus
 local buttons = {}
 local lastOrder = {}
+local displayedComparisons = {}
 local rows, selected, candidate, candidateAt, dirtyAt = {}, nil, nil, 0, 0
 local settled = false
 
@@ -22,6 +23,8 @@ function CW.SelectedItem()
 end
 
 local function comparison(item)
+    local ready = settled and not CursorHasItem()
+    if not ready and displayedComparisons[item.id] then return displayedComparisons[item.id] end
     local observation = CW.ObservationFor and CW.ObservationFor(item.id)
     local asking, vendor, destination, value
     -- Display the last settled holdings during bag/cursor activity. Actions
@@ -38,7 +41,9 @@ local function comparison(item)
         reason = observation and (observation.empty and "observed empty supply" or "asking price unavailable")
             or "no comparable retained AH value"
     elseif vendor == nil then reason = "vendor metadata loading" end
-    return {observation=observation, asking=asking, vendor=vendor, destination=destination, value=value, reason=reason}
+    local values = {observation=observation, asking=asking, vendor=vendor, destination=destination, value=value, reason=reason}
+    if ready then displayedComparisons[item.id] = values end
+    return values
 end
 
 local function renderList()
@@ -62,6 +67,9 @@ local function renderList()
     if ready then
         lastOrder = {}
         for index, choice in ipairs(choices) do lastOrder[choice.item.id] = index end
+        for id in pairs(displayedComparisons) do
+            if not rows[id] then displayedComparisons[id] = nil end
+        end
     end
     listStatus:SetText(not ready and "Updating bags — showing last settled values"
         or (#choices == 0 and "No bag items" or "Highest total destination value first"))
