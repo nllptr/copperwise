@@ -64,3 +64,13 @@ Cloth (11 bags, 99 intended, 88 shortage), but does not establish how many click
 were made or pass the revised controls. Revised target-client acceptance remains
 pending. Use the updated README checklist rather than the historical initial
 Add bag units instructions above.
+
+### Revised controls — owner client feedback — 2026-11-15
+
+After installing prototype-alignment commit `5fda914`, the owner reports that
+it “seems to be working as expected.” Record this as a positive production-client
+check of the revised marking interaction. No individual unreported acceptance
+case is inferred: reload/logout restoration, character isolation, zero-holding
+shortages, price-change destination preservation and absence of transactions
+across the complete lifecycle still require explicit verification. Ticket 04
+remains implemented with acceptance pending.
