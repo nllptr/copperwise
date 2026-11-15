@@ -4,16 +4,64 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** open — remaining acceptance checks pending
 
-**Labels:** ready-for-agent
+**Labels:** acceptance-pending
 
-- [ ] Install and open the production addon without a backend, API credentials, companion or Auctionator dependency; the Inventory window is separate from the native AH window.
-- [ ] Show one supported commodity's comparable identity, settled bag quantity across stacks and vendor sell value; distinguish unavailable metadata from known zero and avoid actionable transient double counts.
-- [ ] From the Copperwise AH tab, perform a user-initiated full market summary scan; in Inventory show lowest observed buyout per unit, covered supply, market context, source time and completeness in the selected item's detail.
-- [ ] Distinguish no scan, metadata loading, partial, failed, cancelled and complete empty results; no missing buyout becomes zero and incomplete observations cannot drive a destination recommendation.
-- [ ] Respect native throttling and other AH activity; cancellation or AH closure stops further requests and late responses do not replace a cancelled result.
-- [ ] Verify the selection-to-query-to-visible-result journey in the actual target client against native quantity/price observations; record build, context and limitations.
+## Current acceptance checklist
+
+This is the current summary of the recorded owner evidence. The chronological
+comments below retain earlier gaps and the superseded selected-item scan design;
+those statements are historical, not additional outstanding checks.
+
+Verified in the production addon:
+
+- [x] Install/open the standalone Inventory window and the separate native
+  Copperwise AH tab without backend, credentials or companion; full scan and
+  Inventory prices work with Auctionator disabled.
+- [x] Select Rough Stone (2835), aggregate 18 owned units across split stacks,
+  and retain the correct total after splitting and merging.
+- [x] Withhold quantity totals while an item is on the cursor.
+- [x] Match the native vendor sell tooltip: 2 copper/unit, 36 copper for 18.
+- [x] Run a user-initiated full-market summary scan in the native AH tab and
+  display retained asking values in `/cw`, with supply, market, source time and
+  completeness. The observed retained scan has 6,061 item summaries, one repeated
+  key and zero conflicting keys.
+- [x] Confirm full-scan prices are correct and survive closing AH and `/reload`.
+- [x] Distinguish no scan, failed, cancelled and complete attempts in visible
+  outcomes. The initial duplicate-key failure was observed and subsequently fixed.
+- [x] Cancel a full scan immediately after dispatch; after waiting, it remains
+  cancelled and prior prices and their observation time are unchanged.
+- [x] Close AH during a full scan; after waiting, cancellation and prior saved
+  prices remain visible. Earlier selected-item scanning also recovered on reopen;
+  the revised full collector has since completed additional scans.
+- [x] Refuse a new full scan during outstanding Auctionator work, retain the
+  previous snapshot and allow Auctionator to finish normally.
+- [x] Record the current target client: 1.60.1, build 70938, built Nov 12 2026,
+  interface 16001; market CAMWOW EU5 Realm 10 RP / Alliance / region 3.
+
+Remaining ticket-01 acceptance checks (not implied by the passes above):
+
+- [ ] Verify unavailable/loading vendor metadata versus a known numeric zero
+  through visible client behavior; metadata availability must not send a scan.
+- [ ] Verify settled quantity after moving between different bags, including
+  withholding any transient extra inventory. Split/merge and cursor checks pass.
+- [ ] Independently compare displayed supply from the revised full collector
+  against the native AH. Earlier bounded-query supply matched, but used the
+  superseded collector. Full-scan prices are already confirmed correct.
+- [ ] Exercise complete-empty and incomplete/partial coverage; missing buyout
+  must remain unavailable, and incomplete data cannot become a recommendation.
+- [ ] Observe native throttling and bound/timeout behavior without publishing a
+  partial snapshot as complete; normal pagination alone is not this check.
+- [ ] Verify a failed refresh with an existing successful snapshot preserves its
+  price, supply, source time and coverage. Cancellation preservation already passes.
+- [ ] Exercise competing AH activity during an active Copperwise scan; current
+  coexistence evidence covers refusal before starting, not mid-scan interruption.
+
+Ticket 01 remains open for these checks. This reconciliation neither waives
+acceptance nor marks ticket 02's dependency resolved. Extended logout/market
+scoping and stale-warning acceptance belongs to ticket 03; it is not added here
+as a new gate. Do not repeat the completed cancellation timestamp test.
 
 ## Scope and verification
 
@@ -170,3 +218,11 @@ cancelling a full-scan refresh, owner confirms this was already tested.
 Unchanged source time after cancellation is confirmed; do not request this
 same check again. Cancellation preservation now covers saved prices and their
 observation time, in addition to cancelled-state stability.
+
+### Acceptance reconciliation — 2026-11-15
+
+Consolidated the owner's confirmed outcomes into the current checklist above,
+kept unverified edge cases explicit, and retained chronological evidence for
+traceability. Ticket 02 now reads retained full-scan observations and must not
+restore selected-item scan controls to Inventory. No new client checks were
+performed or inferred during this documentation update.
