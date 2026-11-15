@@ -95,3 +95,19 @@ to the earlier toggle-only interaction decision.
 
 Revised split-row/quantity-total behavior requires client verification using
 the updated README worked example. Remaining acceptance stays pending.
+
+### Partial-quantity client feedback — 2026-11-15
+
+Owner supplied bank-character bag contents showing Bolt of Linen Cloth ×11
+and retained net AH value 522c. Guided verification used that item: mark 11,
+edit intent to 5, inspect upper remainder 6 and marked 5 with portion-specific
+row/detail totals, then add the remaining 6 to restore intent 11. Expected
+retained-price examples were 50c AH / 40c vendor per unit: marked 5 gives
+250c gross AH / 237c net / 200c vendor; remainder 6 gives 300c gross /
+285c net / 240c vendor. Owner reports it “seems to be working as expected.”
+Record positive client feedback for this guided split/total/add-remainder
+scenario, without implying separate screenshots or independent price checks
+for every step. Split restoration after reload, logout, character isolation,
+zero-holding shortages and destination preservation after price changes remain
+unverified. The earlier owner-confirmed quantity restoration after reload
+remains valid evidence for the prior version. Ticket acceptance stays pending.
