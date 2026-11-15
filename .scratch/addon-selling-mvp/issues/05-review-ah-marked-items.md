@@ -191,3 +191,19 @@ coalesce identical duplicate cache rows without counting more units, and refuse
 missing IDs or conflicting duplicates with user-facing detail instead of a raw
 Lua source path. Posting remains blocked when attribution is unavailable. No
 pending ledger or saved intent is discarded. Reload verification remains pending.
+
+### Existing owned-ID conflicts — 2026-11-15
+
+Owner's follow-up screenshot confirms native owned ID 115489437 appears in
+conflicting rows. The exact differing fields and native grouping semantics are
+not yet established. The earlier blanket rejection was broader than attribution
+requires: a before-post baseline only needs every already-present ID in its
+exclusion set. Existing duplicate/conflicting IDs can be excluded without using
+their price, quantity or item metadata as evidence of a new post.
+
+Owned reads now retain the complete valid ID set, deduplicate identical rows,
+and separately track conflicting IDs. Existing conflicts no longer block fresh
+posting. If a newly seen ID has conflicting rows after dispatch, automatic
+confirmation is withheld and explicit operator reconciliation remains required.
+Missing IDs remain blocking. No conflicting rows are summed or silently chosen
+as confirmation evidence. Actual-client recovery remains pending.

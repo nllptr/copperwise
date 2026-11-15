@@ -30,7 +30,7 @@ local function owned()
     end
     local count = C_AuctionHouse.GetNumOwnedAuctions()
     if type(count) ~= "number" or count < 0 or count % 1 ~= 0 or count > 10000 then error("Your owned-auction count is unavailable. Refresh item to retry the posting check.", 0) end
-    local rows, ids, byID = {}, {}, {}
+    local rows, ids, byID, ambiguousIDs = {}, {}, {}, {}
     for index = 1, count do
         local row = C_AuctionHouse.GetOwnedAuctionInfo(index)
         if not row or type(row.auctionID) ~= "number" or row.auctionID <= 0 or row.auctionID % 1 ~= 0 then
@@ -45,7 +45,9 @@ local function owned()
                 or a.itemSuffix ~= b.itemSuffix or a.battlePetSpeciesID ~= b.battlePetSpeciesID
                 or previous.quantity ~= row.quantity or previous.buyoutAmount ~= row.buyoutAmount
                 or previous.bidAmount ~= row.bidAmount or previous.status ~= row.status then
-                error("Owned auction ID " .. string.format("%.0f",row.auctionID) .. " has conflicting rows. Market listings can still load.", 0)
+                -- Existing IDs need only be excluded from future attribution.
+                -- Preserve ambiguity for confirmation, without blocking the baseline.
+                ambiguousIDs[row.auctionID] = true
             end
             -- Repeated identical cache rows describe the same listing, not more units.
         else
@@ -53,11 +55,17 @@ local function owned()
             rows[#rows+1] = row
         end
     end
-    return rows, ids
+    return rows, ids, ambiguousIDs
 end
 
 local function confirm()
     if not validLedger(pending) or pending.conflict or not pending.rows then return end
+    for id in pairs(pending.ambiguousIDs or {}) do
+        if not pending.beforeIDs[id] then
+            notice = "New owned-auction rows are ambiguous. Inspect Auctions and reconcile this post."
+            return
+        end
+    end
     if not CW.HoldingsSettled() then return end
     local item = CW.AvailableItem(pending.id)
     local available = item and item.quantity or 0
@@ -261,9 +269,11 @@ frame:SetScript("OnEvent", function(_, event, addon)
     elseif event == "OWNED_AUCTIONS_UPDATED" and query then
         if C_AuctionHouse.HasFullOwnedAuctionResults and not C_AuctionHouse.HasFullOwnedAuctionResults() then return end
         query, CW.AHOperation = nil, nil
-        local ok, rows, ids = pcall(owned)
+        local ok, rows, ids, ambiguousIDs = pcall(owned)
         if ok then
-            if pending and type(pending) == "table" and pending.version == 1 then pending.rows = rows; confirm()
+            if pending and type(pending) == "table" and pending.version == 1 then
+                pending.rows, pending.ambiguousIDs = rows, ambiguousIDs
+                confirm()
             elseif not pending then
                 baseline = {ids=ids, at=GetTime()}
                 if baselineFailure then notice = nil end
