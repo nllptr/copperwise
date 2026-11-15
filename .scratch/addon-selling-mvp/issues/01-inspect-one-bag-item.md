@@ -22,6 +22,8 @@ Verified in the production addon:
 - [x] Select Rough Stone (2835), aggregate 18 owned units across split stacks,
   and retain the correct total after splitting and merging.
 - [x] Withhold quantity totals while an item is on the cursor.
+- [x] Move a stack between different bags with Inventory open: the settled
+  quantity remains unchanged, with transient quantities withheld during movement.
 - [x] Match the native vendor sell tooltip: 2 copper/unit, 36 copper for 18.
 - [x] Run a user-initiated full-market summary scan in the native AH tab and
   display retained asking values in `/cw`, with supply, market, source time and
@@ -44,8 +46,6 @@ Remaining ticket-01 acceptance checks (not implied by the passes above):
 
 - [ ] Verify unavailable/loading vendor metadata versus a known numeric zero
   through visible client behavior; metadata availability must not send a scan.
-- [ ] Verify settled quantity after moving between different bags, including
-  withholding any transient extra inventory. Split/merge and cursor checks pass.
 - [ ] Independently compare displayed supply from the revised full collector
   against the native AH. Earlier bounded-query supply matched, but used the
   superseded collector. Full-scan prices are already confirmed correct.
@@ -226,3 +226,12 @@ kept unverified edge cases explicit, and retained chronological evidence for
 traceability. Ticket 02 now reads retained full-scan observations and must not
 restore selected-item scan controls to Inventory. No new client checks were
 performed or inferred during this documentation update.
+
+### Cross-bag movement acceptance — 2026-11-15
+
+Owner confirms "works" after the requested check with AH closed and Inventory
+open: select Rough Stone, note its total, and move a stack to a different bag
+while watching the displayed quantity. The settled total remains unchanged and
+transient quantities are withheld rather than showing extra units. Cross-bag
+movement acceptance passes alongside the earlier split/merge and cursor checks.
+Six ticket-01 acceptance checks remain; the ticket stays open.
