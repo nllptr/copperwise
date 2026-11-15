@@ -45,6 +45,9 @@ or cancelled refreshes do not advance its source time or coverage. A commodity
 absent from a complete scan has observed zero supply and unavailable buyout;
 missing/zero summary buyout is never manufactured into a zero asking price.
 Summaries with ambiguous commodity identity are withheld from comparisons.
+Repeated identical native keys are counted once, without summing supply. If
+repeated keys disagree on price or supply, that key is withheld from Inventory
+comparisons. The AH panel reports repeated-key and conflicting-key counts.
 
 Snapshots persist through ordinary per-character addon saved variables, separated
 by native realm/faction/region. Inventory can read them away from AH and after

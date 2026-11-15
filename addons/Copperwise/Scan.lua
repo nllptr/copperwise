@@ -37,7 +37,7 @@ function CW.ObservationFor(id)
     local found
     for _, row in pairs(snapshot.items) do
         if row.key.itemID == id then
-            if found or (row.key.itemSuffix or 0) ~= 0 or (row.key.battlePetSpeciesID or 0) ~= 0 then
+            if row.ambiguous or found or (row.key.itemSuffix or 0) ~= 0 or (row.key.battlePetSpeciesID or 0) ~= 0 then
                 return nil -- ambiguous comparability must not manufacture an estimate
             end
             found = row
@@ -66,6 +66,8 @@ local function render()
     if snapshot then
         text = text .. "\n\nLast complete full scan: " .. date("%Y-%m-%d %H:%M:%S %Z", snapshot.observedAt)
             .. "\n" .. snapshot.count .. " item summaries; " .. snapshot.context
+            .. "\nRepeated keys: " .. (snapshot.duplicates or 0)
+            .. "; conflicting keys withheld: " .. (snapshot.ambiguous or 0)
     else text = text .. "\n\nNo complete scan retained for this market." end
     if CW.notice then text = text .. "\n\n" .. CW.notice end
     output:SetText(text .. "\n\nAsking values are not completed sales.\nKeep this tab open until scanning finishes.\nNo posting is performed by a scan.")
@@ -177,7 +179,7 @@ local function receive()
     active.waiting = false
     if #rows > MAX_ROWS then finish("partial", "Market exceeds the processing bound; prior scan preserved."); return end
     -- Each response is a cumulative native cache snapshot, never an additive delta.
-    active.batch = {rows=rows, full=full, index=1, items={}, count=0}
+    active.batch = {rows=rows, full=full, index=1, items={}, count=0, duplicates=0, ambiguous=0}
     attempt.state, attempt.reason = "processing", "Processing market summaries."
 end
 
@@ -198,9 +200,19 @@ local function process()
             end
             local identity = key.itemID .. ":" .. (key.itemLevel or 0) .. ":" .. (key.itemSuffix or 0)
                 .. ":" .. (key.battlePetSpeciesID or 0)
-            if batch.items[identity] then error("Duplicate market identity; coverage unresolved.") end
-            batch.items[identity] = {key=key, units=row.totalQuantity, minimum=row.minPrice > 0 and row.minPrice or nil}
-            batch.count = batch.count + 1
+            local previous = batch.items[identity]
+            local minimum = row.minPrice > 0 and row.minPrice or nil
+            if previous then
+                -- A repeated summary is not another independent pool of supply.
+                batch.duplicates = batch.duplicates + 1
+                if not previous.ambiguous and (previous.units ~= row.totalQuantity or previous.minimum ~= minimum) then
+                    previous.ambiguous = true
+                    batch.ambiguous = batch.ambiguous + 1
+                end
+            else
+                batch.items[identity] = {key=key, units=row.totalQuantity, minimum=minimum}
+                batch.count = batch.count + 1
+            end
         end
     end
     batch.index = batch.index + 250
@@ -210,6 +222,7 @@ local function process()
     if batch.full then
         local version, build, _, interface = GetBuildInfo()
         local snapshot = {items=batch.items, count=batch.count, context=active.context,
+            duplicates=batch.duplicates, ambiguous=batch.ambiguous,
             observedAt=time(), startedAt=attempt.started, source="native full browse summary", full=true,
             client={version=version, build=build, interface=interface}}
         CopperwiseDB.markets[active.market] = snapshot

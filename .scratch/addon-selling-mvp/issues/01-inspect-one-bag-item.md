@@ -103,3 +103,11 @@ market, preserving prior successful data on cancellation/failure and exposing
 it away from AH and after reload. Request/row/time bounds, native throttling and
 other AH activity remain enforced. No ranking/marking/posting is added here.
 Full-scan runtime and persistence acceptance remain pending.
+
+Owner's first full-scan screenshot (2026-11-15 01:26:20 CET start, same market)
+shows failure after eight requests and 3,500 processed summaries: duplicate
+market identity. No complete snapshot was retained. Follow-up deduplicates
+identical native keys without adding supply and withholds conflicting keys
+from commodity estimates rather than aborting unrelated market collection.
+Repeated/conflicting counts are visible in the retained full-scan summary.
+This fix requires a new target-client scan; no full-scan pass is claimed yet.
