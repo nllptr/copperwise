@@ -1,8 +1,10 @@
+local CW = Copperwise
 local frame = CreateFrame("Frame")
-local active, result
+local active, attempt, panel, output, scanButton, cancelButton
 local houseOpen, ownRequest, hooksReady, reopenRequired = false, false, false, false
-local lastTraffic = 0
-local externalPending = {}
+local lastTraffic, externalPending = 0, {}
+local mode = {"CopperwiseMarketPanel"}
+local MAX_REQUESTS, MAX_ROWS, RESPONSE_TIMEOUT, TOTAL_TIMEOUT = 2000, 100000, 30, 180
 local responseEvents = {
     SendSearchQuery="search", SendSellSearchQuery="search",
     RefreshItemSearchResults="search", RefreshCommoditySearchResults="search",
@@ -10,231 +12,275 @@ local responseEvents = {
     SendBrowseQuery="browse", SearchForFavorites="browse", RequestMoreBrowseResults="browse",
     QueryOwnedAuctions="owned", QueryBids="bids", ReplicateItems="replicate",
 }
-local MAX_REQUESTS, MAX_ROWS, TIMEOUT, QUIET = 3, 500, 15, 2
-local observed = {}
 
-local function value(v)
-    if v == nil then return "unavailable" end
-    return tostring(v)
+local function market()
+    local realm, faction = GetRealmName(), UnitFactionGroup("player")
+    local region = GetCurrentRegion and GetCurrentRegion()
+    if not realm or not faction or not region then return nil end
+    return region .. ":" .. #realm .. ":" .. realm .. ":" .. faction,
+        realm .. " / " .. faction .. " / region " .. region
 end
 
-local function record(message)
-    Copperwise.lastDiagnostic = message
+local function cache()
+    local key = market()
+    return key and CopperwiseDB and CopperwiseDB.markets and CopperwiseDB.markets[key]
 end
 
-local function api(name, ...)
-    local fn = C_AuctionHouse and C_AuctionHouse[name]
-    if type(fn) ~= "function" then error("C_AuctionHouse." .. name .. " unavailable") end
-    return fn(...)
+-- Inventory only compares native commodities; full-market collection also retains
+-- other native keys, without collapsing equipment variants into a bag item ID.
+function CW.ObservationFor(id)
+    local snapshot = cache()
+    if not snapshot then return nil end
+    local nativeKey = C_AuctionHouse.MakeItemKey(id, 0, 0, 0)
+    local info = C_AuctionHouse.GetItemKeyInfo(nativeKey)
+    if not info or info.isCommodity ~= true then return nil end
+    local found
+    for _, row in pairs(snapshot.items) do
+        if row.key.itemID == id then
+            if found or (row.key.itemSuffix or 0) ~= 0 or (row.key.battlePetSpeciesID or 0) ~= 0 then
+                return nil -- ambiguous comparability must not manufacture an estimate
+            end
+            found = row
+        end
+    end
+    return {minimum=found and found.minimum, units=found and found.units or 0,
+        observedAt=snapshot.observedAt, context=snapshot.context, full=true,
+        empty=found == nil, rows=snapshot.count}
 end
 
 local function render()
-    Copperwise.attempt = result
-    if Copperwise.Render then Copperwise.Render() end
+    CW.attempt = attempt
+    if CW.Render then CW.Render() end
+    if not output then return end
+    scanButton:SetEnabled(active == nil)
+    cancelButton:SetEnabled(active ~= nil)
+    local text = "Full auction-house scan (summary mode)\nCollect minimum asking values and available supply across the market.\n"
+        .. "Inventory uses the retained results to review owned commodities.\n\n"
+    if attempt then
+        text = text .. "Latest scan: " .. attempt.state .. "\n" .. attempt.reason
+            .. "\nRequests: " .. attempt.requests .. "; item summaries processed: " .. attempt.count
+            .. "\nMarket: " .. attempt.context
+            .. "\nStarted: " .. date("%Y-%m-%d %H:%M:%S %Z", attempt.started)
+    else text = text .. "No scan attempted this session." end
+    local snapshot = cache()
+    if snapshot then
+        text = text .. "\n\nLast complete full scan: " .. date("%Y-%m-%d %H:%M:%S %Z", snapshot.observedAt)
+            .. "\n" .. snapshot.count .. " item summaries; " .. snapshot.context
+    else text = text .. "\n\nNo complete scan retained for this market." end
+    if CW.notice then text = text .. "\n\n" .. CW.notice end
+    output:SetText(text .. "\n\nAsking values are not completed sales.\nKeep this tab open until scanning finishes.\nNo posting is performed by a scan.")
 end
 
 local function finish(state, reason)
+    if active and active.waiting then reopenRequired = true end
     active = nil
-    if result then
-        result.state, result.reason = state, reason
-        record("state=" .. state .. " item=" .. result.itemID .. " requests=" .. result.requests
-            .. " rows=" .. value(result.rows) .. " covered-units=" .. value(result.units)
-            .. " lowest-covered-copper/unit=" .. value(result.minimum)
-            .. " bid-only-units=" .. value(result.bidOnly) .. " full=" .. value(result.full)
-            .. " observedAt=" .. value(result.observedAt) .. " reason=" .. reason)
-    end
+    if attempt then attempt.state, attempt.reason = state, reason end
     render()
 end
 
-local function fail(reason)
-    if active then reopenRequired = true end
-    finish("failed", reason)
-end
-
-local function guard(fn, eventFailure)
+local function guard(fn)
     return function(...)
         local ok, err = pcall(fn, ...)
         if not ok then
-            if active and eventFailure then fail(tostring(err)) else
-                record("refused/error: " .. tostring(err))
-                Copperwise.notice = tostring(err)
-                render()
-            end
+            if active then finish("failed", tostring(err))
+            else CW.notice = tostring(err); render() end
         end
     end
 end
 
 local function externalRequest(name, argument)
     lastTraffic = GetTime()
-    if not ownRequest then
-        local kind = responseEvents[name]
-        local id = kind == "search" and (type(argument) == "table" and argument.itemID or argument) or kind
-        local token = tostring(kind) .. ":" .. tostring(id)
-        if externalPending[token] then externalPending.uncertain = true end
-        externalPending[token] = true
-    end
-    if not ownRequest and (active or (result and result.state == "partial")) then
-        -- Results are shared caches: a competing request invalidates attribution.
-        result.full = false
-        if active or result.state == "partial" then reopenRequired = true end
-        finish("interrupted", "Another AH request (" .. name .. "); do not treat cached results as this scan.")
+    if ownRequest then return end
+    local kind = responseEvents[name]
+    local id = kind == "search" and (type(argument) == "table" and argument.itemID or argument) or kind
+    local token = kind .. ":" .. tostring(id)
+    if externalPending[token] then externalPending.uncertain = true end
+    externalPending[token] = true
+    if active then
+        reopenRequired = true
+        finish("cancelled", "Other AH activity interrupted collection; close/reopen AH before retrying.")
     end
 end
 
 local function setupHooks()
     if hooksReady then return end
-    for _, name in ipairs({"SendSearchQuery", "SendSellSearchQuery", "SendBrowseQuery",
-        "SearchForFavorites", "RefreshItemSearchResults", "RefreshCommoditySearchResults",
-        "RequestMoreItemSearchResults", "RequestMoreCommoditySearchResults",
-        "RequestMoreBrowseResults", "ReplicateItems", "QueryOwnedAuctions", "QueryBids"}) do
-        if C_AuctionHouse and type(C_AuctionHouse[name]) == "function" then
+    if not C_AuctionHouse or type(C_AuctionHouse.SendBrowseQuery) ~= "function" then
+        error("native summary-mode auction queries unavailable")
+    end
+    for name in pairs(responseEvents) do
+        if type(C_AuctionHouse[name]) == "function" then
             local requestName = name
             hooksecurefunc(C_AuctionHouse, name, function(argument) externalRequest(requestName, argument) end)
-        elseif name == "SendSearchQuery" then error("modern native AH search unavailable") end
+        end
     end
     hooksReady = true
 end
 
-local function ready()
-    if not houseOpen then error("visit an auctioneer first") end
-    if reopenRequired then error("close and reopen AH before another scan; prior response attribution is uncertain") end
-    if not hooksReady then error("query observation hooks unavailable") end
-    if not observed.AUCTION_HOUSE_CLOSED or not observed.ITEM_SEARCH_RESULTS_UPDATED
-        or not observed.COMMODITY_SEARCH_RESULTS_UPDATED then error("required AH events unavailable") end
-    if next(externalPending) then error("another AH request is outstanding; wait for completion or close/reopen AH") end
-    if GetTime() - lastTraffic < QUIET then error("AH recently active; wait two quiet seconds") end
-    if not api("IsThrottledMessageSystemReady") then error("AH throttled/busy; retry manually when ready") end
-    -- Optional read-only diagnostic; never enqueue, abort or call Auctionator APIs.
+local function queueBusy()
     local queue = Auctionator and Auctionator.AH and Auctionator.AH.Queue
-    if queue and type(queue.queue) == "table" and #queue.queue > 0 then
-        error("Auctionator has queued work; let it finish first")
-    end
+    return queue and type(queue.queue) == "table" and #queue.queue > 0
 end
 
-local function request(more)
-    ready()
-    local r = result
-    if r.requests >= MAX_REQUESTS then error("three-request bound reached; results remain partial") end
-    local name, argument = "SendSearchQuery", r.key
-    if more then name, argument = "RequestMoreCommoditySearchResults", r.itemID end
-    r.requests = r.requests + 1
-    r.state, r.reason = "waiting", "Waiting for matching results; cancel stops local collection."
-    r.full = false
-    active = {deadline=GetTime() + TIMEOUT, sentAt=GetTime()}
+local function dispatch(more)
+    if not active then return end
+    if GetTime() - lastTraffic < 0.2 or not C_AuctionHouse.IsThrottledMessageSystemReady() then
+        attempt.state, attempt.reason = "throttled", "Waiting for native query readiness."
+        return
+    end
+    if queueBusy() or next(externalPending) then
+        finish("cancelled", "Other AH work is pending; retry after it finishes.")
+        return
+    end
+    if attempt.requests >= MAX_REQUESTS then
+        finish("partial", "Request bound reached; prior complete scan preserved.")
+        return
+    end
+    attempt.requests = attempt.requests + 1
+    attempt.state, attempt.reason = "waiting", "Waiting for the next market summary batch."
+    active.waiting, active.deadline, active.nextPage = true, GetTime() + RESPONSE_TIMEOUT, nil
     ownRequest = true
     local ok, err
-    if more then ok, err = pcall(api, name, argument)
-    else ok, err = pcall(api, name, argument, {}, false) end
+    if more then ok, err = pcall(C_AuctionHouse.RequestMoreBrowseResults)
+    else ok, err = pcall(C_AuctionHouse.SendBrowseQuery,
+        {searchString="", sorts={}, filters={}, itemClassFilters={}}) end
     ownRequest = false
-    record("request=" .. name .. " item=" .. r.itemID .. " number=" .. r.requests
-        .. " source=local-native-search started=" .. r.started)
-    if not ok then fail(tostring(err)) end
+    if not ok then finish("failed", tostring(err)) end
     render()
 end
 
 local function start()
-    if active then error("scan already waiting; cancel or wait") end
-    ready()
-    local item = Copperwise.SelectedItem()
-    if not item then error("select a settled bag item first") end
-    local key = api("MakeItemKey", item.id, 0, 0, 0)
-    local info = api("GetItemKeyInfo", key)
-    if not info or type(info.isCommodity) ~= "boolean" then
-        result = {itemID=item.id, name=item.name, key=key, started=time(), requests=0,
-            state="metadata loading", reason="Wait for item information, then click Scan again."}
-        render()
-        return
-    end
-    if not info.isCommodity then error("unsupported item: only comparable commodities can be scanned") end
-    local context = (GetRealmName() or "unknown") .. " / " .. (UnitFactionGroup("player") or "unknown")
-        .. " / region " .. value(GetCurrentRegion and GetCurrentRegion())
-    result = {itemID=item.id, name=item.name, key=key, commodity=true, context=context,
-        started=time(), requests=0, state="ready"}
-    request(false)
+    CW.notice = nil
+    if active then error("scan already in progress") end
+    if not houseOpen or not panel or not panel:IsShown() then error("open the Copperwise AH tab first") end
+    if reopenRequired then error("close/reopen AH before scanning; previous response attribution is uncertain") end
+    setupHooks()
+    if next(externalPending) or queueBusy() then error("other AH work is outstanding; wait or close/reopen AH") end
+    if GetTime() - lastTraffic < 2 then error("wait for two quiet seconds after other AH activity") end
+    local key, context = market()
+    if not key then error("market context unavailable") end
+    attempt = {state="ready", reason="Starting full market summary scan.", requests=0, count=0,
+        started=time(), context=context}
+    active = {market=key, context=context, started=GetTime(), nextPage=false}
+    dispatch(false)
 end
 
-local function more()
-    if active then error("already waiting for results or item information") end
-    if not result or result.state ~= "partial" or result.requests >= MAX_REQUESTS then
-        error("More is only available after partial results and within the request bound")
-    end
-    request(true)
+local function receive()
+    if not active or not active.waiting then return end
+    local rows = C_AuctionHouse.GetBrowseResults()
+    local full = C_AuctionHouse.HasFullBrowseResults()
+    if type(rows) ~= "table" or type(full) ~= "boolean" then error("browse coverage unavailable") end
+    if #rows == 0 and not full then return end
+    active.waiting = false
+    if #rows > MAX_ROWS then finish("partial", "Market exceeds the processing bound; prior scan preserved."); return end
+    -- Each response is a cumulative native cache snapshot, never an additive delta.
+    active.batch = {rows=rows, full=full, index=1, items={}, count=0}
+    attempt.state, attempt.reason = "processing", "Processing market summaries."
 end
 
-local function readResults()
-    local r = result
-    if not api("HasSearchResults", r.key) then return end
-    local full = api("HasFullCommoditySearchResults", r.itemID)
-    local count = api("GetNumCommoditySearchResults", r.itemID)
-    if type(full) ~= "boolean" or type(count) ~= "number" or count < 0 or count ~= math.floor(count) then
-        error("result count/completeness unavailable")
+local function process()
+    local batch = active.batch
+    for index = batch.index, math.min(batch.index + 249, #batch.rows) do
+        local row = batch.rows[index]
+        local key = row and row.itemKey
+        if type(key) ~= "table" or type(key.itemID) ~= "number" or key.itemID <= 0
+            or type(row.totalQuantity) ~= "number" or row.totalQuantity <= 0
+            or row.totalQuantity ~= math.floor(row.totalQuantity)
+            or type(row.minPrice) ~= "number" or row.minPrice < 0 then
+            error("Incomplete market summary; prior complete scan preserved.")
+        end
+        local identity = key.itemID .. ":" .. (key.itemLevel or 0) .. ":" .. (key.itemSuffix or 0)
+            .. ":" .. (key.battlePetSpeciesID or 0)
+        if batch.items[identity] then error("Duplicate market identity; coverage unresolved.") end
+        batch.items[identity] = {key=key, units=row.totalQuantity, minimum=row.minPrice > 0 and row.minPrice or nil}
+        batch.count = batch.count + 1
     end
-    -- An empty partial update can be a loading signal, not an empty market.
-    if count == 0 and not full then return end
-    local units, bidOnly, minimum, seen = 0, 0, nil, {}
-    local covered = math.min(count, MAX_ROWS)
-    for index = 1, covered do
-        local row = api("GetCommoditySearchResultInfo", r.itemID, index)
-        if not row or type(row.quantity) ~= "number" or row.quantity <= 0
-            or row.quantity ~= math.floor(row.quantity) or row.auctionID == nil then
-            error("row " .. index .. " incomplete; no complete stock/price summary")
-        end
-        if seen[row.auctionID] then error("duplicate auction ID; coverage unresolved") end
-        seen[row.auctionID] = true
-        if row.itemID ~= r.itemID then
-            error("row identity differs from requested key")
-        end
-        if type(row.unitPrice) ~= "number" or row.unitPrice <= 0 then error("commodity price unavailable") end
-        local price = row.unitPrice
-        units = units + row.quantity
-        if price and (not minimum or price < minimum) then minimum = price end
-        if index <= 5 then
-            record("row=" .. index .. " auction=" .. row.auctionID .. " item=" .. r.itemID
-                .. " quantity=" .. row.quantity .. " raw-unitPrice=" .. value(row.unitPrice)
-                .. " raw-buyoutAmount=" .. value(row.buyoutAmount) .. " minBid=" .. value(row.minBid)
-                .. " normalized-copper/unit=" .. value(price))
-        end
-    end
-    -- Replace the previous cumulative cache snapshot; never add updates together.
-    r.rows, r.units, r.bidOnly, r.minimum = covered, units, bidOnly, minimum
-    r.observedAt, r.full = time(), full and count <= MAX_ROWS
-    record("result-update api-full=" .. tostring(full) .. " cache-rows=" .. count
-        .. " processed=" .. covered .. " elapsed=" .. string.format("%.2f", GetTime() - (active.sentAt or GetTime())))
-    if r.full then
-        Copperwise.observation = {itemID=r.itemID, key=r.key, context=r.context, minimum=r.minimum,
-            units=r.units, rows=r.rows, observedAt=r.observedAt, full=true}
-        finish(count == 0 and "empty" or "complete", count == 0 and "Observed empty selected-key results; no asking price."
-            or "Full selected-key results received; this is not a full-market scan or atomic snapshot.")
+    batch.index = batch.index + 250
+    attempt.count = batch.count
+    if batch.index <= #batch.rows then return end
+    active.batch = nil
+    if batch.full then
+        local version, build, _, interface = GetBuildInfo()
+        local snapshot = {items=batch.items, count=batch.count, context=active.context,
+            observedAt=time(), startedAt=attempt.started, source="native full browse summary", full=true,
+            client={version=version, build=build, interface=interface}}
+        CopperwiseDB.markets[active.market] = snapshot
+        finish("complete", "Full market summary scan completed; " .. batch.count .. " item summaries retained.")
+        print("Copperwise: Finished processing " .. batch.count .. " item summaries.")
     else
-        finish("partial", count > MAX_ROWS and "500-row processing bound reached; stock/price cover only these rows."
-            or "Partial selected-key results; use More after cooldown, at most three requests total.")
+        active.nextPage = true
+        attempt.state, attempt.reason = "partial", "More market summaries remain; continuing when native throttling permits."
     end
 end
 
 local function cancel(reason)
-    if active or (result and result.state == "partial") then
-        if active then reopenRequired = true end
-        result.full = false
-        finish("cancelled", reason or "Stopped locally; an already sent server request cannot be recalled.")
+    if active then finish("cancelled", reason or "Scan cancelled; previous complete scan preserved.") end
+end
+CW.Scan, CW.Cancel = guard(start), cancel
+
+local function setupPanel()
+    if panel then return end
+    local ah = AuctionHouseFrame
+    if not ah or not ah.SetDisplayMode or not ah.Tabs or not AuctionHouseFrameDisplayMode then
+        error("native modern AH frame unavailable")
     end
+    panel = CreateFrame("Frame", nil, ah)
+    panel:SetPoint("TOPLEFT", 20, -65)
+    panel:SetPoint("BOTTOMRIGHT", -20, 35)
+    panel:Hide()
+    ah.CopperwiseMarketPanel = panel
+    AuctionHouseFrameDisplayMode.CopperwiseMarket = mode
+    local function button(label, x, action)
+        local b = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+        b:SetSize(180, 25); b:SetPoint("TOPLEFT", x, -10); b:SetText(label)
+        b:SetScript("OnClick", guard(action))
+        return b
+    end
+    scanButton = button("Full scan", 12, start)
+    cancelButton = button("Cancel scan", 205, function() cancel() end)
+    output = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    output:SetPoint("TOPLEFT", 12, -60); output:SetPoint("BOTTOMRIGHT", -12, 10)
+    output:SetJustifyH("LEFT"); output:SetJustifyV("TOP")
+    local tab = CreateFrame("Button", "CopperwiseMarketTab", ah, "AuctionHouseFrameDisplayModeTabTemplate")
+    tab:SetText("Copperwise")
+    PanelTemplates_TabResize(tab, 20, nil, 70)
+    tab:SetPoint("LEFT", ah.AuctionsTab, "RIGHT", -15, 0)
+    tab.displayMode = mode
+    tab:SetID(#ah.Tabs)
+    ah.tabsForDisplayMode[mode] = #ah.Tabs
+    PanelTemplates_SetNumTabs(ah, #ah.Tabs)
+    PanelTemplates_DeselectTab(tab)
+    tab:SetScript("OnClick", guard(function()
+        ah:SetDisplayMode(mode)
+        ah:SetTitle("Copperwise")
+        PanelTemplates_SelectTab(tab)
+    end))
+    hooksecurefunc(ah, "SetDisplayMode", function(_, current)
+        if current ~= mode then
+            panel:Hide(); PanelTemplates_DeselectTab(tab)
+            cancel("Left Copperwise AH tab; previous complete scan preserved.")
+        end
+    end)
+    panel:SetScript("OnHide", function() cancel("Copperwise AH tab hidden; scan stopped.") end)
+    render()
 end
 
-Copperwise.Scan = guard(start)
-Copperwise.More = guard(more)
-Copperwise.Cancel = function() cancel() end
-Copperwise.ScanBusy = function() return active ~= nil end
-
 frame:SetScript("OnUpdate", guard(function()
-    if active and GetTime() >= active.deadline then fail("Timed out waiting for attributable, usable results; not observed empty.") end
-end, true))
+    if not active then return end
+    if GetTime() - active.started > TOTAL_TIMEOUT then
+        finish("failed", "Full scan timed out; prior complete scan preserved.")
+    elseif active.waiting and GetTime() > active.deadline then
+        finish("failed", "Response timed out; close/reopen AH before another scan.")
+    elseif active.batch then process()
+    elseif active.nextPage ~= nil then dispatch(active.nextPage) end
+    render()
+end))
 
-frame:SetScript("OnEvent", guard(function(_, event, ...)
-    local argument = ...
+frame:SetScript("OnEvent", guard(function(_, event, argument)
     local kind, id
     if event == "COMMODITY_SEARCH_RESULTS_UPDATED" or event == "ITEM_SEARCH_RESULTS_UPDATED" then
-        kind = "search"
-        id = type(argument) == "table" and argument.itemID or argument
-    elseif event == "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED" then kind, id = "browse", "browse"
+        kind, id = "search", type(argument) == "table" and argument.itemID or argument
+    elseif event == "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED" or event == "AUCTION_HOUSE_BROWSE_RESULTS_ADDED" then
+        kind, id = "browse", "browse"
     elseif event == "OWNED_AUCTIONS_UPDATED" then kind, id = "owned", "owned"
     elseif event == "BIDS_UPDATED" then kind, id = "bids", "bids"
     elseif event == "REPLICATE_ITEM_LIST_UPDATE" then kind, id = "replicate", "replicate" end
@@ -243,38 +289,29 @@ frame:SetScript("OnEvent", guard(function(_, event, ...)
         lastTraffic = GetTime()
     end
     if event == "PLAYER_LOGIN" then
+        if type(CopperwiseDB) ~= "table" or CopperwiseDB.version ~= 1 then CopperwiseDB = {version=1, markets={}} end
+        if type(CopperwiseDB.markets) ~= "table" then CopperwiseDB.markets = {} end
         setupHooks()
     elseif event == "AUCTION_HOUSE_SHOW" then
-        houseOpen = true
-        lastTraffic = GetTime()
+        houseOpen, lastTraffic = true, GetTime()
+        setupPanel()
     elseif event == "AUCTION_HOUSE_CLOSED" then
         houseOpen = false
-        cancel("Auction house closed; local collection stopped.")
-        reopenRequired = false
-        externalPending = {}
-    elseif event == "ITEM_KEY_ITEM_INFO_RECEIVED" then
-        render()
-    elseif active then
-        if event == "COMMODITY_SEARCH_RESULTS_UPDATED" or event == "COMMODITY_SEARCH_RESULTS_ADDED" then
-            local itemID = ...
-            if result.commodity and itemID == result.itemID then readResults() end
-        elseif event == "AUCTION_HOUSE_THROTTLED_MESSAGE_DROPPED" or event == "AUCTION_HOUSE_BROWSE_FAILURE"
-            or event == "AUCTION_HOUSE_SHOW_ERROR" or event == "UI_ERROR_MESSAGE" then
-            local code = ...
-            fail(event .. " code=" .. value(code) .. "; scope/result uncertain")
-        else record("event=" .. event .. "; waiting within deadline") end
+        cancel("Auction house closed; previous complete scan preserved.")
+        reopenRequired, externalPending = false, {}
+    elseif active and (event == "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED" or event == "AUCTION_HOUSE_BROWSE_RESULTS_ADDED") then
+        receive()
+    elseif active and (event == "AUCTION_HOUSE_THROTTLED_MESSAGE_DROPPED"
+        or event == "AUCTION_HOUSE_BROWSE_FAILURE" or event == "AUCTION_HOUSE_SHOW_ERROR") then
+        finish("failed", event .. "; prior complete scan preserved.")
     end
-end, true))
+    render()
+end))
 
 for _, event in ipairs({"PLAYER_LOGIN", "AUCTION_HOUSE_SHOW", "AUCTION_HOUSE_CLOSED",
-    "ITEM_KEY_ITEM_INFO_RECEIVED", "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED",
-    "OWNED_AUCTIONS_UPDATED", "BIDS_UPDATED", "REPLICATE_ITEM_LIST_UPDATE",
-    "ITEM_SEARCH_RESULTS_UPDATED", "ITEM_SEARCH_RESULTS_ADDED", "COMMODITY_SEARCH_RESULTS_UPDATED",
-    "COMMODITY_SEARCH_RESULTS_ADDED", "AUCTION_HOUSE_THROTTLED_MESSAGE_DROPPED",
-    "AUCTION_HOUSE_THROTTLED_MESSAGE_QUEUED", "AUCTION_HOUSE_THROTTLED_MESSAGE_SENT",
-    "AUCTION_HOUSE_THROTTLED_MESSAGE_RESPONSE_RECEIVED", "AUCTION_HOUSE_THROTTLED_SYSTEM_READY",
-    "AUCTION_HOUSE_BROWSE_FAILURE", "AUCTION_HOUSE_SHOW_ERROR", "UI_ERROR_MESSAGE"}) do
-    local ok, err = pcall(frame.RegisterEvent, frame, event)
-    observed[event] = ok
-    if not ok then record("unsupported event=" .. event .. " " .. tostring(err)) end
+    "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED", "AUCTION_HOUSE_BROWSE_RESULTS_ADDED",
+    "COMMODITY_SEARCH_RESULTS_UPDATED", "ITEM_SEARCH_RESULTS_UPDATED", "OWNED_AUCTIONS_UPDATED",
+    "BIDS_UPDATED", "REPLICATE_ITEM_LIST_UPDATE", "AUCTION_HOUSE_THROTTLED_MESSAGE_DROPPED",
+    "AUCTION_HOUSE_BROWSE_FAILURE", "AUCTION_HOUSE_SHOW_ERROR"}) do
+    pcall(frame.RegisterEvent, frame, event)
 end

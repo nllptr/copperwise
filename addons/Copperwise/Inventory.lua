@@ -1,7 +1,7 @@
 Copperwise = {}
 local CW = Copperwise
 local frame = CreateFrame("Frame")
-local window, output, picker, scan, more, cancel
+local window, output, picker
 local rows, selected, candidate, candidateAt, dirtyAt = {}, nil, nil, 0, 0
 local settled = false
 
@@ -23,9 +23,6 @@ function CW.Render()
     if not output then return end
     local item = rows[selected]
     local ready = CW.SelectedItem()
-    scan:SetEnabled(ready ~= nil and not CW.ScanBusy())
-    more:SetEnabled(CW.attempt ~= nil and CW.attempt.itemID == selected
-        and CW.attempt.state == "partial" and not CW.ScanBusy())
     local text = "Select a bag item from the menu.\nBackpack and bags only; bank and equipment excluded."
     if item then
         text = (item.link or item.name) .. "\nItem ID: " .. item.id
@@ -34,23 +31,20 @@ function CW.Render()
             .. "\nVendor sell / owned quantity: " .. money(ready and item.sell and item.sell * item.quantity or nil)
             .. "\nSupport: " .. item.support
     end
-    local a = CW.attempt
-    if a and a.itemID == selected then
-        text = text .. "\n\nLatest scan: " .. a.state .. "\n" .. (a.reason or "")
-            .. "\nRequests: " .. a.requests .. "/3; covered rows: " .. tostring(a.rows or "unavailable")
-            .. "\nCovered supply: " .. tostring(a.units or "unavailable")
-            .. "\nLowest observed asking / unit: " .. money(a.minimum)
-            .. "\nCompleteness: " .. (a.full and "complete selected item" or "incomplete")
-            .. "\nObserved locally: " .. (a.observedAt and date("%Y-%m-%d %H:%M:%S %Z", a.observedAt) or "unavailable")
-            .. "\nMarket: " .. (a.context or "no query sent")
-    else text = text .. "\n\nNo scan for this selection." end
-    local o = CW.observation
-    if o and o.itemID == selected and o ~= a then
-        text = text .. "\n\nLast complete observation: " .. date("%Y-%m-%d %H:%M:%S %Z", o.observedAt)
-            .. "\n" .. o.context .. "; supply " .. o.units .. "; asking / unit " .. money(o.minimum)
+    local observation = item and CW.ObservationFor and CW.ObservationFor(item.id)
+    if observation then
+        text = text .. "\n\nRetained full-scan observation"
+            .. "\nLowest observed asking / unit: " .. money(observation.minimum)
+            .. "\nAvailable supply: " .. observation.units
+            .. "\nCoverage: complete market summary" .. (observation.empty and " (item absent)" or "")
+            .. "\nObserved locally: " .. date("%Y-%m-%d %H:%M:%S %Z", observation.observedAt)
+            .. "\nAge: " .. math.max(0, math.floor((time() - observation.observedAt) / 60)) .. " minutes"
+            .. "\nMarket: " .. observation.context
+    else
+        text = text .. "\n\nAH values unavailable for this selection."
     end
-    text = text .. "\n\nAsking values are not completed sales. Partial scans cannot establish a destination."
-    if CW.notice then text = text .. "\n" .. CW.notice end
+    text = text .. "\n\nRefresh market data with Full scan in the Copperwise auction-house tab."
+        .. "\nRetained asking values are not live prices or completed sales."
     output:SetText(text)
 end
 
@@ -84,15 +78,6 @@ local function snapshot()
     return table.concat(signature, "|"), nextRows
 end
 
-local function button(text, x, action)
-    local b = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
-    b:SetSize(125, 25)
-    b:SetPoint("TOPLEFT", x, -80)
-    b:SetText(text)
-    b:SetScript("OnClick", action)
-    return b
-end
-
 local function open()
     if not window then
         window = CreateFrame("Frame", "CopperwiseInventory", UIParent, "BasicFrameTemplateWithInset")
@@ -118,23 +103,18 @@ local function open()
                 local info = UIDropDownMenu_CreateInfo()
                 info.text, info.checked = row.name, selected == id
                 info.func = function()
-                    CW.Cancel()
-                    selected, CW.notice = id, nil
+                    selected = id
                     UIDropDownMenu_SetText(picker, rows[id] and rows[id].name or "Item removed")
                     CW.Render()
                 end
                 UIDropDownMenu_AddButton(info)
             end
         end)
-        scan = button("Scan at AH", 18, function() CW.notice=nil; CW.Scan() end)
-        more = button("More results", 155, function() CW.More() end)
-        cancel = button("Cancel", 292, function() CW.Cancel() end)
         output = window:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-        output:SetPoint("TOPLEFT", 22, -125)
+        output:SetPoint("TOPLEFT", 22, -85)
         output:SetPoint("BOTTOMRIGHT", -22, 20)
         output:SetJustifyH("LEFT")
         output:SetJustifyV("TOP")
-        window:SetScript("OnHide", function() CW.Cancel() end)
     end
     window:Show()
     CW.Render()

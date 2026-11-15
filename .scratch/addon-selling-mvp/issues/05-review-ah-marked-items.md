@@ -8,7 +8,7 @@
 
 **Labels:** ready-for-agent
 
-- [ ] Create a Copperwise tab inside the native AH window following the probes' integration approach; retain the separate Inventory marking window and normal native navigation.
+- [ ] Extend the Copperwise AH tab introduced for full-market scanning with posting review; retain the separate Inventory marking window and normal native navigation.
 - [ ] Populate the posting queue only from explicit Sell on AH intent, including after persistence restoration; Vendor-marked and unmarked holdings never become posting candidates automatically.
 - [ ] Show intended and currently executable quantities and retain shortages; select a revalidated supported bag stack for one posting review without requiring automatic stack consolidation.
 - [ ] Review item identity, chosen quantity, unit/total buyout, native duration, native-calculated deposit and identified price context; allow deliberate term selection without a mandated undercut strategy.
@@ -22,3 +22,7 @@ Use the addon-only selling MVP specification and its approved ranking and sale-i
 ## Comments
 
 Published after owner approval of the seven-ticket breakdown. This MVP series replaces the broader selling-context implementation order for the first release; the older roadmap remains historical and later-release scope. No parent specification or older ticket is closed or modified.
+
+Owner clarification 2026-11-15: the AH tab hosts Full scan as well as later
+posting review. Its posting queue remains restricted to AH-marked items; the
+full scan covers the market independently of that queue.

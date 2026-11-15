@@ -14,7 +14,7 @@ posting capabilities have already been demonstrated in the target client.
 ## Solution
 
 Ship one standalone addon for the current character: review supported bag
-items, request recent auction-house observations while at the AH, compare total
+items, run a full auction-house summary scan from the Copperwise AH tab, compare total
 AH asking value with total vendor sell value, mark quantities for sale, and
 review and deliberately post the next eligible AH item from Copperwise.
 
@@ -25,7 +25,7 @@ marked **Sell on AH** in the Inventory window; Vendor-marked and unmarked items
 do not enter its posting queue. This follows the native AH-tab approach already
 used in the probes.
 
-Keep the latest successful local scan observations available away from the AH,
+Keep the latest successful full-market summary scan available away from the AH,
 with their observation time and coverage. The addon needs no API credentials,
 backend, companion or Auctionator dependency. The initial supported market
 items are comparable commodities within the verified native query/post paths;
@@ -83,10 +83,19 @@ merchant UI to sell. Market history and crafting belong to later releases.
 - Aggregate comparable supported items across bag stacks. Reconcile settled bag
   observations; transient bag updates must not produce actionable double counts.
   Revalidate location, identity, quantity and posting terms before each action.
-- Support user-initiated bounded item queries and a sequential scan of supported
-  bag items. Respect native throttling and other AH activity. Cancellation or
-  AH closure stops further work; metadata loading does not silently start a
-  separate market request. No full-market scan capability is assumed.
+- Run a user-initiated full-market summary scan from the Copperwise tab inside
+  the native AH window, following the native unfiltered browse/pagination path
+  used by Auctionator's summary mode, without depending on Auctionator. Inventory
+  contains no scan controls: it reviews retained observations and marks sale
+  destinations. Missing data directs the player to Full scan in the AH tab.
+- Collect native item keys, minimum asking prices and available quantities across
+  all browse pages. Observe native completeness; do not describe summaries as
+  individual listings or an atomic market snapshot. Validate commodity unit-price
+  and supply semantics in the actual client before accepting those comparisons.
+- Respect native throttling and other AH activity. Show progress and cancellation;
+  AH closure or leaving the scan tab stops further requests. Bound request count,
+  processed rows and elapsed time; hitting a bound is incomplete and cannot
+  replace a previous complete scan. Metadata loading never initiates a scan.
 - Store latest successful local observations with source time, item identity,
   native market context and coverage. Keep them separate from the latest attempt
   state. Failed/cancelled refreshes must not erase a prior usable observation or
@@ -212,3 +221,15 @@ and acceptance boundary above govern this MVP.
 Owner clarification: the marking window and posting surface are separate. The
 posting surface is a Copperwise tab inside the native AH window, as in the
 probes, and acts only on items marked Sell on AH in the Inventory window.
+
+Owner clarification (2026-11-15): entire-market summary-mode scanning is required,
+matching Auctionator's reported "full scan (summary mode)", rather than scanning
+only bag items. Scan controls belong exclusively in Copperwise's native AH tab.
+The standalone Inventory window is for reviewing and sorting AH/Vendor intent.
+This replaces the earlier bounded-item/sequential-bag collection design. Existing
+single-item acceptance evidence remains historical and does not pass full-scan
+coverage or the revised two-surface workflow. Installed Auctionator source uses
+`SendBrowseQuery` with empty search/filters and `RequestMoreBrowseResults` until
+`HasFullBrowseResults`, collecting `minPrice` and `totalQuantity` per native key.
+The screenshot establishes Auctionator's reported success for 3,758 items; it
+is not yet Copperwise full-scan acceptance.

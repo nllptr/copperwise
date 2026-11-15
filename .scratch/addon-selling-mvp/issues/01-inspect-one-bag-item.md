@@ -1,6 +1,6 @@
 # 01: Inspect one bag item with AH context
 
-**What to build:** The player selects one real supported bag item in a standalone Inventory window and sees bag quantity, vendor sell value and a user-initiated native AH observation.
+**What to build:** The player selects one real supported bag item in a standalone Inventory window and sees bag quantity, vendor sell value and an observation from a user-initiated full market summary scan in the Copperwise AH tab.
 
 **Blocked by:** None (can start immediately).
 
@@ -10,7 +10,7 @@
 
 - [ ] Install and open the production addon without a backend, API credentials, companion or Auctionator dependency; the Inventory window is separate from the native AH window.
 - [ ] Show one supported commodity's comparable identity, settled bag quantity across stacks and vendor sell value; distinguish unavailable metadata from known zero and avoid actionable transient double counts.
-- [ ] At the AH, perform a bounded user-initiated query and show lowest observed buyout per unit, covered supply, market context, source time and completeness in the selected item's detail.
+- [ ] From the Copperwise AH tab, perform a user-initiated full market summary scan; in Inventory show lowest observed buyout per unit, covered supply, market context, source time and completeness in the selected item's detail.
 - [ ] Distinguish no scan, metadata loading, partial, failed, cancelled and complete empty results; no missing buyout becomes zero and incomplete observations cannot drive a destination recommendation.
 - [ ] Respect native throttling and other AH activity; cancellation or AH closure stops further requests and late responses do not replace a cancelled result.
 - [ ] Verify the selection-to-query-to-visible-result journey in the actual target client against native quantity/price observations; record build, context and limitations.
@@ -87,3 +87,19 @@ produces a cancelled attempt for this run. The initial macro used unavailable
 global `CloseAuctionHouse()` and errored; that failed operator instruction is
 not counted as closure evidence. Preservation of the prior observation in the
 closure case has not been explicitly confirmed.
+
+### Revised collection workflow — owner clarification 2026-11-15
+
+Full-market summary scanning replaces selected-item queries. Inventory has no
+Scan/More/Cancel controls; it displays retained observations for review and later
+sale-intent marking. Full scan lives in the native Copperwise AH tab and covers
+all native browse pages, following the installed Auctionator summary-mode path.
+The owner supplied Auctionator output reporting 3,758 processed items. Copperwise
+must verify the new full scan independently. Previous production single-item
+results above are historical evidence, not acceptance of the revised collector.
+
+Revised implementation retains complete market snapshots per character and native
+market, preserving prior successful data on cancellation/failure and exposing
+it away from AH and after reload. Request/row/time bounds, native throttling and
+other AH activity remain enforced. No ranking/marking/posting is added here.
+Full-scan runtime and persistence acceptance remain pending.
