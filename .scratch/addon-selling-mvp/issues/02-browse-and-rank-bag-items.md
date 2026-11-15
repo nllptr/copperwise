@@ -2,7 +2,7 @@
 
 **What to build:** The Inventory window lists aggregated bag holdings, allows item selection and ranks complete AH/vendor comparisons from retained full-market summary observations using the approved destination rules.
 
-**Blocked by:** 01: Inspect one bag item with AH context.
+**Blocked by:** None — ticket 01 resolved (2026-11-15).
 
 **Status:** ready-for-agent
 
@@ -41,3 +41,11 @@ or make their asking values appear newly observed.
 Ticket 01's current acceptance checklist is the authoritative dependency status.
 Its verified core workflow is recorded, but unverified edge cases remain open;
 this edit does not silently waive the dependency or start ticket 02 implementation.
+
+### Dependency resolved — 2026-11-15
+
+Ticket 01 is now resolved using its recorded production-client evidence and the
+owner-approved controlled diagnostics, which passed 7/7 in the target client.
+Its current checklist distinguishes native observations from simulated edge
+cases and records remaining evidence limits. Ticket 02 is unblocked; no ticket
+02 implementation or acceptance is implied by this update.

@@ -69,9 +69,12 @@ Stale-warning configuration and destination buttons belong to later tickets.
 
 ## Actual-client acceptance
 
-Status: pending for the revised full-market workflow. Prior single-item query,
-vendor and bag results remain recorded in ticket 01; they do not verify this
-collector. Lua syntax and Go checks are supporting checks only.
+Ticket 01 is resolved: production full-market workflow evidence and the
+owner-approved controlled edge-case diagnostics are recorded in its acceptance
+checklist. The target-client diagnostic run passed 7/7 on 2026-11-15; simulated
+inputs do not establish native-server behavior. The broader release checklist
+below spans later tickets and is not entirely complete. Lua syntax and Go checks
+are supporting checks only.
 
 1. Record `GetBuildInfo()`, platform, native realm/faction/region, UI scale and
    enabled addons. Disable Copperwise probes. Verify loading without Auctionator.

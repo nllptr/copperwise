@@ -4,9 +4,9 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** open — remaining acceptance checks pending
+**Status:** resolved — production workflow verified; approved controlled edge cases passed in target client
 
-**Labels:** acceptance-pending
+**Labels:** accepted
 
 ## Current acceptance checklist
 
@@ -48,21 +48,26 @@ Verified in the production addon:
 - [x] Record the current target client: 1.60.1, build 70938, built Nov 12 2026,
   interface 16001; market CAMWOW EU5 Realm 10 RP / Alliance / region 3.
 
-Remaining ticket-01 acceptance checks (not implied by the passes above):
+Verified through the owner-approved controlled diagnostics in the target client
+(synthetic inputs and captured production Inventory text, not native-server
+observations):
 
-- [ ] Verify unavailable/loading vendor metadata through visible client
-  behavior; metadata availability must not send a scan. Known-zero display passes.
-- [ ] Exercise complete-empty and incomplete/partial coverage; missing buyout
-  must remain unavailable, and incomplete data cannot become a recommendation.
-- [ ] Observe native throttling and bound/timeout behavior without publishing a
-  partial snapshot as complete; normal pagination alone is not this check.
-- [ ] Verify a failed refresh with an existing successful snapshot preserves its
-  price, supply, source time and coverage. Cancellation preservation already passes.
+- [x] Unavailable vendor metadata displays unavailable, then known zero displays
+  numeric zero, without sending a scan.
+- [x] Complete-empty coverage shows zero supply and unavailable buyout; a summary
+  with zero buyout also shows unavailable. Partial coverage remains separate from
+  the last complete observation. Recommendation behavior belongs to ticket 02.
+- [x] Simulated query readiness pauses/resumes pagination; response and total
+  timeouts preserve the prior complete snapshot, including after late results.
+- [x] A simulated failed refresh preserves price, supply, source time and coverage.
 
-Ticket 01 remains open for these checks. This reconciliation neither waives
-acceptance nor marks ticket 02's dependency resolved. Extended logout/market
-scoping and stale-warning acceptance belongs to ticket 03; it is not added here
-as a new gate. Do not repeat the completed cancellation timestamp test.
+Acceptance combines the native production evidence above with the approved
+controlled edge-case checks, which passed 7/7 in the target client at 15:13:31 CET
+on 2026-11-15. Actual server throttling, real unavailable-metadata timing and
+request/row caps were not observed; the controlled run is not claimed as evidence
+of those conditions. Under the approved diagnostic approach these are documented
+limits, not additional ticket-01 gates. Ticket 02's dependency is resolved.
+Extended logout/market scoping and stale-warning acceptance belongs to ticket 03.
 
 ## Scope and verification
 
@@ -328,3 +333,21 @@ execution; the Python build script parses and its bundle freshness check passes;
 the diagnostic change found no issues. The separate diagnostic addon was copied
 into the target client's AddOns folder for the owner's `/cwdiag` run. No target
 client result has been recorded yet; ticket 01 remains open.
+
+### Target-client diagnostics and ticket closure — 2026-11-15
+
+Owner supplied two screenshots of the scrolling `/cwdiag` report, run at
+2026-11-15 15:13:31 CET in client 1.60.1, build 70938, interface 16001. The summary
+shows 7/7 passed, 0 failed: metadata, empty, buyout, failure, timeout, partial and
+throttle. Visible captured output includes unavailable vendor values followed by
+numeric zero; throttled readiness followed by a completed scan; and preserved
+complete observations during incomplete/failed collection. All data in this
+report is explicitly simulated, including realm, timestamps and holdings.
+
+This completes the owner-approved controlled-diagnostic approach for difficult
+edge cases alongside the separately recorded real production workflow evidence.
+Ticket 01 is resolved and ticket 02 is unblocked. Actual native throttling and
+metadata cache timing remain unobserved; request/row caps are not covered by the
+seven cases. These limits are retained explicitly rather than reported as native
+passes. No ranking, marking or posting acceptance is implied. The diagnostic
+addon can now be disabled; ordinary Copperwise remains installed.
