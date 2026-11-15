@@ -160,3 +160,7 @@ Owner confirms "it works" after disabling Auctionator, reloading, running
 Copperwise Full scan and checking prices in `/cw`. The production collector and
 Inventory price display therefore pass the observed Auctionator-independent
 workflow. This establishes no Auctionator dependency for the exercised path.
+
+Owner supplied `GetBuildInfo()` for the current production run: version
+1.60.1, build 70938, build date Nov 12 2026, interface 16001. This is direct
+current-run build evidence, replacing the earlier build-recording gap.
