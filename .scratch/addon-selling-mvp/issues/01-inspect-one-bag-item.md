@@ -41,6 +41,8 @@ Verified in the production addon:
   the revised full collector has since completed additional scans.
 - [x] Refuse a new full scan during outstanding Auctionator work, retain the
   previous snapshot and allow Auctionator to finish normally.
+- [x] Interrupt an active scan on a separate native browse request while the
+  Copperwise tab stays open; retain the previous complete snapshot and price.
 - [x] Record the current target client: 1.60.1, build 70938, built Nov 12 2026,
   interface 16001; market CAMWOW EU5 Realm 10 RP / Alliance / region 3.
 
@@ -54,10 +56,6 @@ Remaining ticket-01 acceptance checks (not implied by the passes above):
   partial snapshot as complete; normal pagination alone is not this check.
 - [ ] Verify a failed refresh with an existing successful snapshot preserves its
   price, supply, source time and coverage. Cancellation preservation already passes.
-- [ ] Exercise competing AH activity during an active Copperwise scan; current
-  evidence confirms stopping and normal native search completion during the
-  tab-switch/search sequence, with the retained observation unchanged;
-  this sequence does not isolate competing-request detection from tab hiding.
 
 Ticket 01 remains open for these checks. This reconciliation neither waives
 acceptance nor marks ticket 02's dependency resolved. Extended logout/market
@@ -270,3 +268,23 @@ Owner subsequently confirms the retained observation still shows source time
 after the tab-switch/native-search interruption. Preservation passes for this
 sequence. The separate failed-refresh check and competing-request detection
 while Copperwise remains active are not established by this cancellation path.
+
+### Competing request with Copperwise tab active — 2026-11-15
+
+Owner ran the requested start-plus-external-browse command with the Copperwise
+tab open, after closing/reopening AH and waiting two seconds:
+
+```lua
+/run Copperwise.Scan(); C_AuctionHouse.SendBrowseQuery({searchString="",sorts={},filters={},itemClassFilters={}})
+```
+
+The supplied screenshot shows the attempt started at 2026-11-15 14:43:43 CET,
+cancelled after one request and zero processed summaries with reason "Other AH
+activity interrupted collection; close/reopen AH before retrying." The retained
+complete scan remains dated 12:03:55 CET, with 5,677 summaries, zero repeated
+keys and zero conflicting keys, in the same market. Owner explicitly confirms
+"old price retained". This independently establishes competing-request detection
+without hiding the Copperwise tab, alongside the earlier normal native-search
+completion and retained price/supply/time/coverage confirmation. The competing
+AH activity acceptance check passes. Four ticket-01 checks remain; the ticket
+stays open.
