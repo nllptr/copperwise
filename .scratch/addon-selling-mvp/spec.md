@@ -355,3 +355,16 @@ market, threshold and refresh action. Missing compatible scans show existing
 unavailable states instead of an invented stale scan. Failed/cancelled scans
 continue to use the retained complete snapshot's age. This supersedes earlier
 per-AH-button stale warnings. No scan merging or incremental refresh is added.
+
+### Quiet holdings revalidation — 2026-11-15
+
+Owner confirms the window-level warning, zero-availability shortage behavior
+and manual Vendor sale behavior work. Owner reports hovering native bag items
+briefly hides destination buttons and replaces marked-row bag counts with
+checking. Keep background revalidation visually quiet: retain last settled
+buttons, quantities, totals, shortages and order while unsettled. Continue to
+require settled holdings at click time for new/remainder marks. Explicit edits
+and removals remain available. Before the first settled login observation,
+show availability as unavailable rather than treating saved intent as holdings.
+Publish genuine holding changes after settling. This supersedes earlier
+checking labels and temporary destination-button hiding during bag activity.

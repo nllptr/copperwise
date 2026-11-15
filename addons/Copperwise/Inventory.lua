@@ -8,7 +8,7 @@ local buttons = {}
 local lastOrder = {}
 local displayedComparisons = {}
 local rows, selected, candidate, candidateAt, dirtyAt = {}, nil, nil, 0, 0
-local settled = false
+local settled, hasSnapshot = false, false
 local selectedMarked = false
 
 local function money(value)
@@ -220,11 +220,11 @@ local function renderList()
         button.value:SetText(values.value ~= nil and money(values.value) or "—")
         local bagQuantity = rows[item.id] and rows[item.id].quantity or 0
         button.status:SetText(choice.marked and ("Sell " .. intent.quantity .. "; bags "
-            .. (ready and bagQuantity or "checking")
-            .. (ready and bagQuantity < intent.quantity and ("; short " .. (intent.quantity - bagQuantity)) or ""))
+            .. (hasSnapshot and bagQuantity or "unavailable")
+            .. (hasSnapshot and bagQuantity < intent.quantity and ("; short " .. (intent.quantity - bagQuantity)) or ""))
             or (values.reason and ("Unavailable — " .. values.reason) or (intent and "Unmarked remainder" or "")))
         local destination = intent and intent.destination or values.destination
-        if choice.marked or (ready and not values.reason and destination) then
+        if choice.marked or (not values.reason and destination) then
             button.toggle:SetText((destination == "AH" and "|cffffd100" or "|cff99ddaa")
                 .. destination .. (choice.marked and " ×" or (intent and " +" or "")) .. "|r")
             button.toggle.help = choice.marked and ("Unmark " .. item.name .. " from " .. destination .. ". No sale is made.")
@@ -254,7 +254,7 @@ function CW.Render()
     local values = item and comparison(item)
     if item then
         text = (item.link or item.name) .. "\nItem ID: " .. item.id
-            .. "\nBag quantity (last settled): " .. (owned and owned.quantity or 0)
+            .. "\nBag quantity (last settled): " .. (hasSnapshot and (owned and owned.quantity or 0) or "unavailable")
             .. "\nSelected quantity: " .. item.quantity .. (selectedMarked and " marked units" or " unmarked units")
             .. "\nVendor sell / unit: " .. money(item.sell)
             .. (intent and "\nVendor sell / selected quantity: " or "\nVendor sell / owned quantity: ") .. money(values.vendor)
@@ -264,11 +264,11 @@ function CW.Render()
             .. "\nSupport: " .. item.support
     end
     if intent then
-        local available = settled and not CursorHasItem() and (rows[selected] and rows[selected].quantity or 0)
+        local available = hasSnapshot and (rows[selected] and rows[selected].quantity or 0)
         text = text .. "\n\nSale intent: " .. intent.destination .. " — " .. intent.quantity .. " units"
-            .. "\nCurrently available in bags: " .. (available or "checking")
-            .. "\nCovered intent: " .. (available and math.min(available, intent.quantity) or "checking")
-            .. "\nShortage: " .. (available and math.max(0, intent.quantity - available) or "checking")
+            .. "\nCurrently available in bags: " .. (available or "unavailable")
+            .. "\nCovered intent: " .. (available and math.min(available, intent.quantity) or "unavailable")
+            .. "\nShortage: " .. (available and math.max(0, intent.quantity - available) or "unavailable")
         if intent.destination == "Vendor" then text = text .. "\nSell with the normal merchant UI; remove intent explicitly." end
     end
     if CW.intentNotice then text = text .. "\n" .. CW.intentNotice end
@@ -454,7 +454,7 @@ frame:SetScript("OnUpdate", function(_, dt)
     elseif signature ~= candidate then
         settled, candidate, candidateAt = false, signature, GetTime()
     elseif GetTime() - candidateAt >= 0.75 and GetTime() - dirtyAt >= 0.75 then
-        rows, settled = nextRows, true
+        rows, settled, hasSnapshot = nextRows, true, true
     end
     CW.Render()
 end)

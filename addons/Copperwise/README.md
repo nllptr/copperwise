@@ -212,8 +212,11 @@ Add bag units control. Existing saved quantities are preserved by this update.
 
 Intended units, current bag availability, covered intent and shortage are shown
 separately. Marked items remain listed when none are held. During bag or cursor
-activity, availability says **checking** and additions are withheld; edits and
-explicit removal remain available. A bag decrease never completes or removes
+activity, the last settled quantities, shortage labels and destination buttons
+stay visible. Revalidation runs in the background; additions still require
+settled holdings at click time. Edits and explicit removal remain available.
+Before the first settled observation after login, availability is unavailable;
+saved intent never proves current bag holdings. A bag decrease never completes or removes
 Vendor or AH intent. Use the normal merchant UI to sell Vendor items, then
 explicitly remove or edit the plan. No merchant or auction transaction is sent.
 
@@ -250,9 +253,11 @@ addon with probes disabled. Repository checks do not pass these cases.
    and verify the 5/6 split. Unmark and confirm one unmarked row of 11.
    Reject blank, zero, negative, fractional and oversized values. Typing without
    saving must leave the plan unchanged. Unmarking must also work at zero bags.
-4. Split/merge stacks and move an item onto the cursor: additions disappear
-   during settling and availability says checking. After settling, bag quantities
-   agree with native bags. Decrease holdings below intended units, then to zero:
+4. Hover items in native bags repeatedly, then split/merge stacks and move an
+   item onto the cursor: existing buttons, bag labels, shortages, totals and
+   order must remain stable during background settling. No transient checking
+   label or disappearing button should appear. Additions during this interval
+   must not mutate intent. After settling, bag quantities agree with native bags. Decrease holdings below intended units, then to zero:
    the mark and destination remain, with the correct shortage and no lost row.
 5. Close/reopen Inventory, visit/switch native AH tabs and return. Reload and
    logout/login: verify the same intended quantity and destination, with fresh

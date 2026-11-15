@@ -128,3 +128,21 @@ selection/destination. Removed row markers and duplicate selected-item warnings;
 no scan merging or storage changes. Existing freshness regression checks now
 observe the shared window warning, including Vendor/unavailable selections.
 Client verification of the revised warning remains pending.
+
+### Shortages, Vendor checks and quiet revalidation — 2026-11-15
+
+Owner confirms the new single warning looks good and that the requested checks
+2 and 3 work: marked intent persists at zero bag availability with shortage,
+and selling through the normal merchant UI changes availability without
+implicitly clearing Vendor intent. Character-isolation acceptance remains
+pending; it was check 1 and was not included in that confirmation.
+
+Owner reports hover-triggered brief destination-button disappearance and
+marked-row labels switching from bags 2 to bags checking. Rendering exposed
+transient settling state despite retaining the last observed rows. Removed
+those presentation gates: display uses the last settled bag snapshot while
+AvailableItem and the mark handler continue to block additions until settled.
+First-login availability remains unavailable until an actual settled snapshot;
+saved intent cannot manufacture observed zero holdings. Actual bag changes are
+published only after the existing settling interval. Updated the spec and
+README hover/split/move checklist; client verification of this fix is pending.
