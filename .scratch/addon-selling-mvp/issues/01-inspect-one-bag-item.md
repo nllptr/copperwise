@@ -155,3 +155,8 @@ coexistence scenario passes: Copperwise refused a new full scan while external
 AH work was outstanding, retained its prior complete snapshot, and did not
 prevent Auctionator from completing. This does not establish every competing
 request/interruption or throttle path.
+
+Owner confirms "it works" after disabling Auctionator, reloading, running
+Copperwise Full scan and checking prices in `/cw`. The production collector and
+Inventory price display therefore pass the observed Auctionator-independent
+workflow. This establishes no Auctionator dependency for the exercised path.
