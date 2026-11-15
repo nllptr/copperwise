@@ -1,6 +1,6 @@
-# 06: Post and reconcile the next queued item
+# 06: Post all marked AH items and reconcile the batch
 
-**What to build:** The player deliberately posts one reviewed AH-marked item through Copperwise, with confirmed completion reducing pending intent and unfinished quantities retained.
+**What to build:** From the batch review in Copperwise's AH tab, the player clicks Post all to post eligible AH-marked quantities through successive supported native posting calls. Confirmed results reduce intent; unfinished items remain pending. The normal path does not require rebuilding or individually reviewing each listing.
 
 **Blocked by:** 05: Review AH-marked items in the native AH tab.
 
@@ -8,13 +8,16 @@
 
 **Labels:** ready-for-agent
 
-- [ ] Use the verified supported direct native posting approach from Copperwise's AH tab, requiring a deliberate user action and final validation of reviewed item, quantity and terms.
-- [ ] Preserve required native confirmations; timers, events, marking, opening windows, restoring queues and reload never initiate posts or automatic retries.
-- [ ] Attribute completion using native owned-listing evidence and reconciled current holdings; a click, API return, shared event or bag delta alone is insufficient.
-- [ ] Reduce intent only by confirmed posted units, remove zero-remainder entries and retain partial quantities for subsequent deliberate posts across stacks.
-- [ ] Preserve intent on cancellation or failure; uncertain outcomes retain unresolved intent and block blind retries until reconciled, with explicit operator reconciliation when reliable attribution is unavailable.
-- [ ] Verify a deliberate successful post, partial completion, changed availability/terms and unsuccessful/cancelled/uncertain handling in the target client; record chosen terms, native evidence and remaining limitations.
-- [ ] Confirm normal AH navigation and other-addon activity cannot accidentally complete, duplicate or consume Copperwise's pending intent.
+- [ ] Add an operational Post all action to ticket 05's reviewed list. One deliberate action starts a bounded session for that reviewed batch; never assume one native request can post several items.
+- [ ] Establish in the target client whether the sequence can advance after confirmed outcomes from one initial click, or whether additional hardware clicks are required. Prefer one-click-started succession where permitted; otherwise use one consistent posting button that advances the same reviewed list, requesting only the extra clicks the client actually requires. Preserve native confirmations; do not bypass client action restrictions.
+- [ ] Execute native postings in succession, revalidating source identity, quantity, eligibility and reviewed terms immediately before each call. Cover multiple marked items and multiple source stacks per item without forced per-item/per-stack review. Never silently substitute unreviewed prices or terms.
+- [ ] Attribute each result using native owned-listing evidence and reconciled holdings before advancing; a click, API return, shared event or bag delta alone is insufficient. Show concise progress through the batch.
+- [ ] Reduce pending intent only by confirmed posted units, remove entries at zero and continue through eligible remaining quantities/stacks. The current batch covers only its reviewed intent; newly added or increased intent waits for a new review/start action.
+- [ ] Keep shortages and known-ineligible/known-unposted failures pending with a visible reason. Other eligible entries may continue when it is established that no listing was submitted; never retry a failure automatically. An uncertain outcome pauses the sequence and blocks further posts/retries until reconciliation, with explicit operator reconciliation when reliable attribution is unavailable.
+- [ ] Provide Stop/Cancel for the active sequence: dispatch no further postings, reconcile any in-flight outcome and retain all unfinished intent. AH closure/tab departure, competing AH activity or invalid reviewed terms stop/pause the session. Completed listings remain posted; reopening/reloading never resumes the batch automatically.
+- [ ] Timers/events may only advance an explicitly started active batch where native permissions allow; marking, opening windows, restoring queues, scanning, login/reload and unrelated events never start a batch. Required native confirmations and each post's attribution remain intact.
+- [ ] Verify Post all across several marked item types and multiple stacks, partial completion, shortages, stop/cancel, AH closure, changed availability/terms, known failures, uncertain outcomes, duplicate prevention and native owned-listing evidence in the target client. Record the actual click requirements and remaining limits.
+- [ ] Confirm Vendor-marked/unmarked items and other-addon activity cannot enter, accidentally complete or consume Copperwise's batch intent; verify normal AH navigation and Auctionator coexistence.
 
 ## Scope and verification
 
@@ -23,3 +26,16 @@ Use the addon-only selling MVP specification and its approved ranking and sale-i
 ## Comments
 
 Published after owner approval of the seven-ticket breakdown. This MVP series replaces the broader selling-context implementation order for the first release; the older roadmap remains historical and later-release scope. No parent specification or older ticket is closed or modified.
+
+### Successive mass posting — 2026-11-15
+
+Owner confirms ticket 05 can remain a whole-list review screen and requests
+mass posting be explicit in ticket 06. The intended flow is mark → visit AH →
+Copperwise → Post all. Multiple native postings in succession are expected;
+multiple items in one native request are not assumed. The prior verified probe
+establishes individual posting only. Whether one initial click can advance the
+whole sequence is a target-client capability check, not an established fact.
+This supersedes the earlier requirement for a separate deliberate action and
+review for each post, while preserving attribution, reconciliation and native
+permission requirements. User-started batch advancement is authorized within
+the active reviewed session; background/unprompted batch starts remain excluded.

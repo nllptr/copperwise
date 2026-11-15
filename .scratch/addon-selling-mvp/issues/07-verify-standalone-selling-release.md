@@ -2,14 +2,14 @@
 
 **What to build:** The owner can install and use the standalone selling MVP with recorded evidence for the complete scan, review, mark, restore and deliberate-post journey.
 
-**Blocked by:** 03: Scan bag items and retain observations; 06: Post and reconcile the next queued item.
+**Blocked by:** 03: Scan bag items and retain observations; 06: Post all marked AH items and reconcile the batch.
 
 **Status:** ready-for-agent
 
 **Labels:** ready-for-agent
 
 - [ ] Run the production addon without external services or Auctionator dependency on the actual target platform; record client/platform builds, native market context and installation steps.
-- [ ] Verify the full journey: inspect bags, scan multiple supported items at the AH, review ranking/destinations, mark/edit/remove quantities in the separate Inventory window, reload/logout, restore intent and review/post through Copperwise's native AH tab.
+- [ ] Verify the full journey: inspect bags, scan multiple supported items at the AH, review ranking/destinations, mark/edit/remove quantities in the separate Inventory window, reload/logout, restore intent, review the whole marked list and use Post all through Copperwise's native AH tab, with only native-required additional clicks.
 - [ ] Confirm only AH-marked items enter the posting queue; Vendor and unmarked items remain excluded, and vendor sales use the normal merchant UI.
 - [ ] Cover multi-stack/transient holdings, missing and known-zero metadata, unsupported items, no scan, observed empty, partial/failed/cancelled scans, preserved cached observations and configurable stale warnings.
 - [ ] Cover changed holdings, posting cancellation/failure, unresolved outcomes, duplicate prevention and confirmed partial completion with native owned-listing and bag reconciliation.

@@ -16,7 +16,8 @@ posting capabilities have already been demonstrated in the target client.
 Ship one standalone addon with account-wide market observations and current-character
 holdings and sale intent: review supported bag items, run a full auction-house summary scan from the Copperwise AH tab, compare total
 AH asking value with total vendor sell value, mark quantities for sale, and
-review and deliberately post the next eligible AH item from Copperwise.
+review the complete AH-marked list and deliberately start Post all from Copperwise,
+posting eligible quantities through successive supported native calls.
 
 These are two separate surfaces: a standalone Inventory window for reviewing
 items and marking them for AH or Vendor, and a Copperwise tab inside the native
@@ -62,10 +63,10 @@ merchant UI to sell. Market history and crafting belong to later releases.
 24. As a casual seller, I want intended and currently available quantities distinguished, so that changed bags do not silently erase my plan or promise unavailable items.
 25. As a casual seller, I want AH-designated selections carried to Copperwise's AH surface, so that I can act on my existing list.
 26. As a casual seller, I want to review item, quantity, price, duration and deposit before posting, so that cached intent cannot cause an unintended listing.
-27. As a casual seller, I want every post to require my deliberate action, so that marking or opening the addon never spends a deposit.
+27. As a casual seller, I want one deliberate Post all action to start posting the reviewed batch, with any further clicks required by the native client, so that marking or opening the addon never spends a deposit.
 28. As a casual seller, I want the pending quantity reduced only after a confirmed post, so that failed or cancelled attempts preserve my remaining intent.
 29. As a casual seller, I want uncertain outcomes reconciled before retrying, so that I do not accidentally post twice.
-30. As a casual seller, I want partial completion to leave the remaining quantity queued, so that I can finish across multiple deliberate posts.
+30. As a casual seller, I want partial completion to leave the remaining quantity queued, so that I can finish the batch or resume its remainder through a later deliberate start.
 31. As a casual seller, I want vendor-designated items clearly identified, so that I can sell them using the normal merchant UI.
 32. As a casual seller, I want familiar native controls and readable item/coin presentation, so that Copperwise feels integrated with the game.
 33. As a casual seller, I want listing values described as asking values, so that I do not mistake them for completed sales or guaranteed profit.
@@ -136,15 +137,23 @@ merchant UI to sell. Market history and crafting belong to later releases.
   following the probes' integration approach. Populate that tab's posting queue
   only from explicit Sell on AH intent created in the Inventory window; neither
   Vendor intent nor unmarked holdings become posting candidates automatically.
-- Posting is one reviewed action at a time. Show unit/total price, quantity,
-  native duration and native-calculated deposit. No undercut strategy or automatic
-  default price is mandated. User edits and final review determine the terms.
+- Review the complete AH-marked list in one compact surface, showing unit/total
+  price, quantity, native duration and native-calculated deposit where known.
+  Provide proposed defaults, optional per-item edits and a shared duration
+  setting; selecting/configuring each row is not a required step. Price defaults
+  and refresh policy remain to be explicitly settled; no undercut strategy is
+  mandated. Post all starts execution of the reviewed batch in ticket 06.
 - Sale intent spans stacks, but each post may be bounded to one revalidated
   source stack, consistent with the verified posting probe. Keep the remainder
-  queued for subsequent actions; automatic stack consolidation is unnecessary.
-- Use supported direct native posting from Copperwise with required user actions.
-  Do not trigger posts from timers, events, reload or queue changes. Preserve
-  native confirmations and normal AH navigation/coexistence.
+  queued for successive posts within the reviewed batch; automatic stack
+  consolidation and per-stack review are unnecessary.
+- Use supported direct native posting calls in succession, with Post all as the
+  main user action. Verify whether the target client permits advancement after
+  one initial click; if further clicks are required, use one consistent button
+  advancing the same reviewed list. Preserve native confirmations and permissions.
+  Timers/events can advance only an explicitly started, still-active batch where
+  permitted; windows, intent changes, scanning, reload and unrelated events never
+  start or resume posting. Revalidate and reconcile each post before advancing.
 - Reduce pending units only by confirmed attributed posting outcomes, removing
   entries at zero. A click, API return, shared event or bag delta alone does not
   prove a post. Uncertain outcomes retain unresolved intent and prevent blind
@@ -197,7 +206,8 @@ merchant UI to sell. Market history and crafting belong to later releases.
 - Neutral/cross-faction auction houses (15% commission); defer to a later release.
 - Bank inclusion, cached bank planning, other-character holdings and transfers.
 - Equipment variants, noncommodity auction workflows and unsupported item classes.
-- Automatic merchant selling, bulk unattended posting, automatic undercut rules,
+- Automatic merchant selling, unprompted/background batch starts or resumptions,
+  automatic undercut rules,
   automatic stack consolidation, cancellation of existing auctions and accounting.
 - Claims of completed sales, sale probability, forecasts or guaranteed profit.
 - Public distribution/accounts, additional markets/platforms and companion polish.
@@ -368,3 +378,27 @@ and removals remain available. Before the first settled login observation,
 show availability as unavailable rather than treating saved intent as holdings.
 Publish genuine holding changes after settling. This supersedes earlier
 checking labels and temporary destination-button hiding during bag activity.
+
+### Whole-list review and Post all — 2026-11-15
+
+Owner confirms the target is mark items → visit AH → Copperwise tab → Post all.
+Ticket 05 provides review of the entire AH-marked list with proposed terms and
+optional edits, without mandatory per-item review or any transaction. Ticket 06
+makes mass posting explicit through successive supported native calls; a single
+multi-item native request is not assumed. One initial start should drive the
+sequence if the target client permits it. Any required extra clicks use the
+same advancing button, preserving the reviewed list and native confirmations.
+The existing individual-post probe does not establish batch click requirements.
+
+Only confirmed posts reduce intent. Known shortages/ineligible entries and
+known-unposted failures remain pending with reasons; other eligible entries may
+continue when safe, without automatic failure retries. Uncertainty pauses the
+sequence until reconciled. Stop/Cancel prevents new dispatches and reconciles
+in-flight results; closure, tab departure, conflicting AH activity or invalid
+terms stop/pause the session. Reopening/reloading never auto-resumes. New or
+increased intent is outside an already-reviewed batch and requires a later
+review/start. These decisions supersede earlier per-post deliberate-click and
+blanket event/timer-advancement prohibitions only within an explicitly started
+reviewed batch. They do not authorize background posting starts or native action
+restriction bypasses. Price defaults/refresh and duration defaults remain to be
+settled explicitly; matching lowest buyout has been suggested, not mandated.
