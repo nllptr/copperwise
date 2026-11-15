@@ -13,9 +13,9 @@
 - [ ] Persist market scans account-wide so all characters on the same account
   can read compatible observations; retain comparable identity, native market
   context, source time and coverage, and never mix incompatible markets.
-- [ ] Migrate existing per-character scan snapshots without losing observations
-  or changing source times; retain the newer complete snapshot for each market
-  rather than letting an older character's data overwrite it.
+- [ ] Preserve account-wide data through future schema upgrades, including skipped
+  releases; keep unsupported data intact. Pre-account-wide migration was waived
+  by the owner on 2026-11-15.
 - [ ] Verify character A scans and saves on reload/logout, then character B
   logs in/reloads and sees the same compatible prices, supply and source time
   away from AH. Keep each character's bag holdings and sale intent separate.
@@ -73,3 +73,13 @@ workflow as owner-reported passed in the target client. Separate checks for an
 older legacy snapshot failing to overwrite newer shared data and incompatible
 market isolation have not been individually confirmed. The broader ticket
 remains open.
+
+### Compatibility scope update — 2026-11-15
+
+The owner waived pre-account-wide migration because they are the sole user;
+older-character overwrite acceptance is no longer required. Removed that import
+path. Account-wide version 1 remains readable. Added a versioned loader with a
+sequential migration registry for future schema updates, copy-before-upgrade and
+publish-on-success behavior. Unknown/malformed stores are preserved and market
+reads/scans are disabled with an explanation. No schema upgrade is needed today;
+each future schema change must supply its migration and behavior tests.

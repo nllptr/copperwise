@@ -52,12 +52,19 @@ comparisons. The AH panel reports repeated-key and conflicting-key counts.
 Snapshots persist through account-wide `CopperwiseAccountDB` saved variables,
 separated by native realm/faction/region. All characters on the same account can
 read compatible observations away from AH after ordinary reload/logout and login.
-Observation age uses the original source time. Existing complete snapshots in
-per-character `CopperwiseDB` migrate at login; the newer complete snapshot wins
-per market, with equal timestamps keeping the account copy. Legacy character
-data stays intact, and character holdings and sale intent are never copied into
-the account store. There is no live cross-client synchronization, offline
-collection or price history.
+Observation age uses the original source time. Account-wide schema version 1 is
+our persistence baseline; pre-account-wide character snapshots are not imported.
+Character holdings and sale intent stay separate from the account market store.
+There is no live cross-client synchronization, offline collection or price history.
+
+When changing the account schema, increment `VERSION` in `Storage.lua` and add
+an upgrade function keyed by the previous version in `migrations`. Each function
+returns the upgraded table; the loader advances its version by one. Retain all
+steps so users can skip releases. Upgrades run on a copy and are published only
+after the entire chain succeeds. Add behavior checks for the concrete schema
+change at the login/Inventory boundary. No account schema change is needed yet.
+Unsupported versions, malformed data and failed upgrades leave the saved data
+intact and disable market reads/scans with a visible explanation.
 Stale-warning configuration and destination buttons belong to later tickets.
 
 ## Actual-client acceptance
@@ -80,12 +87,10 @@ collector. Lua syntax and Go checks are supporting checks only.
    observations must retain prices, supply, source time, market and coverage.
    Switch to another character on the same account and compatible market, away
    from AH. Confirm the same observations and original source time against that
-   character's own bag quantities. Log into a character with an older legacy
-   scan and confirm it cannot replace the newer shared scan. Verify another
+   character's own bag quantities. Verify another
    realm/faction/region cannot read incompatible data. The owner reported the
-   account-wide sharing workflow working as expected on 2026-11-15. Older-legacy
-   overwrite protection and incompatible-market isolation still await separate
-   client confirmation.
+   account-wide sharing workflow working as expected on 2026-11-15. Incompatible
+   market isolation still awaits separate client confirmation.
 5. Cancel immediately after dispatch from the open Copperwise AH tab:
    `/run Copperwise.Scan(); Copperwise.Cancel()`.
    Wait for late responses; state must remain cancelled and retained data must

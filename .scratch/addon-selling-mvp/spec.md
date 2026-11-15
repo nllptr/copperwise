@@ -263,3 +263,13 @@ MVP requirement, or merge different characters' holdings. Account-wide scan
 sharing does not authorize account-wide inventory collection; bank/other-character
 holdings remain outside the current release scope. Revisit when a concrete
 workflow justifies the additional data and freshness rules.
+
+### Saved-data compatibility decision — 2026-11-15
+
+The owner is the sole user and waived migration from pre-account-wide versions.
+This supersedes the earlier per-character snapshot migration requirement.
+Account-wide schema version 1 is the compatibility baseline. From now on, schema
+changes in addon updates must provide sequential saved-data migrations, preserving
+observations and source times across supported upgrades, including skipped
+releases. Unsupported or malformed stores and failed migrations must be preserved
+rather than silently reset or overwritten.

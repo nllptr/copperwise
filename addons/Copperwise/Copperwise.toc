@@ -4,4 +4,5 @@
 ## SavedVariables: CopperwiseAccountDB
 ## SavedVariablesPerCharacter: CopperwiseDB
 Inventory.lua
+Storage.lua
 Scan.lua
