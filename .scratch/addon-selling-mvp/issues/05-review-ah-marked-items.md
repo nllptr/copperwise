@@ -259,3 +259,9 @@ Owner changes the shared default duration from 24 hours to 8 hours (native index
 2, middle radio). Both initial setup and discarded-review reset now use 8 hours.
 This supersedes the earlier approved 24-hour default; all three duration choices
 remain available. The earlier HTML prototype remains historical.
+
+2026-11-16 follow-up: owner confirms the 8-hour default works. Owner also
+confirms the shortage check in the Copperwise AH tab: reducing held units below
+marked intent preserves the original marked quantity and shows reduced bag/
+eligible units and shortage. Suggested quantities were mark 10/hold 6/short 4;
+exact sample quantities were not supplied. No automatic posting was reported.
