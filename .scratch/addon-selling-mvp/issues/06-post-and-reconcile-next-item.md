@@ -53,3 +53,9 @@ native Max/Auctionator. Ticket 05's individual path now uses GetAvailablePostCou
 and total-quantity deposit/PostCommodity, with multi-listing quantity reconciliation.
 This supersedes the earlier mandatory source-stack-sized calls for comparable
 commodities; multi-item Post all remains separate and unimplemented.
+
+2026-11-16: Owner confirms current auction listings now load and one selected-item
+post successfully handles a full stack plus additional units in one action.
+Cross-stack individual posting is now owner-verified supporting evidence. This
+does not establish multi-item Post all, batch advancement, click requirements
+across item types or the remaining outcome/reconciliation acceptance matrix.

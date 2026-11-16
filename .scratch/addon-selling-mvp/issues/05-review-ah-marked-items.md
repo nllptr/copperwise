@@ -228,3 +228,14 @@ readiness/metadata blocker. Metadata waits are bounded; an initially throttled
 unsent query retains its dispatch state for retry. This changes query readiness,
 not the complete-observation requirements for prices or posting attribution.
 Actual-client recovery is pending; no posting or scan acceptance is inferred.
+
+### Owner client verification — 2026-11-16
+
+After installation of `7ce4939`, owner confirms current auction listings load
+successfully. Owner also confirms one Post item action successfully posts a full
+stack plus extra units together. This passes the reported readiness recovery and
+cross-stack selected-item posting cases. No exact item/quantity, owned-listing
+IDs, deposit comparison or explicit automatic intent-reconciliation observation
+was supplied, so those details are not inferred. Prior owner approval of compact
+layout and scanning remains recorded. Remaining checklist cases are not silently
+accepted; multi-item Post all stays disabled and ticket 06 remains open.
