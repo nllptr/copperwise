@@ -280,3 +280,8 @@ sidebar: Vendor-marked and unmarked items are excluded; AH-marked items appear.
 matches native Sell for the same item, quantity and 8-hour duration. No extra
 posting transaction was requested for this comparison; exact sample terms were
 not supplied.
+
+2026-11-16 follow-up: owner confirms reload restoration in the production AH
+flow: remaining AH intent survives /reload, reopening defaults to 8 hours and
+nothing posts automatically. This establishes restored-intent handoff for the
+current layout in addition to the earlier close/reopen check.
