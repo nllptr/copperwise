@@ -275,3 +275,8 @@ preserving the explicitly selected higher unit price and edited quantity.
 
 2026-11-16 follow-up: owner confirms AH-only filtering in the production AH
 sidebar: Vendor-marked and unmarked items are excluded; AH-marked items appear.
+
+2026-11-16 follow-up: owner confirms Copperwise's native-calculated deposit
+matches native Sell for the same item, quantity and 8-hour duration. No extra
+posting transaction was requested for this comparison; exact sample terms were
+not supplied.
