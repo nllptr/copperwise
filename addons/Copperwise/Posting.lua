@@ -117,6 +117,8 @@ function CW.PostingReason()
     if pending then return "Pending post: inspect native Auctions and reconcile before another post." end
     if query then return "Loading owned listings for posting attribution." end
     if baselineFailure then return baselineFailure end
+    local reason = CW.AHReadiness("posting", 0.2)
+    if reason then return reason end
     if not baseline or GetTime() - baseline.at > 60 then
         wanted = true
         return "Waiting for fresh owned listings."

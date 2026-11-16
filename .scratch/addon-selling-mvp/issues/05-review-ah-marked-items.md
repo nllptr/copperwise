@@ -207,3 +207,24 @@ posting. If a newly seen ID has conflicting rows after dispatch, automatic
 confirmation is withheld and explicit operator reconciliation remains required.
 Missing IDs remain blocking. No conflicting rows are summed or silently chosen
 as confirmation evidence. Actual-client recovery remains pending.
+
+### Listings remain queued — 2026-11-16
+
+Owner screenshot still shows no current listings, generic quiet-AH waiting and
+Waiting for fresh owned listings. Static tracing found an incorrect readiness
+condition introduced by the conservative completeness gate: an external native
+browse/search page can return successfully while HasFull* remains false. Holding
+that page's request token until entire-market coverage incorrectly prevents both
+selected-item and owned-listing queries after native navigation stops paginating.
+Installed Auctionator SearchScan/Throttling code also treats a usable nonempty
+partial response and native throttle readiness separately from full coverage.
+
+External tokens now release on a usable matching page response (nonempty rows or
+native complete-empty), while quiet time, native throttle readiness, Auctionator
+queue checks, overlap handling and Copperwise's own result completeness remain.
+Unanswered/overlapping requests explicitly request close/reopen rather than showing
+an indefinite generic wait. The selected-item status now exposes its actual
+readiness/metadata blocker. Metadata waits are bounded; an initially throttled
+unsent query retains its dispatch state for retry. This changes query readiness,
+not the complete-observation requirements for prices or posting attribution.
+Actual-client recovery is pending; no posting or scan acceptance is inferred.

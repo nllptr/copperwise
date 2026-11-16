@@ -406,3 +406,10 @@ Refresh item explicitly retries both checks. Identical duplicate owned cache row
 count once. Conflicting rows for existing IDs do not block the before-post baseline:
 all those IDs are excluded from confirmation. A missing ID still blocks posting;
 a conflicting newly seen ID keeps that post unresolved for explicit reconciliation. Native numeric IDs are used directly, without display-string rounding.
+
+Readiness distinguishes a completed native page response from full cache coverage.
+A usable nonempty partial page releases its external request token; Copperwise
+still waits for a quiet, unthrottled AH and an idle Auctionator queue. Its own
+selected-item price publication and owned-baseline reads require complete results.
+The listings status reports the current readiness blocker. Unanswered/overlapping
+external work requests close/reopen; missing item metadata times out explicitly.

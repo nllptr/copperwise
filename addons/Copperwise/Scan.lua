@@ -134,7 +134,7 @@ local function externalRequest(name, argument)
     local token = requestToken(kind, argument)
     local previous = externalPending[token]
     if previous and not previous.responseSeen then externalPending.uncertain = true end
-    externalPending[token] = {argument=argument}
+    externalPending[token] = {argument=argument, started=GetTime()}
     if active then
         reopenRequired = true
         finish("cancelled", "Other AH activity interrupted collection; close/reopen AH before retrying.")
@@ -167,7 +167,13 @@ function CW.AHReadiness(operation, quiet)
     if active then return "Full scan is running." end
     if reopenRequired or CW.AHResponseUncertain then return "Close/reopen AH; a previous response is uncertain." end
     if CW.AHOperation and CW.AHOperation ~= operation then return "Wait for current Copperwise AH work." end
-    if next(externalPending) or queueBusy() then return "Wait for native/Auctionator work to finish." end
+    if externalPending.uncertain then return "Close/reopen AH; overlapping AH requests could not be attributed." end
+    for _, pendingRequest in pairs(externalPending) do
+        if GetTime() - pendingRequest.started > 20 and GetTime() - lastTraffic > 20 then
+            return "Close/reopen AH; another AH request did not finish."
+        end
+    end
+    if next(externalPending) or queueBusy() then return "Waiting for native/Auctionator work to finish." end
     if GetTime() - lastTraffic < (quiet or 2) then return "Waiting for a quiet AH." end
     if not C_AuctionHouse.IsThrottledMessageSystemReady() then return "AH is throttled; waiting." end
 end
@@ -408,24 +414,28 @@ frame:SetScript("OnEvent", guard(function(_, event, argument)
     if token and externalPending[token] then
         local pendingRequest = externalPending[token]
         pendingRequest.responseSeen = true
-        local full
-        if kind == "browse" then full = C_AuctionHouse.HasFullBrowseResults
-        elseif kind == "owned" then full = C_AuctionHouse.HasFullOwnedAuctionResults
-        elseif kind == "bids" then full = C_AuctionHouse.HasFullBidResults
-        elseif kind == "replicate" then full = function() return true end -- The replication completion event.
-        elseif kind == "search" then
-            local key = type(argument) == "table" and argument
-                or (C_AuctionHouse.MakeItemKey and C_AuctionHouse.MakeItemKey(argument,0,0,0))
-            local info = key and C_AuctionHouse.GetItemKeyInfo(key)
-            if info and info.isCommodity == true then
-                full = function() return C_AuctionHouse.HasFullCommoditySearchResults(key.itemID) end
-            elseif info and info.isCommodity == false then
-                full = function() return C_AuctionHouse.HasFullItemSearchResults(key) end
+        local function responseUsable()
+            -- Coverage may be partial after a completed page response. Do not
+            -- retain its network lock merely because more pages are available.
+            if kind == "replicate" then return true end
+            if kind == "browse" then
+                local rows = C_AuctionHouse.GetBrowseResults()
+                return C_AuctionHouse.HasFullBrowseResults() or (type(rows) == "table" and #rows > 0)
+            elseif kind == "owned" then
+                return C_AuctionHouse.HasFullOwnedAuctionResults() or C_AuctionHouse.GetNumOwnedAuctions() > 0
+            elseif kind == "bids" then
+                return C_AuctionHouse.HasFullBidResults() or C_AuctionHouse.GetNumBids() > 0
+            elseif kind == "search" then
+                if event == "COMMODITY_SEARCH_RESULTS_UPDATED" or event == "COMMODITY_SEARCH_RESULTS_ADDED" then
+                    return C_AuctionHouse.HasFullCommoditySearchResults(argument)
+                        or C_AuctionHouse.GetNumCommoditySearchResults(argument) > 0
+                end
+                return C_AuctionHouse.HasFullItemSearchResults(argument)
+                    or C_AuctionHouse.GetNumItemSearchResults(argument) > 0
             end
         end
-        local ok, complete = false, false
-        if type(full) == "function" then ok, complete = pcall(full) end
-        if ok and complete == true then externalPending[token] = nil end
+        local ok, usable = pcall(responseUsable)
+        if ok and usable == true then externalPending[token] = nil end
         lastTraffic = GetTime()
     end
     if event == "PLAYER_LOGIN" then

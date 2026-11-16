@@ -1,6 +1,6 @@
 local CW = Copperwise
 local frame = CreateFrame("Frame")
-local selected, queued, request, result
+local selected, queued, request, result, waitingReason, queuedAt
 local visible = false
 local MAX_ROWS, MAX_REQUESTS = 10000, 20
 
@@ -19,6 +19,10 @@ function CW.ItemListings(id)
     if result and result.id == id then return result end
 end
 
+function CW.ListingsWaitReason()
+    return waitingReason or "Waiting to request current item listings…"
+end
+
 function CW.SelectListings(id, refresh)
     visible = true
     if selected == id and not refresh then
@@ -26,6 +30,8 @@ function CW.SelectListings(id, refresh)
         -- Another AH request can clear an unsent selection. Requeue it once
         -- the review renders again, rather than leaving the table waiting forever.
     end
+    if selected ~= id or refresh then queuedAt = nil end
+    waitingReason = nil
     selected = id
     queued = id -- An old request drains before another item may query the shared cache.
     if not request then result = nil end
@@ -33,7 +39,7 @@ function CW.SelectListings(id, refresh)
 end
 
 function CW.CloseListings()
-    visible, selected, queued = false, nil, nil
+    visible, selected, queued, waitingReason, queuedAt = false, nil, nil, nil, nil
     if not request then result = nil end
 end
 
@@ -44,7 +50,7 @@ end
 
 local function dispatch(more)
     local reason = CW.AHReadiness("listings", more and 0.2 or 2)
-    if reason then return end
+    if reason then result.reason = reason; return end
     if request.requests >= MAX_REQUESTS then finish("partial", "Item request limit reached; refresh manually."); return end
     request.requests = request.requests + 1
     request.waiting, request.deadline, request.more = true, GetTime()+20, nil
@@ -106,25 +112,34 @@ frame:SetScript("OnUpdate", function()
         if request then
             if GetTime() > request.totalDeadline then finish("failed", "Item search timed out; close/reopen AH if a response is outstanding.")
             elseif request.waiting and GetTime() > request.deadline then finish("failed", "Item response timed out; close/reopen AH.")
-            elseif request.more then
-                if visible then dispatch(true)
+            elseif request.more ~= nil then
+                if visible then dispatch(request.more)
                 else
-                    CW.AHResponseUncertain = true
-                    finish("cancelled", "Left item results before completeness; close/reopen AH.")
+                    if request.requests > 0 then CW.AHResponseUncertain = true end
+                    finish("cancelled", "Item query stopped after leaving the tab.")
                 end
             end
         elseif queued and visible then
             local reason = CW.AHReadiness("listings", 2)
-            if reason then return end
+            if reason then waitingReason = reason; return end
             local id = queued
             local key = C_AuctionHouse.MakeItemKey(id, 0, 0, 0)
             local info = C_AuctionHouse.GetItemKeyInfo(key)
-            if not info or info.isCommodity == nil then return end
+            if not info or info.isCommodity == nil then
+                waitingReason = "Loading item information…"
+                queuedAt = queuedAt or GetTime()
+                if GetTime() - queuedAt > 15 then
+                    queued = nil
+                    result = {id=id, levels={}, state="failed", reason="Item information did not load. Refresh item to retry."}
+                    changed()
+                end
+                return
+            end
             queued = nil
             result = {id=id, levels={}, state="loading", reason="Loading current listings…"}
             if info.isCommodity ~= true then finish("unsupported", "Only comparable commodities are supported."); return end
             CW.AHOperation = "listings"
-            request = {id=id, key=key, requests=0, totalDeadline=GetTime()+90}
+            request = {id=id, key=key, requests=0, more=false, totalDeadline=GetTime()+90}
             dispatch(false)
         end
     end)

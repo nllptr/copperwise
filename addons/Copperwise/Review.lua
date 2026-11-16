@@ -164,7 +164,7 @@ local function renderListings(id)
     end
     local levels = valid and result.levels or {}
     listingStatus:SetText(result and ((valid and ("Observed " .. date("%H:%M:%S", result.observedAt) .. " · " .. result.units .. " units. ") or "") .. result.reason)
-        or "Waiting for current item listings and a quiet AH…")
+        or CW.ListingsWaitReason())
     for index, level in ipairs(levels) do
         local b = listingButtons[index]
         if not b then
