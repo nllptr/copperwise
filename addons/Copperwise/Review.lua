@@ -3,7 +3,7 @@ local panel, rail, railContent, detail, selected, title, availability, itemIcon
 local quantityInput, priceInputs, depositText, totalText, eligibilityText, postButton
 local listContent, listingStatus, message, summary, empty, reconcileButton, refreshButton
 local rows, buttons, listingButtons, radios, drafts = {}, {}, {}, {}, {}
-local duration, elapsed, painting = 3, 0, false
+local duration, elapsed, painting = 2, 0, false
 local preview, listingStamp
 local money = CW.FormatMoney
 
@@ -288,7 +288,7 @@ function CW.PostConfirmed(id, units)
 end
 
 function CW.DiscardReview()
-    drafts, selected, preview, listingStamp, duration = {}, nil, nil, nil, 3
+    drafts, selected, preview, listingStamp, duration = {}, nil, nil, nil, 2
     CW.CloseListings(); CW.ClosePosting()
     if quantityInput then quantityInput:ClearFocus() end
     for _, box in ipairs(priceInputs or {}) do box:ClearFocus() end

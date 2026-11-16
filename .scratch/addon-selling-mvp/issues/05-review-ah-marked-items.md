@@ -252,3 +252,10 @@ posting fewer units than marked leaves the item listed with the unposted
 remainder still marked. The suggested example was mark 10/post 3/retain 7;
 owner did not supply exact sample quantities. This verifies the partial-intent
 remainder behavior, alongside the preceding full-removal case.
+
+2026-11-16 follow-up: owner confirms the close/reopen check passes: intent and
+remaining quantity survive, ephemeral terms reset, and reopening does not post.
+Owner changes the shared default duration from 24 hours to 8 hours (native index
+2, middle radio). Both initial setup and discarded-review reset now use 8 hours.
+This supersedes the earlier approved 24-hour default; all three duration choices
+remain available. The earlier HTML prototype remains historical.

@@ -291,7 +291,7 @@ Select another row to change the posting form and current-listings table.
 
 The form shows marked/bag/eligible units, editable quantity (Max restores eligible
 marked units), unit buyout in gold/silver/copper, native deposit, total buyout and
-2/8/24-hour duration radios. Duration defaults to 24 hours and is shared. Edits
+2/8/24-hour duration radios. Duration defaults to 8 hours and is shared. Edits
 are ephemeral and survive item selection; tab departure/AH closure discards them.
 Neither editing nor selecting changes saved intent or posts an auction.
 
