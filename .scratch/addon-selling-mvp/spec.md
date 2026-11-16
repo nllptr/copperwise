@@ -402,3 +402,37 @@ blanket event/timer-advancement prohibitions only within an explicitly started
 reviewed batch. They do not authorize background posting starts or native action
 restriction bypasses. Price defaults/refresh and duration defaults remain to be
 settled explicitly; matching lowest buyout has been suggested, not mandated.
+
+
+### Approved AH layout and selected-item verification — 2026-11-16
+
+Owner approved `probes/ah-layout/index.html` and its native implementation in
+resolved ticket 05. Use the complete AH-marked sidebar with automatic first-item
+selection; the selected-item form shows editable quantity, unit buyout, deposit,
+total price and 2/8/24-hour duration radios. Shared duration now defaults to
+8 hours, superseding the earlier 24-hour decision. Global Full scan and the
+non-operational Post all entry point share a compact top row with relative scan
+age/progress. These decisions supersede the earlier textual whole-list review
+presentation; Post all remains the planned ticket 06 batch action.
+
+Current selected-item listings show only buyout per unit and Available units at
+that price. Selecting any price sets unit buyout and total without changing
+quantity. Unedited defaults start from compatible retained full-scan observations,
+then adopt the lowest complete current-item price; explicit edits survive item
+refresh and selection. Item queries do not replace the retained market snapshot.
+Tab departure/AH closure discards ephemeral terms; saved intent persists.
+
+Post item deliberately submits the full reviewed commodity quantity across bag
+stacks, bounded by marked/eligible units and native GetAvailablePostCount. Use
+one native anchor and the total-quantity native deposit calculation, matching
+native Max/Auctionator behavior. This supersedes the provisional one-source-stack
+quantity cap. Revalidate contributing sources and preserve native permissions.
+Confirmed new owned-listing units plus settled bag change and unchanged intent
+revision govern automatic consumption; ambiguous outcomes remain pending.
+
+Owner verified the representative individual review/post workflow, including
+cross-stack success, full removal, partial remainder, shortages, reload, price
+edits, native deposit comparison and review without Auctionator. Ticket 05 records
+the exact scope and cautious final price/Available comparison report. Multi-item
+Post all and the wider failure/recovery/release matrix remain tickets 06 and 07;
+these checks do not resolve those tickets or accept untested environments.

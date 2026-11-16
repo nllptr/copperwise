@@ -349,10 +349,16 @@ establish the result. No automatic retry occurs. AH closure/tab departure stops
 preparation and makes any outstanding post require reconciliation. No automatic
 posting resumes after reopening or reloading.
 
-### Target-client acceptance — pending
+### Client verification and remaining release checks
 
-Existing Lua syntax and regression checks support the implementation but cannot
-establish native layout, query/server behavior or successful production posting.
+Ticket 05's approved review layout and representative individual workflow are
+resolved from owner-run checks on 2026-11-16, recorded in its ticket. This includes
+cross-stack posting, full/partial intent consumption, shortages/zero bags, price
+selection and refresh, native deposit comparison, reload and review without
+Auctionator. The final native price/Available comparison was an apparent pass.
+The checklist below also contains broader failure/recovery and release cases
+that remain open in tickets 06/07. Existing Lua syntax and regression checks
+support the implementation; they do not establish unexercised native behavior.
 Use the usual faction AH with probes disabled. Record client build, market, UI
 scale and Auctionator version/presence. The original review screenshots established
 visible marks and tabs, not acceptance of this replacement layout.

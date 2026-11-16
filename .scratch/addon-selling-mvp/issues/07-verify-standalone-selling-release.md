@@ -27,3 +27,16 @@ Use the addon-only selling MVP specification and its approved ranking and sale-i
 ## Comments
 
 Published after owner approval of the seven-ticket breakdown. This MVP series replaces the broader selling-context implementation order for the first release; the older roadmap remains historical and later-release scope. No parent specification or older ticket is closed or modified.
+
+
+### Ticket 05 evidence available — 2026-11-16
+
+Ticket 05 is resolved for its approved native layout and representative individual
+workflow; its chronological owner checks are reusable evidence, not automatic
+release-wide acceptance. Remaining release work includes a fresh build/platform/
+UI-scale record, no-scan/empty/partial/failed and unsupported/metadata cases,
+invalid/changed terms, duplicate-action prevention, in-flight cancellation/closure,
+uncertain outcomes and operator reconciliation. Ticket 06 must first implement
+and verify Post all, including multi-item partial completion and actual native
+advancement/click requirements. Current single-item successes do not pass that
+batch matrix. Other-faction/ruleset scope remains deferred to ticket 08.

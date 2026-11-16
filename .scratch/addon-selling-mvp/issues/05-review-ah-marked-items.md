@@ -1,21 +1,21 @@
 # 05: Review AH-marked items in the native AH tab
 
-**What to build:** Open Copperwise's native AH tab to review the entire AH-marked sale plan in one compact list, with proposed posting terms and optional edits. This prepares the simple mark → visit AH → Copperwise → Post all flow; it submits no transactions.
+**What to build:** Implement the owner-approved native AH layout from `probes/ah-layout/`: the complete AH-marked sidebar, selected-item posting terms and current price levels, with global Full scan and a Post all placeholder. Include deliberate selected-item posting across stacks and confirmed intent reconciliation. The approved prototype and subsequent owner decisions supersede the earlier review-only, whole-list textual layout.
 
 **Blocked by:** 04: Mark and maintain sale intent (resolved).
 
-**Status:** ready-for-agent
+**Status:** resolved — approved layout and representative production client workflow verified
 
-**Labels:** ready-for-agent
+**Labels:** completed
 
-- [ ] Extend the existing Copperwise AH tab with a compact review of all AH-marked items; retain Full scan, the separate Inventory marking window and normal native navigation.
-- [ ] Populate the review only from explicit AH intent, including restored intent. Vendor-marked and unmarked holdings never become posting candidates. Keep unavailable or unsupported marked entries visible with a reason rather than silently dropping the plan.
-- [ ] Show each item's identity, intended units, currently eligible units, proposed unit/total buyout, duration and native-calculated deposit where available. Show shortages and unavailable terms distinctly; do not present unknown prices or deposits as zero.
-- [ ] Provide sensible proposed posting terms, optional per-item edits and a shared duration setting. Review the batch at a glance: do not require selecting, configuring or separately approving every row or source stack. Price defaults and refresh policy must be explicitly settled and recorded before enabling posting; no automatic undercut strategy is mandated.
-- [ ] Prepare supported source stacks within current bag availability, allowing multiple stacks to fulfill one marked item without automatic stack consolidation. A stack boundary must not force the player to rebuild or individually review the same item repeatedly.
-- [ ] Show which entries are ready and which remain pending, with a compact batch quantity/proceeds/deposit summary where those values are known. Provide a clear Post all entry point/layout for ticket 06; it remains non-operational in this review-only slice.
-- [ ] Refresh or invalidate preparation when identity, holdings, eligibility or terms change. AH closure/cancellation discards preparation without discarding saved intent; reopening rebuilds the review and never starts posting.
-- [ ] Verify the complete marked-list handoff, filtering, shortages, proposed terms, optional edits, stack coverage, invalidation, cancellation, native tab layout and Auctionator coexistence in the target client. This slice submits no posts.
+- [x] Implement the approved marked-item sidebar and selected-item native layout; retain Full scan, the separate Inventory window and normal AH navigation.
+- [x] Populate only from explicit AH intent, including reload restoration. Vendor and unmarked items are excluded; zero-availability marks remain visible. Unsupported-entry preservation is implemented; broader unsupported/metadata cases remain in release verification.
+- [x] Show identity, intended/bag/eligible units, shortages, unit/total buyout, duration and native-calculated deposit. Owner verified deposit against native Sell; unavailable values remain distinct from zero in code.
+- [x] Provide price-level selection and optional quantity/price edits with shared 2/8/24-hour radios, default 8 hours. Record price defaults/refresh policy; Refresh item preserves explicit edits. No automatic undercut is added.
+- [x] Prepare and post the full reviewed commodity quantity across supported bag stacks using native availability, without consolidation or additional stack-sized review. Owner verified full and partial intent outcomes.
+- [x] Show marked item/unit totals and selected-item eligibility/terms in the approved prototype layout. Post all is visible and disabled; multi-item execution remains ticket 06.
+- [x] Revalidate preparation against holdings/intent/terms. Owner verified shortages, zero holdings, close/reopen and reload persistence/defaults without automatic posting.
+- [x] Verify representative production review/individual-post workflow, price/quantity selection, rapid query handoff, native deposit comparison and operation with/without Auctionator. Broader release and transaction failure/recovery cases remain explicitly open in tickets 06/07.
 
 ## Scope and verification
 
@@ -299,3 +299,25 @@ and Post item is disabled. Saved sale intent is not erased by losing holdings.
 marks survive reload, current listings load and posting terms populate normally.
 No posting was requested for this dependency check. Earlier screenshots and
 native Sell comparisons provide the corresponding installed/coexistence context.
+
+
+### Resolution — 2026-11-16
+
+Owner reports the final comparison of current price levels and Available item
+units with native/Auctionator results "seems to be working". Record this as an
+apparent pass, without inventing exact sample values or stronger certainty.
+
+Ticket 05 is resolved for the approved layout and representative production
+workflow. Owner-run checks cover scan usability, listings loading, cross-stack
+selected-item posting, full intent removal, partial remainder, close/reopen,
+8-hour default, shortages including zero bags, higher-price selection, edits
+surviving refresh, AH-only filtering, native deposit comparison, reload restoration,
+rapid item switching and operation without Auctionator. Earlier screenshots show
+native/Auctionator tab coexistence. Supporting syntax, existing regression suites,
+Go checks and Standards/Spec review outcomes are recorded above.
+
+This is not release-wide acceptance. No exact new build/UI scale, complete item
+coverage, all metadata/empty/unsupported states, deliberate transaction failures,
+uncertain outcomes, reconciliation permutations or duplicate-click outcomes are
+claimed. Ticket 06 remains open for Post all; ticket 07 retains the broader
+release/failure matrix. Existing per-item success is bounded supporting evidence.
