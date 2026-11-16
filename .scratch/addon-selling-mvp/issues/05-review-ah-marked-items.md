@@ -290,3 +290,7 @@ current layout in addition to the earlier close/reopen check.
 listings load settles on the selected item's name, posting terms and listings,
 without errors or a permanent wait. This passes the selected-item query handoff
 case in the replacement layout.
+
+2026-11-16 follow-up: owner confirms zero-availability behavior in the AH tab:
+the marked entry survives with no bag units, its full shortage remains visible,
+and Post item is disabled. Saved sale intent is not erased by losing holdings.
