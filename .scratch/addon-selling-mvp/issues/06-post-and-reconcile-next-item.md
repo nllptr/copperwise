@@ -63,3 +63,7 @@ across item types or the remaining outcome/reconciliation acceptance matrix.
 2026-11-16 follow-up: owner confirms the fully marked item disappeared after the
 successful cross-stack individual post. Automatic completed-intent removal is
 verified for that case; partial/uncertain outcomes and Post all remain unverified.
+
+2026-11-16 follow-up: owner confirms individual posting fewer units than marked
+retains the unposted marked remainder. This passes the individual partial-intent
+case; it does not verify partial completion of a multi-item Post all batch.

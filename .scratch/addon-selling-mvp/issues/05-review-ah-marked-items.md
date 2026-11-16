@@ -246,3 +246,9 @@ verifies automatic intent consumption/removal for that completed selected-item
 post, in addition to current-listings loading and cross-stack execution. It does
 not establish partial-intent remainder, failed/uncertain outcomes or every other
 acceptance permutation.
+
+2026-11-16 follow-up: owner confirms the partial-post verification works:
+posting fewer units than marked leaves the item listed with the unposted
+remainder still marked. The suggested example was mark 10/post 3/retain 7;
+owner did not supply exact sample quantities. This verifies the partial-intent
+remainder behavior, alongside the preceding full-removal case.
