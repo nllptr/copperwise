@@ -203,3 +203,30 @@ sale asking values, not recorded profit.
 2026-11-14 acceptance: owner said “prototype looked good” after reviewing this
 iteration. S06 is complete; this approves the sidebar presentation and ranking
 policies, not production client behavior or transaction capabilities.
+
+## Item disposition iteration (2026-11-16)
+
+Supersedes the S06 automatic destination action. Every inventory row now offers
+Keep, Vendor and AH. Keep excludes that item type from review, including newly
+acquired quantities; An always-visible Kept section, with a count like Marked for sale, exposes those choices for revision. Vendor and AH
+are explicit overrides, available even when comparison data is missing. A dot
+shows the suggested sale destination; the pressed button shows the user's choice.
+Click the selected choice again to return the item to review, or choose another
+destination directly. Marked for sale counts exclude kept items. Search and bank
+inclusion also apply to kept rows. Bread and bandages are added as review fixtures.
+
+Choices are page-local and reset on refresh. This models an item-type preference;
+it does not implement persistent rules or game transactions. Row amounts and order
+continue to use best estimated sale value, independently of the chosen destination.
+
+Validation: JavaScript syntax and disposition interactions checked with a Node DOM
+stub (override switching, Keep hiding/recovery, clearing choices, missing-price
+scenarios and bank inclusion). No browser visual verification in this iteration.
+
+### Category clearing (2026-11-16)
+
+The rail now has Uncategorized, To vendor, To AH and To keep sections. Each
+assigned category has a count and Clear button. Clear removes every choice in
+that category, including items hidden by search or bank inclusion, returning
+them to Uncategorized when visible. Empty categories disable Clear. Other
+categories and the selected detail remain unchanged.
