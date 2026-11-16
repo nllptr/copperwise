@@ -285,3 +285,8 @@ not supplied.
 flow: remaining AH intent survives /reload, reopening defaults to 8 hours and
 nothing posts automatically. This establishes restored-intent handoff for the
 current layout in addition to the earlier close/reopen check.
+
+2026-11-16 follow-up: owner confirms rapid selection between marked items while
+listings load settles on the selected item's name, posting terms and listings,
+without errors or a permanent wait. This passes the selected-item query handoff
+case in the replacement layout.
