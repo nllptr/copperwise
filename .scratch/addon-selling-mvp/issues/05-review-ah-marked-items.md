@@ -272,3 +272,6 @@ This is a form-selection check and does not claim a posting transaction.
 
 2026-11-16 follow-up: owner confirms Refresh item reloads listings while
 preserving the explicitly selected higher unit price and edited quantity.
+
+2026-11-16 follow-up: owner confirms AH-only filtering in the production AH
+sidebar: Vendor-marked and unmarked items are excluded; AH-marked items appear.
