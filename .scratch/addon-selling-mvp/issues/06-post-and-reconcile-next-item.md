@@ -59,3 +59,7 @@ post successfully handles a full stack plus additional units in one action.
 Cross-stack individual posting is now owner-verified supporting evidence. This
 does not establish multi-item Post all, batch advancement, click requirements
 across item types or the remaining outcome/reconciliation acceptance matrix.
+
+2026-11-16 follow-up: owner confirms the fully marked item disappeared after the
+successful cross-stack individual post. Automatic completed-intent removal is
+verified for that case; partial/uncertain outcomes and Post all remain unverified.

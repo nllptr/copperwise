@@ -239,3 +239,10 @@ IDs, deposit comparison or explicit automatic intent-reconciliation observation
 was supplied, so those details are not inferred. Prior owner approval of compact
 layout and scanning remains recorded. Remaining checklist cases are not silently
 accepted; multi-item Post all stays disabled and ticket 06 remains open.
+
+2026-11-16 follow-up: owner confirms all held units were marked and the item
+disappeared from the marked list after the successful cross-stack post. This
+verifies automatic intent consumption/removal for that completed selected-item
+post, in addition to current-listings loading and cross-stack execution. It does
+not establish partial-intent remainder, failed/uncertain outcomes or every other
+acceptance permutation.
