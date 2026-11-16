@@ -294,3 +294,8 @@ case in the replacement layout.
 2026-11-16 follow-up: owner confirms zero-availability behavior in the AH tab:
 the marked entry survives with no bag units, its full shortage remains visible,
 and Post item is disabled. Saved sale intent is not erased by losing holdings.
+
+2026-11-16 follow-up: owner confirms the review flow with Auctionator disabled:
+marks survive reload, current listings load and posting terms populate normally.
+No posting was requested for this dependency check. Earlier screenshots and
+native Sell comparisons provide the corresponding installed/coexistence context.
