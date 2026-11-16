@@ -269,3 +269,6 @@ exact sample quantities were not supplied. No automatic posting was reported.
 2026-11-16 follow-up: owner confirms selecting a listing above the lowest price
 updates the proposed unit buyout and total while leaving quantity unchanged.
 This is a form-selection check and does not claim a posting transaction.
+
+2026-11-16 follow-up: owner confirms Refresh item reloads listings while
+preserving the explicitly selected higher unit price and edited quantity.
