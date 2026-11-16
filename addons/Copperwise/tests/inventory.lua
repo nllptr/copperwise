@@ -10,12 +10,18 @@ local function inventory(items, prices, character)
         state.widgets[#state.widgets+1] = value
         return value
     end
-    for _, name in ipairs({"SetPoint", "SetMovable", "EnableMouse", "RegisterForDrag",
+    for _, name in ipairs({"SetPoint", "SetFrameStrata", "SetMovable", "EnableMouse", "RegisterForDrag",
         "StartMoving", "StopMovingOrSizing", "RegisterEvent", "SetJustifyH", "SetJustifyV",
-        "SetHighlightTexture", "SetWidth", "SetTexture", "SetColorTexture",
+        "SetHighlightTexture", "SetAllPoints", "SetFontString", "SetWidth", "SetColorTexture",
         "ClearAllPoints", "SetAutoFocus", "SetMaxLetters", "ClearFocus", "SetWordWrap"}) do
         methods[name] = function() end
     end
+    function methods:GetWidth() return 140 end
+    function methods:GetCenter() return 100, 100 end
+    function methods:GetEffectiveScale() return 2 end
+    function methods:HookScript(name, fn) self.scripts[name] = fn end
+    function methods:SetTexture(value) self.texture = value end
+    function methods:SetEnabled(value) self.enabled = value end
     function methods:SetSize(_, height) self.height = height end
     function methods:SetHeight(height) self.height = height end
     function methods:GetHeight() return self.height or 500 end
@@ -26,6 +32,7 @@ local function inventory(items, prices, character)
     function methods:SetScript(name, fn) self.scripts[name] = fn end
     function methods:CreateFontString() return widget("FontString") end
     function methods:CreateTexture() return widget("Texture") end
+    function methods:IsShown() return self.shown end
     function methods:Show() self.shown = true end
     function methods:Hide() self.shown = false end
     env.CreateFrame = function(kind, name)
@@ -35,6 +42,8 @@ local function inventory(items, prices, character)
         state.frames[#state.frames+1] = value
         return value
     end
+    env.GetCursorPosition = function() return state.cursorX or 400, state.cursorY or 200 end
+    env.Minimap = widget("Minimap")
     env.GetTime = function() return state.clock end
     env.time = function() return state.now or 1000 end
     env.date = function() return "synthetic source time" end
@@ -115,6 +124,12 @@ local function inventory(items, prices, character)
     env.SlashCmdList.COPPERWISE()
     return state
 end
+local function suggested(row)
+    for _, action in ipairs(row.actions) do
+        if action.recommended then return action.text end
+    end
+    return ""
+end
 local function contains(text, expected)
     assert(text:find(expected, 1, true), "Expected '" .. expected .. "' in '" .. text .. "'")
 end
@@ -126,11 +141,11 @@ end
 test("equal net proceeds prefer Vendor and preserve gross asking detail", function()
     local ui = inventory({{id=1, name="Tie", sell=95}}, {[1]=100})
     contains(ui:rows()[1].value.text, "95c")
-    contains(ui:rows()[1].toggle.text, "Vendor")
+    contains(suggested(ui:rows()[1]), "Vendor")
     local detail = ui:select(1)
     contains(detail, "AH asking / owned quantity: 100c")
     contains(detail, "AH estimated proceeds (5% cut): 95c")
-    contains(detail, "Preferred destination: Vendor")
+    contains(detail, "Suggested destination: Vendor")
 end)
 
 test("missing vendor metadata sorts last without choosing a destination, then refreshes", function()
@@ -141,15 +156,15 @@ test("missing vendor metadata sorts last without choosing a destination, then re
     local detail = ui:select(2)
     contains(detail, "Vendor sell / owned quantity: unavailable")
     contains(detail, "AH estimated proceeds (5% cut): 950c")
-    contains(detail, "Preferred destination: unavailable (both values required)")
+    contains(detail, "Suggested destination: unavailable (both values required)")
     unknown.sell = 0
     ui:refresh()
     contains(ui:rows()[1].label.text, "A missing vendor")
     contains(ui:rows()[1].value.text, "950c")
-    contains(ui:rows()[1].toggle.text, "AH")
+    contains(suggested(ui:rows()[1]), "AH")
     detail = ui:select(1)
     contains(detail, "Vendor sell / owned quantity: 0c")
-    contains(detail, "Preferred destination: AH")
+    contains(detail, "Suggested destination: AH")
 end)
 
 test("no retained observation withholds AH values and directs the player to the AH tab", function()
@@ -159,7 +174,7 @@ test("no retained observation withholds AH values and directs the player to the 
     contains(detail, "AH asking / owned quantity: unavailable")
     contains(detail, "AH estimated proceeds (5% cut): unavailable")
     contains(detail, "Vendor sell / owned quantity: 100c")
-    contains(detail, "Preferred destination: unavailable (both values required)")
+    contains(detail, "Suggested destination: unavailable (both values required)")
     contains(detail, "Full scan in the Copperwise auction-house tab")
     assert(not detail:find("Retained full-scan observation", 1, true))
 end)
@@ -181,7 +196,7 @@ test("equal ranking totals sort by name then stable identity, incomplete compari
     contains(ui:select(3), "Item ID: 3\n")
     for index = 1, 3 do
         contains(rows[index].value.text, "95c")
-        contains(rows[index].toggle.text, "AH")
+        contains(suggested(rows[index]), "AH")
     end
     contains(rows[4].status.text, "Unavailable — observed empty supply")
 end)
@@ -193,9 +208,9 @@ test("ranking compares net AH proceeds with vendor totals rather than gross aski
     }, {[1]=100, [2]=101})
     contains(ui:rows()[1].label.text, "Z vendor wins")
     contains(ui:rows()[1].value.text, "96c")
-    contains(ui:rows()[1].toggle.text, "Vendor")
+    contains(suggested(ui:rows()[1]), "Vendor")
     contains(ui:rows()[2].value.text, "95c")
-    contains(ui:rows()[2].toggle.text, "AH")
+    contains(suggested(ui:rows()[2]), "AH")
 end)
 
 
@@ -209,7 +224,7 @@ test("the window warns about the full scan strictly after the default hour", fun
     assert(ui.env.CopperwiseScanWarning.shown)
     contains(ui.env.CopperwiseScanWarning.message.text, "Market scan is outdated (60 min)")
     contains(ui.env.CopperwiseScanWarning.help, "Warning threshold: 60 minutes.")
-    assert(not ui:rows()[1].toggle.text:find("!", 1, true))
+    assert(not suggested(ui:rows()[1]):find("!", 1, true))
     assert(not ui:select(1):find("Warning:", 1, true))
 end)
 
@@ -235,7 +250,197 @@ test("the shared scan warning applies with Vendor and unavailable selections", f
     ui:refresh()
     assert(ui.env.CopperwiseScanWarning.shown)
     for index, row in ipairs(ui:rows()) do
-        assert(not (row.toggle.text or ""):find("!", 1, true))
+        assert(not (suggested(row) or ""):find("!", 1, true))
         assert(not ui:select(index):find("Warning:", 1, true))
     end
+end)
+
+local function choose(ui, id, destination)
+    for _, row in ipairs(ui:rows()) do
+        if row.itemID == id then
+            local n = destination == "Keep" and 1 or destination == "Vendor" and 2 or 3
+            row.actions[n].scripts.OnClick()
+            return
+        end
+    end
+    error("Missing item row")
+end
+local function clear(ui, label)
+    for _, widget in ipairs(ui.widgets) do
+        if widget.kind == "FontString" and widget.text and widget.text:find(label, 1, true) == 1 and widget.clear then
+            widget.clear.scripts.OnClick()
+            return
+        end
+    end
+    error("Missing clear button")
+end
+
+test("explicit choices override estimates, switch destinations and can be cleared", function()
+    local ui = inventory({{id=1, name="Ore", quantity=5, sell=1}, {id=2, name="Egg", sell=100}}, {[1]=100, [2]=1})
+    choose(ui, 1, "Vendor"); choose(ui, 2, "AH")
+    assert(ui.env.Copperwise.SaleIntent(1).destination == "Vendor")
+    assert(ui.env.Copperwise.SaleIntent(2).destination == "AH")
+    choose(ui, 1, "Keep")
+    assert(not ui.env.Copperwise.SaleIntent(1))
+    assert(ui.env.Copperwise.ItemChoice(1) == "Keep")
+    assert(#ui:rows() == 2)
+    clear(ui, "To AH")
+    assert(not ui.env.Copperwise.ItemChoice(2))
+    assert(ui.env.Copperwise.ItemChoice(1) == "Keep")
+    choose(ui, 1, "Keep")
+    assert(not ui.env.Copperwise.ItemChoice(1))
+end)
+
+test("Keep and forced sales work without a price comparison", function()
+    local ui = inventory({{id=1, name="Bread", quantity=3}})
+    choose(ui, 1, "Vendor")
+    assert(ui.env.Copperwise.SaleIntent(1).quantity == 3)
+    choose(ui, 1, "AH")
+    assert(ui.env.Copperwise.SaleIntent(1).destination == "AH")
+    choose(ui, 1, "Keep")
+    assert(not ui.env.Copperwise.SaleIntent(1))
+end)
+
+test("character choices survive reload, keep new items excluded and add newly acquired sale units once", function()
+    local character, items = {}, {{id=1, name="Bandage", quantity=4, sell=1}, {id=2, name="Ore", quantity=5, sell=1}}
+    local ui = inventory(items, nil, character)
+    choose(ui, 1, "Keep"); choose(ui, 2, "AH")
+    ui = inventory(items, nil, character)
+    assert(ui.env.Copperwise.ItemChoice(1) == "Keep")
+    items[1].quantity, items[2].quantity = 8, 9
+    ui:refresh(); ui:refresh()
+    assert(not ui.env.Copperwise.SaleIntent(1))
+    assert(ui.env.Copperwise.SaleIntent(2).quantity == 9)
+    local cw = ui.env.Copperwise
+    assert(cw.ConfirmPostedIntent(2, 9, 9, cw.IntentRevision(2)))
+    ui:refresh()
+    assert(not cw.SaleIntent(2))
+    assert(cw.ItemChoice(2) == "AH")
+    items[2].quantity = 1; ui:refresh()
+    items[2].quantity = 4; ui:refresh(); ui:refresh()
+    assert(cw.SaleIntent(2).quantity == 3)
+end)
+
+test("category clear includes absent items and leaves other categories unchanged", function()
+    local items = {{id=1, name="Ore", sell=1}, {id=2, name="Bread", sell=1}}
+    local ui = inventory(items)
+    choose(ui, 1, "Vendor"); choose(ui, 2, "Keep")
+    table.remove(items, 1); ui:refresh()
+    clear(ui, "To vendor")
+    assert(not ui.env.Copperwise.ItemChoice(1) and not ui.env.Copperwise.SaleIntent(1))
+    assert(ui.env.Copperwise.ItemChoice(2) == "Keep")
+    clear(ui, "To keep")
+    assert(not ui.env.Copperwise.ItemChoice(2))
+end)
+
+test("malformed choices preserve saved data and disable editing", function()
+    local bad = {version=99, items={}}
+    local ui = inventory({{id=1, name="Bread", sell=1}}, nil, {itemChoices=bad})
+    assert(ui.env.CopperwiseDB.itemChoices == bad)
+    assert(ui.env.Copperwise.intentNotice)
+    local ok = ui.env.Copperwise.SetItemChoice(1, "Keep")
+    assert(not ok)
+end)
+
+test("new holdings cover retained shortages before increasing the sale queue", function()
+    local items = {{id=1, name="Ore", quantity=10, sell=1}}
+    local ui = inventory(items)
+    choose(ui, 1, "AH")
+    items[1].quantity = 2; ui:refresh()
+    items[1].quantity = 7; ui:refresh()
+    assert(ui.env.Copperwise.SaleIntent(1).quantity == 10)
+    items[1].quantity = 12; ui:refresh()
+    assert(ui.env.Copperwise.SaleIntent(1).quantity == 12)
+end)
+
+test("clearing and switching choices invalidate reviewed posting revisions", function()
+    local ui = inventory({{id=1, name="Ore", quantity=5, sell=1}})
+    choose(ui, 1, "AH")
+    local cw = ui.env.Copperwise
+    local revision = cw.IntentRevision(1)
+    clear(ui, "To AH")
+    choose(ui, 1, "AH")
+    assert(not cw.ConfirmPostedIntent(1, 5, 5, revision))
+    revision = cw.IntentRevision(1)
+    choose(ui, 1, "Vendor")
+    assert(not cw.ConfirmPostedIntent(1, 5, 5, revision))
+    assert(cw.SaleIntent(1).quantity == 5 and cw.SaleIntent(1).destination == "Vendor")
+end)
+
+test("flat segments show recommendations only while uncategorized and one saved choice", function()
+    local ui = inventory({{id=1, name="Ore", quantity=5, sell=1}}, {[1]=100})
+    local row = ui:rows()[1]
+    assert(row.actions[3].recommended and not row.actions[3].selected)
+    choose(ui, 1, "Vendor")
+    row = ui:rows()[1]
+    assert(row.actions[2].selected and not row.actions[1].selected and not row.actions[3].selected)
+    for _, action in ipairs(row.actions) do assert(not action.recommended) end
+    choose(ui, 1, "AH")
+    row = ui:rows()[1]
+    assert(row.actions[3].selected and not row.actions[2].selected)
+    choose(ui, 1, "AH")
+    row = ui:rows()[1]
+    assert(row.actions[3].recommended and not row.actions[3].selected)
+end)
+
+test("categorized icons survive removal from bags and reload without item metadata", function()
+    local character, items = {}, {{id=1, name="Ore", sell=1}}
+    local ui = inventory(items, nil, character)
+    choose(ui, 1, "AH")
+    local icon = ui:rows()[1].icon.texture
+    assert(icon == 123)
+    table.remove(items, 1); ui:refresh()
+    assert(ui:rows()[1].icon.texture == icon)
+    ui = inventory(items, nil, character)
+    assert(ui:rows()[1].icon.texture == icon)
+    assert(ui.env.Copperwise.SaleIntent(1).quantity == 1)
+    choose(ui, 1, "Keep")
+    assert(ui:rows()[1].icon.texture == icon)
+end)
+
+test("assign recommended categorizes only eligible uncategorized items", function()
+    local ui = inventory({{id=1, name="Ore", sell=1}, {id=2, name="Egg", sell=200},
+        {id=3, name="Unknown"}, {id=4, name="Kept", sell=1}}, {[1]=100, [2]=100, [3]=100, [4]=100})
+    choose(ui, 4, "Keep")
+    local assign
+    for _, widget in ipairs(ui.widgets) do if widget.assign then assign = widget.assign end end
+    assert(assign and assign.enabled)
+    assign.scripts.OnClick()
+    local cw = ui.env.Copperwise
+    assert(cw.ItemChoice(1) == "AH" and cw.ItemChoice(2) == "Vendor")
+    assert(cw.ItemChoice(3) == nil and cw.ItemChoice(4) == "Keep")
+    assert(not assign.enabled)
+    assign.scripts.OnClick()
+    assert(cw.SaleIntent(1).quantity == 1)
+end)
+
+test("minimap button toggles Inventory without changing item choices", function()
+    local ui = inventory({{id=1, name="Ore", sell=1}})
+    choose(ui, 1, "Keep")
+    local button, window = ui.env.CopperwiseMinimapButton, ui.env.CopperwiseInventory
+    assert(button and window:IsShown())
+    button.scripts.OnClick()
+    assert(not window:IsShown())
+    button.scripts.OnClick()
+    assert(window:IsShown())
+    assert(ui.env.Copperwise.ItemChoice(1) == "Keep")
+end)
+
+test("minimap dragging follows the rim and persists the angle across login", function()
+    local character = {}
+    local ui = inventory({}, nil, character)
+    local button = ui.env.CopperwiseMinimapButton
+    button.scripts.OnDragStart(button)
+    assert(button.dragging and math.abs(character.minimapAngle) < 0.001)
+    ui.cursorX, ui.cursorY = 200, 400
+    button.scripts.OnUpdate(button)
+    assert(math.abs(character.minimapAngle - 90) < 0.001)
+    button.scripts.OnDragStop(button)
+    assert(not button.dragging and not button.scripts.OnUpdate)
+    ui = inventory({}, nil, character)
+    assert(character.minimapAngle == 90)
+    button = ui.env.CopperwiseMinimapButton
+    button.scripts.OnDragStart(button)
+    button.scripts.OnHide(button)
+    assert(not button.scripts.OnUpdate)
 end)

@@ -6,7 +6,10 @@ reload/login. No backend, credentials, companion or Auctionator dependency.
 
 ## Review inventory
 
-Run `/cw` or `/copperwise` to open the standalone Inventory window. Select an
+Run `/cw` or `/copperwise` to open the standalone Inventory window. The small
+copper-coin button on the minimap toggles the same window. Drag it around the
+edge to reposition it; its angle is remembered per character. Round and square
+minimaps are supported, including resized minimaps. Select an
 owned item to inspect bag quantity and vendor sell values. Backpack and bags
 0–4 are covered. Identical unlocked slot snapshots must persist for 0.75 seconds
 after bag/cursor changes before new quantities replace the last settled view.
@@ -22,8 +25,46 @@ faction 5% cut and vendor sell total, descending, then name and item ID.
 Estimated AH proceeds round down to whole copper and exclude deposits. Incomplete
 comparisons sort last; known zero stays numeric. Equal totals prefer Vendor.
 Select any row to see gross AH asking total, estimated AH proceeds and vendor total for the same quantity and its retained source
-time/coverage. Selection sends no market query. Use the AH/Vendor button beside an inventory row to mark its currently observed
-bag units for sale, independently of detail selection.
+time/coverage. Selection sends no market query.
+
+### Item choices
+
+Assign recommended beside Uncategorized applies complete recommendations to all
+uncategorized bag item types. Existing Keep/Vendor/AH choices and items lacking
+complete comparisons are left intact. It assigns intent only; it performs no sale.
+Categorized items retain their saved icons when no longer in bags, including
+across reloads; native item metadata is a fallback for older saved choices.
+
+The rail starts with Uncategorized, followed by To vendor, To AH and To keep.
+Each item offers Keep, Vendor and AH, even when comparison data is unavailable.
+The three choices are flat joined segments. A solid gold fill marks the saved
+choice; a gold outline and muted fill mark the suggested sale destination only
+while uncategorized. Switching choices releases the previous selection.
+Click the saved choice again to return the item to Uncategorized, or select a
+new destination directly. Each assigned section has a count and Clear button;
+Clear returns every item type in that category, including absent items, to
+Uncategorized. These actions do not perform a sale or query the market.
+
+Choices persist per character in `CopperwiseDB.itemChoices` (version 1), separate
+from quantity-based `salePlan` intent. Keep removes pending sale intent and
+excludes the item type from uncategorized review. Vendor/AH explicitly override
+estimates and initially mark all settled bag units. Newly observed net increases
+in bag quantity follow that choice; existing intent shortages are covered first.
+Confirmed posting reduces only the sale queue, preserving the AH choice for later
+acquisitions. Other quantity losses retain intent/shortage for explicit revision.
+Saved choices remain visible with zero bag units and can still be cleared.
+Switching destinations replaces pending intent with the currently owned amount.
+Clearing a choice also removes its pending intent. Existing quantity-only sale
+plans remain readable and clearable; selecting a destination creates a persistent
+item choice. Unsupported/malformed choice data is preserved and editing disabled.
+
+Item choices use settled bag snapshots, so a loss and acquisition between
+snapshots are visible only as a net change. This is not a transaction ledger.
+The prototype commit is `83c2ace`. The above interaction supersedes older
+mark/remainder UI descriptions and checklists below. The owner approved the installed inventory and minimap iteration on 2026-11-16;
+see [the feature record](../../.scratch/item-choices/spec.md). Supporting checks
+cover reload, acquisition, category isolation and posting revision protection.
+Broader native posting and release verification remain in tickets 06/07.
 
 ## Full market scan
 

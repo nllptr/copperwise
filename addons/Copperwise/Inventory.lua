@@ -88,33 +88,54 @@ local function renderScanWarning()
     end
 end
 
+local function flatButton(parent, width, height)
+    local control = CreateFrame("Button", nil, parent)
+    control:SetSize(width, height)
+    control.border = control:CreateTexture(nil, "BACKGROUND")
+    control.border:SetAllPoints()
+    control.border:SetColorTexture(0.42, 0.44, 0.40, 1)
+    control.fill = control:CreateTexture(nil, "BORDER")
+    control.fill:SetPoint("TOPLEFT", 1, -1)
+    control.fill:SetPoint("BOTTOMRIGHT", -1, 1)
+    control.fill:SetColorTexture(0.16, 0.18, 0.16, 1)
+    local label = control:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    label:SetPoint("CENTER")
+    control:SetFontString(label)
+    local hover = control:CreateTexture(nil, "HIGHLIGHT")
+    hover:SetAllPoints(); hover:SetColorTexture(1, 1, 1, 0.10)
+    control:SetHighlightTexture(hover)
+    return control
+end
+
 local function renderList()
     local ready = settled and not CursorHasItem()
-    local choices = {}
+    local choices, present = {}, {}
     if ready then displayedComparisons = {} end
-    for id, row in pairs(rows) do
+    local function add(id, row)
+        local destination = CW.ItemChoice and CW.ItemChoice(id)
         local intent = CW.SaleIntent and CW.SaleIntent(id)
-        local remaining = math.max(0, row.quantity - (intent and intent.quantity or 0))
-        if remaining > 0 then
-            local item = withQuantity(row, remaining)
-            choices[#choices+1] = {item=item, comparison=comparison(item), marked=false, identity=id .. ":inventory"}
+        if not row.icon then
+            local _, _, _, _, _, _, _, _, _, icon = C_Item.GetItemInfo(id)
+            row.icon = icon
         end
-        if intent then
-            local item = withQuantity(row, intent.quantity)
-            choices[#choices+1] = {item=item, comparison=comparison(item), marked=true, identity=id .. ":marked"}
-        end
+        local item = withQuantity(row, row.quantity)
+        choices[#choices+1] = {item=item, comparison=comparison(item), destination=destination,
+            marked=intent ~= nil, identity=id .. ":item"}
+        present[id] = true
+    end
+    for id, row in pairs(rows) do add(id, row) end
+    for id, choice in pairs(CW.ItemChoices and CW.ItemChoices() or {}) do
+        if not present[id] then add(id, {id=id, name=choice.name, icon=choice.icon, quantity=0, support="not currently in bags"}) end
     end
     for id, intent in pairs(CW.SaleIntents and CW.SaleIntents() or {}) do
-        if not rows[id] then
-            local item = {id=id, name=intent.name, quantity=intent.quantity, support="not currently in bags"}
-            choices[#choices+1] = {item=item, comparison=comparison(item), marked=true, identity=id .. ":marked"}
-        end
+        if not present[id] then add(id, {id=id, name=intent.name, icon=intent.icon, quantity=0, support="not currently in bags"}) end
     end
+    local order = {Vendor=2, AH=3, Keep=4}
     table.sort(choices, function(a, b)
-        if a.marked ~= b.marked then return b.marked end
-        -- Keep the last settled order throughout bag/cursor activity.
+        local ai, bi = order[a.destination] or 1, order[b.destination] or 1
+        if ai ~= bi then return ai < bi end
         if not ready then
-            local ai, bi = lastOrder[a.identity], lastOrder[b.identity]
+            ai, bi = lastOrder[a.identity], lastOrder[b.identity]
             if ai ~= bi then return (ai or math.huge) < (bi or math.huge) end
         end
         local av, bv = a.comparison.value, b.comparison.value
@@ -127,133 +148,160 @@ local function renderList()
         lastOrder = {}
         for index, choice in ipairs(choices) do lastOrder[choice.identity] = index end
     end
-    local height = #choices * 40 + 48
-    listContent:SetHeight(math.max(1, height))
-    local maxScroll = math.max(0, height - list:GetHeight())
-    list:SetVerticalScroll(math.min(list:GetVerticalScroll(), maxScroll))
-    local offset, previousSection, sections = 0, nil, 0
-    for index, choice in ipairs(choices) do
-        local intent = CW.SaleIntent and CW.SaleIntent(choice.item.id)
-        local section = choice.marked and "Marked for sale" or "Unmarked inventory"
-        if section ~= previousSection then
-            sections = sections + 1
-            local label = sectionLabels[sections]
-            if not label then
-                label = listContent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-                sectionLabels[sections] = label
+    local offset, index = 0, 0
+    for section, name in ipairs({"Uncategorized", "To vendor", "To AH", "To keep"}) do
+        local count = 0
+        for _, choice in ipairs(choices) do if (order[choice.destination] or 1) == section then count = count + 1 end end
+        local heading = sectionLabels[section]
+        if not heading then
+            heading = listContent:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+            heading:SetHeight(20)
+            heading:SetJustifyV("MIDDLE")
+            sectionLabels[section] = heading
+            if section == 1 then
+                heading.assign = flatButton(listContent, 134, 20)
+                heading.assign:SetText("Assign recommended")
+                heading.assign:SetScript("OnClick", function()
+                    if not CW.HoldingsSettled() then return end
+                    local assigned = 0
+                    for id, row in pairs(rows) do
+                        if not CW.ItemChoice(id) then
+                            local values = comparison(row)
+                            if not values.reason and values.destination then
+                                local ok = CW.SetItemChoice(id, values.destination)
+                                if ok then assigned = assigned + 1 end
+                            end
+                        end
+                    end
+                    actionMessage = "Assigned recommendations for " .. assigned .. " item types."
+                    CW.Render()
+                end)
+            else
+                heading.clear = flatButton(listContent, 48, 20)
+                local destination = ({"", "Vendor", "AH", "Keep"})[section]
+                heading.clear:SetText("Clear")
+                heading.clear:SetScript("OnClick", function()
+                    local ok, reason = CW.ClearItemChoices(destination)
+                    actionMessage = ok and ("Returned all " .. destination .. " items to Uncategorized.") or reason
+                    CW.Render()
+                end)
             end
-            label:SetPoint("TOPLEFT", 2, -offset)
-            label:SetText(section)
-            label:Show()
-            offset = offset + 24
-            previousSection = section
         end
-        local button = buttons[index]
-        if not button then
-            button = CreateFrame("Button", nil, listContent)
-            button:SetSize(280, 38)
-            button:SetPoint("TOPLEFT", 0, -(index - 1) * 40)
-            button:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
-            button.icon = button:CreateTexture(nil, "ARTWORK")
-            button.icon:SetSize(22, 22)
-            button.icon:SetPoint("TOPLEFT", 2, -3)
-            button.label = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-            button.label:SetPoint("TOPLEFT", 30, -4)
-            button.label:SetWidth(145)
-            button.label:SetWordWrap(false)
-            button.label:SetJustifyH("LEFT")
-            button.value = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-            button.value:SetPoint("TOPRIGHT", -2, -4)
-            button.value:SetWidth(100)
-            button.value:SetJustifyH("RIGHT")
-            button.status = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-            button.status:SetPoint("TOPLEFT", 30, -21)
-            button.status:SetWidth(248)
-            button.status:SetJustifyH("LEFT")
-            button.status:SetWordWrap(false)
-            button.toggle = CreateFrame("Button", nil, listContent, "UIPanelButtonTemplate")
-            button.toggle:SetSize(72, 26)
-            button.toggle:SetScript("OnClick", function()
-                local id = button.itemID
-                local intent = CW.SaleIntent(id)
-                local ok, reason
-                if button.marked then
-                    ok, reason = CW.ChangeIntent(id, "remove")
-                else
-                    local item = CW.AvailableItem(id)
-                    if not item then return end
-                    local remaining = math.max(0, item.quantity - (intent and intent.quantity or 0))
-                    if remaining == 0 then return end
-                    local values = comparison(withQuantity(item, remaining))
-                    if values.reason or not values.destination then return end
-                    ok, reason = CW.ChangeIntent(id, "mark", remaining, intent and intent.destination or values.destination)
-                end
-                actionMessage = ok and nil or reason
-                if selected == id then
-                    local entry = CW.SaleIntent(id)
-                    quantityInput:SetText(entry and tostring(entry.quantity) or "")
-                    quantityInput:ClearFocus()
-                end
-                CW.Render()
-            end)
-            button.toggle:SetScript("OnEnter", function(self)
-                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-                GameTooltip:SetText(self.help)
-                GameTooltip:Show()
-            end)
-            button.toggle:SetScript("OnLeave", function() GameTooltip:Hide() end)
-            button:SetScript("OnClick", function(self)
-                selected = self.itemID
-                selectedMarked = self.marked
-                actionMessage = nil
-                local intent = CW.SaleIntent and CW.SaleIntent(selected)
-                if quantityInput then quantityInput:SetText(intent and tostring(intent.quantity) or "") end
-                CW.Render()
-            end)
-            buttons[index] = button
+        heading:ClearAllPoints(); heading:SetPoint("TOPLEFT", 2, -offset)
+        heading:SetText(name .. " (" .. count .. ")"); heading:Show()
+        if heading.assign then
+            local eligible = false
+            for _, choice in ipairs(choices) do
+                if not choice.destination and not choice.comparison.reason and choice.comparison.destination then eligible = true; break end
+            end
+            heading.assign:ClearAllPoints(); heading.assign:SetPoint("TOPRIGHT", -2, -offset)
+            heading.assign:SetEnabled(eligible and ready and not CW.intentNotice); heading.assign:Show()
         end
-        button:ClearAllPoints()
-        button:SetPoint("TOPLEFT", 0, -offset)
-        button.toggle:ClearAllPoints()
-        button.toggle:SetPoint("TOPLEFT", 284, -offset)
-        offset = offset + 40
-        local item, values = choice.item, choice.comparison
-        button.itemID, button.marked = item.id, choice.marked
-        button.icon:SetTexture(item.icon or "Interface\\Icons\\INV_Misc_QuestionMark")
-        button.label:SetText((selected == item.id and selectedMarked == choice.marked and "|cffffd100" or "") .. item.name
-            .. " (" .. item.quantity .. ")")
-        button.value:SetText(values.value ~= nil and money(values.value) or "—")
-        local bagQuantity = rows[item.id] and rows[item.id].quantity or 0
-        button.status:SetText(choice.marked and ("Sell " .. intent.quantity .. "; bags "
-            .. (hasSnapshot and bagQuantity or "unavailable")
-            .. (hasSnapshot and bagQuantity < intent.quantity and ("; short " .. (intent.quantity - bagQuantity)) or ""))
-            or (values.reason and ("Unavailable — " .. values.reason) or (intent and "Unmarked remainder" or "")))
-        local destination = intent and intent.destination or values.destination
-        if choice.marked or (not values.reason and destination) then
-            button.toggle:SetText((destination == "AH" and "|cffffd100" or "|cff99ddaa")
-                .. destination .. (choice.marked and " ×" or (intent and " +" or "")) .. "|r")
-            button.toggle.help = choice.marked and ("Unmark " .. item.name .. " from " .. destination .. ". No sale is made.")
-                or ((intent and "Add " or "Mark ") .. item.quantity .. " units of " .. item.name
-                    .. " for " .. destination .. ". No sale is made.")
-            button.toggle:Show()
-        else button.toggle:Hide() end
-        button:Show()
+        if heading.clear then
+            heading.clear:ClearAllPoints(); heading.clear:SetPoint("TOPRIGHT", -2, -offset)
+            heading.clear:SetEnabled(count > 0 and not CW.intentNotice); heading.clear:Show()
+        end
+        offset = offset + 26
+        for _, choice in ipairs(choices) do
+            if (order[choice.destination] or 1) == section then
+                index = index + 1
+                local button = buttons[index]
+                if not button then
+                    button = CreateFrame("Button", nil, listContent)
+                    button:SetSize(216, 38)
+                    button:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
+                    button.icon = button:CreateTexture(nil, "ARTWORK")
+                    button.icon:SetSize(22, 22); button.icon:SetPoint("TOPLEFT", 2, -3)
+                    button.label = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+                    button.label:SetPoint("TOPLEFT", 30, -4); button.label:SetWidth(180)
+                    button.label:SetWordWrap(false); button.label:SetJustifyH("LEFT")
+                    button.value = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+                    button.value:SetPoint("TOPLEFT", 30, -21); button.value:SetWidth(80); button.value:SetJustifyH("LEFT")
+                    button.status = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+                    button.status:SetPoint("TOPLEFT", 112, -21); button.status:SetWidth(100)
+                    button.status:SetJustifyH("LEFT"); button.status:SetWordWrap(false)
+                    button.actions = {}
+                    for n, destination in ipairs({"Keep", "Vendor", "AH"}) do
+                        local toggle = flatButton(listContent, 47, 24)
+                        toggle:SetScript("OnClick", function()
+                            local chosen = CW.ItemChoice(button.itemID)
+                            local ok, reason = CW.SetItemChoice(button.itemID, chosen ~= destination and destination or nil)
+                            actionMessage = ok and nil or reason
+                            local intent = CW.SaleIntent(button.itemID)
+                            if quantityInput and selected == button.itemID then
+                                quantityInput:SetText(intent and tostring(intent.quantity) or ""); quantityInput:ClearFocus()
+                            end
+                            CW.Render()
+                        end)
+                        toggle:SetScript("OnEnter", function(self)
+                            GameTooltip:SetOwner(self, "ANCHOR_RIGHT"); GameTooltip:SetText(self.help); GameTooltip:Show()
+                        end)
+                        toggle:SetScript("OnLeave", function() GameTooltip:Hide() end)
+                        button.actions[n] = toggle
+                    end
+                    button:SetScript("OnClick", function(self)
+                        selected, selectedMarked, actionMessage = self.itemID, self.marked, nil
+                        local intent = CW.SaleIntent(selected)
+                        if quantityInput then quantityInput:SetText(intent and tostring(intent.quantity) or "") end
+                        CW.Render()
+                    end)
+                    buttons[index] = button
+                end
+                local item, values = choice.item, choice.comparison
+                local intent = CW.SaleIntent(item.id)
+                button.itemID, button.marked = item.id, choice.marked
+                button:ClearAllPoints(); button:SetPoint("TOPLEFT", 0, -offset)
+                button.icon:SetTexture(item.icon or "Interface\\Icons\\INV_Misc_QuestionMark")
+                button.label:SetText((selected == item.id and "|cffffd100" or "") .. item.name .. " (" .. item.quantity .. ")")
+                button.value:SetText(values.value ~= nil and money(values.value) or "—")
+                button.status:SetText(intent and ("Sell " .. intent.quantity) or (choice.destination == "Keep" and "Kept" or (values.reason and ("Unavailable — " .. values.reason) or "")))
+                for n, destination in ipairs({"Keep", "Vendor", "AH"}) do
+                    local toggle = button.actions[n]
+                    toggle:ClearAllPoints(); toggle:SetPoint("TOPLEFT", 220 + (n-1)*46, -offset)
+                    local chosen = choice.destination == destination
+                    local recommended = choice.destination == nil and values.destination == destination
+                    toggle.selected, toggle.recommended = chosen, recommended
+                    if chosen then
+                        toggle.border:SetColorTexture(0.92, 0.76, 0.39, 1)
+                        toggle.fill:SetColorTexture(0.72, 0.58, 0.28, 1)
+                    elseif recommended then
+                        toggle.border:SetColorTexture(0.92, 0.76, 0.39, 1)
+                        toggle.fill:SetColorTexture(0.28, 0.26, 0.18, 1)
+                    else
+                        toggle.border:SetColorTexture(0.42, 0.44, 0.40, 1)
+                        toggle.fill:SetColorTexture(0.16, 0.18, 0.16, 1)
+                    end
+                    toggle:SetText((chosen and "|cff171a16" or recommended and "|cffffd580" or "|cffd4d9ce") .. destination .. "|r")
+                    toggle.help = chosen and (destination .. " selected. Click again to return " .. item.name .. " to Uncategorized.")
+                        or (destination == "Keep" and "Keep this item type, including newly acquired quantities."
+                            or ("Assign this item type to " .. destination .. ", regardless of estimated value. No sale is made."))
+                    if recommended then toggle.help = "Copperwise recommends " .. destination .. ". " .. toggle.help end
+                    toggle:SetEnabled(not CW.intentNotice and (chosen or ready)); toggle:Show()
+                end
+                button:Show(); offset = offset + 40
+            end
+        end
     end
-    for index = sections + 1, #sectionLabels do sectionLabels[index]:Hide() end
-    for index = #choices + 1, #buttons do buttons[index]:Hide(); buttons[index].toggle:Hide() end
+    for i = index + 1, #buttons do
+        buttons[i]:Hide()
+        for _, toggle in ipairs(buttons[i].actions) do toggle:Hide() end
+    end
+    listContent:SetHeight(math.max(1, offset))
+    list:SetVerticalScroll(math.min(list:GetVerticalScroll(), math.max(0, offset - list:GetHeight())))
 end
 
 function CW.Render()
     if not output then return end
+    if CW.SyncItemChoices then CW.SyncItemChoices() end
     renderScanWarning()
     local intent = CW.SaleIntent and CW.SaleIntent(selected)
     local owned = rows[selected]
-    local remaining = math.max(0, (owned and owned.quantity or 0) - (intent and intent.quantity or 0))
+    local remaining = owned and owned.quantity or 0
     if selectedMarked and not intent then selectedMarked = false end
-    if intent and remaining == 0 then selectedMarked = true end
+    if intent then selectedMarked = true end
     renderList()
     local item = owned
-    if not item and intent then item = {id=selected, name=intent.name, quantity=0, support="not currently in bags"} end
+    if not item and intent then item = {id=selected, name=intent.name, icon=intent.icon, quantity=0, support="not currently in bags"} end
     if item then item = withQuantity(item, selectedMarked and intent.quantity or remaining) end
     local text = "Select a bag item from the list.\nBackpack and bags only; bank and equipment excluded."
     local values = item and comparison(item)
@@ -265,7 +313,7 @@ function CW.Render()
             .. (intent and "\nVendor sell / selected quantity: " or "\nVendor sell / owned quantity: ") .. money(values.vendor)
             .. (intent and "\nAH asking / selected quantity: " or "\nAH asking / owned quantity: ") .. money(values.asking)
             .. "\nAH estimated proceeds (5% cut): " .. money(values.proceeds)
-            .. "\nPreferred destination: " .. (values.destination or "unavailable (both values required)")
+            .. "\nSuggested destination: " .. (values.destination or "unavailable (both values required)")
             .. "\nSupport: " .. item.support
     end
     if intent then
@@ -276,6 +324,8 @@ function CW.Render()
             .. "\nShortage: " .. (available and math.max(0, intent.quantity - available) or "unavailable")
         if intent.destination == "Vendor" then text = text .. "\nSell with the normal merchant UI; remove intent explicitly." end
     end
+    local choice = CW.ItemChoice and CW.ItemChoice(selected)
+    if choice then text = text .. "\nItem choice: " .. choice .. " (this character; applies to newly acquired quantities)" end
     if CW.intentNotice then text = text .. "\n" .. CW.intentNotice end
     if actionMessage then text = text .. "\n" .. actionMessage end
     if quantityInput then
@@ -414,6 +464,72 @@ local function open()
     CW.Render()
 end
 
+local function createMinimapButton()
+    if not Minimap or CW.minimapButton then return end
+    local button = CreateFrame("Button", "CopperwiseMinimapButton", Minimap)
+    button:SetSize(32, 32)
+    local angle = type(CopperwiseDB) == "table" and CopperwiseDB.minimapAngle or 225
+    if type(angle) ~= "number" or angle ~= angle or math.abs(angle) == math.huge then angle = 225 end
+    local function position()
+        local x, y = math.cos(math.rad(angle)), math.sin(math.rad(angle))
+        if GetMinimapShape and GetMinimapShape() == "SQUARE" then
+            local edge = math.max(math.abs(x), math.abs(y))
+            x, y = x / edge, y / edge
+        end
+        button:ClearAllPoints()
+        button:SetPoint("CENTER", Minimap, "CENTER", x * (Minimap:GetWidth()/2 + 5), y * (Minimap:GetHeight()/2 + 5))
+    end
+    local function drag()
+        local mx, my = Minimap:GetCenter()
+        if not mx or not my then return end
+        local x, y = GetCursorPosition()
+        local scale = Minimap:GetEffectiveScale()
+        x, y = x/scale - mx, y/scale - my
+        if x == 0 and y == 0 then return end
+        angle = math.deg(math.atan2(y, x)) % 360
+        if type(CopperwiseDB) == "table" then CopperwiseDB.minimapAngle = angle end
+        position()
+    end
+    local function stop(self)
+        self:SetScript("OnUpdate", nil)
+        self.dragging = nil
+    end
+    button:RegisterForDrag("LeftButton")
+    button:SetScript("OnDragStart", function(self)
+        self.dragging = true
+        if GameTooltip then GameTooltip:Hide() end
+        self:SetScript("OnUpdate", drag)
+        drag()
+    end)
+    button:SetScript("OnDragStop", stop)
+    button:SetScript("OnHide", stop)
+    Minimap:HookScript("OnSizeChanged", position)
+    position()
+    button:SetFrameStrata("MEDIUM")
+    local icon = button:CreateTexture(nil, "BACKGROUND")
+    icon:SetSize(20, 20)
+    icon:SetPoint("TOPLEFT", 7, -5)
+    icon:SetTexture("Interface\\Icons\\INV_Misc_Coin_01")
+    local border = button:CreateTexture(nil, "OVERLAY")
+    border:SetSize(54, 54)
+    border:SetPoint("TOPLEFT", 0, 0)
+    border:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
+    button:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
+    button:SetScript("OnClick", function(self)
+        if self and self.dragging then return end
+        if window and window:IsShown() then window:Hide() else open() end
+    end)
+    button:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+        GameTooltip:SetText("Copperwise")
+        GameTooltip:AddLine("Click to open or close Inventory.", 1, 1, 1)
+        GameTooltip:AddLine("Drag to move around the minimap.", 0.75, 0.75, 0.75)
+        GameTooltip:Show()
+    end)
+    button:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    CW.minimapButton = button
+end
+
 SLASH_COPPERWISE1 = "/copperwise"
 SLASH_COPPERWISE2 = "/cw"
 SlashCmdList.COPPERWISE = function(message)
@@ -443,6 +559,7 @@ frame:RegisterEvent("ITEM_LOCK_CHANGED")
 frame:RegisterEvent("CURSOR_CHANGED")
 frame:RegisterEvent("GET_ITEM_INFO_RECEIVED")
 frame:SetScript("OnEvent", function(_, event)
+    if event == "PLAYER_LOGIN" then createMinimapButton() end
     if event ~= "GET_ITEM_INFO_RECEIVED" then
         settled, candidate, dirtyAt = false, nil, GetTime()
     end
