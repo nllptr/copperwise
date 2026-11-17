@@ -88,6 +88,7 @@ local function confirm()
     wanted = visible
     notice = "Confirmed " .. units .. " posted units (item " .. id .. ") against owned listings and bags."
     if CW.PostConfirmed then CW.PostConfirmed(id, units) end
+    if CW.BatchPostConfirmed then CW.BatchPostConfirmed(id, units) end
     if CW.Render then CW.Render() end
     changed()
 end
@@ -105,7 +106,7 @@ function CW.ClosePosting()
 end
 
 function CW.PostingBlocksScan()
-    return pending ~= nil
+    return pending ~= nil or (CW.BatchActive and CW.BatchActive())
 end
 
 function CW.PostingNotice()
@@ -134,6 +135,7 @@ function CW.RefreshPosting()
 end
 
 function CW.InterruptPosting(reason)
+    if CW.StopBatch then CW.StopBatch(reason) end
     baseline, baselineFailure = nil, nil
     if query then query = nil; CW.AHOperation = nil; CW.AHResponseUncertain = true end
     if pending then
@@ -144,6 +146,9 @@ end
 -- Called only by XML OnClick -> parent:PostItem(), matching the verified probe.
 -- No pcall, rendering, printing or disabling the button before the native post.
 function CW.PostReviewedItem(review)
+    if CW.BatchActive and CW.BatchActive() and not CW.BatchAllowsReview(review) then
+        notice = "Stop the active batch before posting individually."; return
+    end
     local reason = CW.PostingReason()
     if reason then notice = reason; return end
     local sourceStack = review and review.stacks and review.stacks[1]
@@ -206,6 +211,7 @@ end
 
 function CW.ResolvePost(posted, reviewedPending)
     if not pending or pending ~= reviewedPending then return end
+    if CW.StopBatch then CW.StopBatch("Outcome reconciled manually; start a fresh batch.") end
     if not validLedger(pending) then
         notice = "Unsupported or malformed pending-post data preserved; manual recovery required."; changed(); return
     end
@@ -291,6 +297,7 @@ frame:SetScript("OnEvent", function(_, event, addon)
     elseif pending and (event == "AUCTION_MULTISELL_UPDATE" or event == "AUCTION_MULTISELL_FAILURE"
         or event == "AUCTION_HOUSE_SHOW_ERROR") then wanted = true
     elseif pending and (event == "ADDON_ACTION_BLOCKED" or event == "ADDON_ACTION_FORBIDDEN") and addon == "Copperwise" then
+        if CW.StopBatch then CW.StopBatch("Client requires a posting click. Reconcile the outcome before starting again.") end
         ownPost = false
         if type(pending) == "table" then pending.conflict = true end
         notice = "Client blocked posting. No automatic retry; inspect Auctions and reconcile."

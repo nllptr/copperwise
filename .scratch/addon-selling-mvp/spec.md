@@ -3,6 +3,19 @@
 Status: open
 Labels: ready-for-agent
 
+## Batch scan and eligibility update — 2026-11-16
+
+Post all first obtains fresh native browse summaries only for AH-marked item
+types, then posts eligible reviewed quantities at the lowest observed buyout.
+Avoid loading all individual listings. Require complete targeted coverage and
+minimum listed supply (configurable per character, default 500 units), plus
+strictly higher proceeds after the 5% AH cut than vendor proceeds for the same
+quantity. Missing data and ties withhold posting, preserving intent and showing
+a reason. AH choices do not bypass these batch filters. Supply does not measure
+churn or guarantee sales. Targeted observations stay separate from retained full
+market scans. This supersedes earlier unspecified batch pricing defaults and
+permits fresh lowest prices to replace manual price drafts within Post all.
+
 ## Problem Statement
 
 The casual seller wants a usable way to review owned items, choose what to sell

@@ -10,7 +10,7 @@ local responseEvents = {
     SendSearchQuery="search", SendSellSearchQuery="search",
     RefreshItemSearchResults="search", RefreshCommoditySearchResults="search",
     RequestMoreItemSearchResults="search", RequestMoreCommoditySearchResults="search",
-    SendBrowseQuery="browse", SearchForFavorites="browse", RequestMoreBrowseResults="browse",
+    SendBrowseQuery="browse", SearchForFavorites="browse", SearchForItemKeys="browse", RequestMoreBrowseResults="browse",
     QueryOwnedAuctions="owned", QueryBids="bids", ReplicateItems="replicate",
 }
 
@@ -128,6 +128,7 @@ end
 local function externalRequest(name, argument)
     lastTraffic = GetTime()
     if ownRequest then return end
+    if CW.StopBatch then CW.StopBatch("Other AH activity stopped the batch.") end
     if CW.InterruptListings then CW.InterruptListings("Other AH activity interrupted item results; refresh after it finishes.") end
     if CW.InterruptPosting then CW.InterruptPosting("Other AH activity; inspect native Auctions before retrying.") end
     local kind = responseEvents[name]
@@ -331,11 +332,25 @@ local function setupPanel()
     AuctionHouseFrameDisplayMode.CopperwiseMarket = mode
     scanButton = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
     scanButton:SetSize(125, 25); scanButton:SetPoint("TOPRIGHT", -145, -5); scanButton:SetText("Full scan")
-    scanButton:SetScript("OnClick", guard(function() if active then cancel() else start() end end))
-    local postAll = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-    postAll:SetSize(125, 25); postAll:SetPoint("TOPRIGHT", -12, -5); postAll:SetText("Post all"); postAll:SetEnabled(false)
+    scanButton:SetScript("OnClick", guard(function()
+        if CW.BatchActive and CW.BatchActive() then CW.StopBatch("Batch stopped. Unfinished intent retained.")
+        elseif active then cancel() else start() end
+    end))
+    CW.fullScanButton = scanButton
+    panel.PostAll = function() if CW.BatchClick then CW.BatchClick() end end
+    local postAll = CreateFrame("Button", nil, panel, "CopperwisePostAllButtonTemplate")
+    postAll:SetSize(125, 25); postAll:SetPoint("TOPRIGHT", -12, -5); postAll:SetText("Post all")
+    CW.batchButton = postAll
+    postAll:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:AddLine("Post all at fresh lowest buyout")
+        GameTooltip:AddLine("Checks marked items only. Requires minimum listed units and proceeds after the 5% AH cut greater than vendor value. Listed supply does not measure sales.", 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    postAll:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    if CW.SetupBatchControls then CW.SetupBatchControls(panel) end
     output = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    output:SetPoint("TOPLEFT", 12, -5); output:SetPoint("BOTTOMRIGHT", panel, "TOPRIGHT", -285, -30)
+    output:SetPoint("TOPLEFT", 170, -5); output:SetPoint("BOTTOMRIGHT", panel, "TOPRIGHT", -285, -30)
     output:SetJustifyH("RIGHT"); output:SetJustifyV("MIDDLE")
     scanButton:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_TOP")

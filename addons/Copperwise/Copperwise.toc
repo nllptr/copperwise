@@ -10,4 +10,5 @@ Listings.lua
 Posting.lua
 Posting.xml
 Review.lua
+Batch.lua
 Scan.lua

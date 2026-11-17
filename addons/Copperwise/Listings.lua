@@ -24,6 +24,7 @@ function CW.ListingsWaitReason()
 end
 
 function CW.SelectListings(id, refresh)
+    if CW.BatchActive and CW.BatchActive() then return end
     visible = true
     if selected == id and not refresh then
         if queued == id or (request and request.id == id) or (result and result.id == id) then return end

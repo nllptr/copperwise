@@ -325,7 +325,7 @@ pass client acceptance.
 ## Selected-item AH layout (ticket 05, approved prototype)
 
 The AH tab follows `probes/ah-layout/index.html`: Full scan / Cancel scan and the
-Post all placeholder share the top section. The left sidebar contains all AH
+Post all action share the top section. The left sidebar contains all AH
 intent, including restored, unavailable and unsupported entries. Vendor intent
 and unmarked holdings are excluded. The first item is selected automatically.
 Select another row to change the posting form and current-listings table.
@@ -355,7 +355,7 @@ An uncertain response blocks further work until close/reopen. If Full scan is
 clicked while item/owned-listing work is outstanding, let it finish then click
 again. Global scans block selected-item queries until they finish/cancel.
 
-### Post item (individual execution; Post all still deferred)
+### Post item (individual execution)
 
 **Post item sends a real native auction request and can spend a deposit.** It is
 only enabled for reviewed supported commodity sources, known positive prices,
@@ -371,7 +371,9 @@ optional quantity edits stay bounded by the saved intent. All contributing sourc
 stacks and the native quantity limit are revalidated at click time. The native
 deposit is calculated once for the full reviewed quantity. No consolidation or
 extra per-stack click is required. A completed intent disappears and the next
-marked item is selected. Post all remains a placeholder.
+marked item is selected. Individual price-level queries now require Refresh item;
+opening the tab or selecting an item uses retained scan prices without loading
+every current listing.
 
 A before/after owned-listing identity comparison, matching new listing units
 summed at the reviewed item/unit buyout, unchanged in-session intent revision
@@ -435,7 +437,7 @@ visible marks and tabs, not acceptance of this replacement layout.
    or posts may dispatch while closed. Defaults rebuild; saved intent survives.
    Verify normal native/Auctionator tabs still work. Test without Auctionator too.
 
-Ticket 06 remains open for reviewed multi-item Post all execution and its actual
+Ticket 06 remains open for target-client verification of multi-item Post all execution and its actual
 click/advancement requirements. This individual path does not resolve that ticket.
 
 ### Compact scan header
@@ -460,3 +462,55 @@ still waits for a quiet, unthrottled AH and an idle Auctionator queue. Its own
 selected-item price publication and owned-baseline reads require complete results.
 The listings status reports the current readiness blocker. Unanswered/overlapping
 external work requests close/reopen; missing item metadata times out explicitly.
+
+### Post all with a targeted summary scan (ticket 06)
+
+Post all scans only AH-marked item keys through native `SearchForItemKeys` browse
+summaries, in chunks of up to 100 keys (maximum 1,000 selected item types). It
+does not request every item's price levels. All targeted pages must complete
+before posting begins. Targeted prices/supply are temporary and never replace
+the retained full-market scan or its timestamp.
+
+Set **Min listed units** in the AH tab; press Enter or leave the field to save
+the positive whole-unit threshold for this character. The default is 500. The
+batch captures this setting when started. A listing's supply is not sales volume
+and does not predict whether your item will sell.
+
+For each captured item, match the fresh lowest unit buyout and require listed
+units at least equal to the threshold. Net proceeds, rounded down after the
+usual 5% faction AH cut, must strictly exceed vendor proceeds for the same
+quantity. Ties, missing vendor values, absent/invalid buyouts and insufficient
+supply keep intent pending with a reason in the sidebar. Persistent AH choices
+do not bypass these batch checks. Deposits are separately validated native fees;
+they are excluded from the usual proceeds comparison.
+
+Post all uses the captured reviewed quantities and shared duration (default
+8 hours), replacing any individual price edits with targeted lowest buyout.
+It revalidates intent revisions, source stacks, quantity, deposit and funds
+before every dispatch. A changed deposit/source or changed captured intent
+stops the batch. Prices more than 60 seconds old require a new start/check.
+Shortages retain their unposted remainder. New/increased intent is outside the
+captured batch. Unmarked, Keep and Vendor items never enter it.
+
+**Stop batch** replaces Full scan during an active batch. It prevents additional
+dispatches while the existing ledger can still reconcile an in-flight result.
+AH closure/tab departure, conflicting native/Auctionator activity, native errors,
+confirmation dialogs and uncertain outcomes stop/pause the sequence. Opening
+the tab or reloading never resumes it. Reconcile unresolved posts against native
+Auctions and bags before restarting; nothing is automatically retried.
+
+The implementation attempts successive native calls after each confirmed owned
+listing and settled bag change. If the client blocks automatic posting, it keeps
+the pending outcome for reconciliation. After reconciliation/restart, the same
+XML **Continue posting** button performs each subsequent native call during that
+login. No native confirmations or restrictions are bypassed. Target-client API
+availability, click requirements and the complete release matrix remain unverified.
+An unavailable targeted-query API refuses Post all rather than loading full listings.
+
+Run `luajit addons/Copperwise/tests/batch.lua` for simulated production-module
+acceptance. These tests exercise the native event/widget/API boundary; they do
+not establish server behavior. In the target client, verify multiple item types
+and stacks, exact/below-threshold supply, after-cut ties/vendor advantages,
+shortages, edited quantities, stopped/failed/uncertain posts, AH closure/reload,
+native confirmation/click requirements, owned-listing evidence and Auctionator
+coexistence. Record actual results in ticket 06 before resolving it.

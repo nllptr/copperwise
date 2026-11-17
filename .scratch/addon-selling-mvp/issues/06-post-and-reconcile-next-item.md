@@ -4,7 +4,7 @@
 
 **Blocked by:** 05: Review AH-marked items in the native AH tab.
 
-**Status:** ready-for-agent
+**Status:** in progress — implementation and simulated acceptance complete; target-client verification pending
 
 **Labels:** ready-for-agent
 
@@ -24,6 +24,45 @@
 Use the addon-only selling MVP specification and its approved ranking and sale-intent decisions. This ticket is a production vertical slice, verified through visible behavior in the actual target client. Reuse completed bag, native scanning and posting probes as bounded capability evidence; they do not pass this slice automatically. API, backend, companion, history, bank, crafting and purchasing work do not gate this release.
 
 ## Comments
+
+### Targeted summary scan and posting filters — 2026-11-16
+
+Owner authorized implementation of a quick Post all flow: scan only AH-selected
+item types before the posting phase, match their fresh lowest buyout, and skip
+items below a configurable minimum supply (default 500 listed units). Immediately
+before each post, net proceeds after the usual 5% AH cut must strictly exceed
+vendor proceeds for the same quantity. Ties, missing prices/vendor values and
+incomplete coverage keep intent pending. Persistent AH choices do not bypass
+these batch filters. Listed supply is a filter, not evidence of churn or sales.
+
+Implementation uses native SearchForItemKeys browse summaries, in bounded
+100-key chunks, with complete coverage required before posting starts. No item
+price-level search is issued by the batch, and targeted observations do not
+replace the retained full-market snapshot. Opening/selecting the AH review now
+uses retained prices; Refresh item explicitly loads individual price levels.
+Batch prices deliberately replace individual price edits with the targeted
+lowest buyout; reviewed quantities and the shared duration remain captured.
+
+The AH tab exposes Min listed units, saved per character. The batch captures
+that threshold, quantities, intent revisions, duration, deposits and source
+stacks on start. Changes stop or withhold dispatch; newly added/increased intent
+requires another start. Observations older than 60 seconds require a fresh batch.
+Stop batch replaces Full scan while active and retains unfinished intent.
+Confirmed owned-listing and settled-bag evidence still governs consumption and
+advancement. Uncertain outcomes, native errors/confirmations, tab departure,
+closure and competing AH work stop the batch without retries or auto-resume.
+
+Automatic succession is attempted through the native API, without permission
+bypasses. A blocked call preserves its durable pending ledger. After operator
+reconciliation, further batches in that login use the same XML Continue posting
+button for each native call. Actual native permissions and SearchForItemKeys
+behavior on Forever remain unverified; missing API support refuses the batch.
+
+Owner approved testing at the simulated native UI/API boundary and reviewing
+against 2d3e45b. Production-module tests cover filters, quantities, source/deposit
+changes, partial scan coverage/cache preservation, multi-item/cross-stack
+confirmation, stop/reload/uncertainty, interference, price expiry and click fallback.
+These do not resolve the target-client acceptance checklist above or ticket 07.
 
 Published after owner approval of the seven-ticket breakdown. This MVP series replaces the broader selling-context implementation order for the first release; the older roadmap remains historical and later-release scope. No parent specification or older ticket is closed or modified.
 

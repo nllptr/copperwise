@@ -14,8 +14,9 @@ local function native(fn, ...)
     local ok, value = pcall(fn, ...)
     if ok then return value end
 end
-local function prepare(id, intent, quantity, price)
-    local row = {id=id, name=intent.name, intended=intent.quantity, intentRevision=CW.IntentRevision(id), quantity=quantity, duration=duration, stacks={}, eligible=0}
+local function prepare(id, intent, quantity, price, postingDuration)
+    postingDuration = postingDuration or duration
+    local row = {id=id, name=intent.name, intended=intent.quantity, intentRevision=CW.IntentRevision(id), quantity=quantity, duration=postingDuration, stacks={}, eligible=0}
     local observation = CW.ObservationFor(id)
     row.price = price
     row.observedAt = observation and observation.observedAt
@@ -71,7 +72,7 @@ local function prepare(id, intent, quantity, price)
         -- Like native Max/Auctionator, one commodity post may span bag stacks.
         -- The native fee applies to the reviewed total, not a sum of stack fees.
         if whole(quantity) and quantity <= row.eligible then
-            local deposit = native(C_AuctionHouse.CalculateCommodityDeposit, id, duration, quantity)
+            local deposit = native(C_AuctionHouse.CalculateCommodityDeposit, id, postingDuration, quantity)
             if type(deposit) == "number" and deposit >= 0 and deposit % 1 == 0 then row.deposit = deposit end
         end
     end
@@ -80,6 +81,25 @@ local function prepare(id, intent, quantity, price)
     if not row.reason and row.deposit > GetMoney() then row.reason = "Insufficient money for deposit" end
     row.ready = row.reason == nil and row.eligible > 0
     return row
+end
+CW.PrepareReview = prepare
+
+function CW.BatchReviewEntries()
+    local entries = {}
+    for id, intent in pairs(CW.SaleIntents()) do
+        if intent.destination == "AH" then
+            local draft = drafts[id]
+            local quantity
+            if draft and not draft.defaultQuantity then quantity = draft.quantity
+            else quantity = prepare(id, intent, intent.quantity, nil).eligible end
+            local reviewed = prepare(id, intent, quantity, nil)
+            entries[#entries+1] = {id=id, name=intent.name, intended=intent.quantity,
+                intentRevision=CW.IntentRevision(id), quantity=quantity, duration=duration,
+                deposit=reviewed.deposit, stacks=reviewed.stacks}
+        end
+    end
+    table.sort(entries, function(a,b) return a.id < b.id end)
+    return entries
 end
 
 local function label(parent, x, y, width, text, template)
@@ -126,6 +146,7 @@ local function readPrice()
 end
 
 local function editTerms(priceEdited)
+    if CW.BatchActive and CW.BatchActive() then CW.StopBatch("Review terms changed; start a fresh batch.") end
     if not selected then return end
     local draft = drafts[selected]
     if not draft then return end
@@ -148,7 +169,7 @@ local function choose(id)
     end
     painting = true; quantityInput:SetText(tostring(draft.quantity or "")); painting = false
     putPrice(draft.price)
-    CW.SelectListings(id)
+    CW.CloseListings()
 end
 
 local function renderListings(id)
@@ -164,7 +185,7 @@ local function renderListings(id)
     end
     local levels = valid and result.levels or {}
     listingStatus:SetText(result and ((valid and ("Observed " .. date("%H:%M:%S", result.observedAt) .. " · " .. result.units .. " units. ") or "") .. result.reason)
-        or CW.ListingsWaitReason())
+        or "Refresh item to load individual listings. Post all uses a targeted summary scan.")
     for index, level in ipairs(levels) do
         local b = listingButtons[index]
         if not b then
@@ -227,8 +248,8 @@ function CW.RenderReview()
         b.name:SetText((row.id == selected and "|cffffd36b" or "|cffffffff") .. row.intent.name .. "|r")
         b.selection:SetShown(row.id == selected)
         b.count:SetText(tostring(row.intent.quantity))
-        b.state:SetText(item and (item.quantity < row.intent.quantity and ("Short " .. (row.intent.quantity-item.quantity)) or "Marked for AH")
-            or (CW.HoldingsSettled() and "Not in bags" or "Availability pending"))
+        b.state:SetText((CW.BatchItemReason and CW.BatchItemReason(row.id)) or (item and (item.quantity < row.intent.quantity and ("Short " .. (row.intent.quantity-item.quantity)) or "Marked for AH")
+            or (CW.HoldingsSettled() and "Not in bags" or "Availability pending")))
         local id = row.id
         b:SetScript("OnClick", function() choose(id); CW.RenderReview() end)
         b:Show()
@@ -236,17 +257,17 @@ function CW.RenderReview()
     for i = #rows+1, #buttons do buttons[i]:Hide() end
     railContent:SetHeight(math.max(1, #rows*46))
     local postingNotice, pendingPost = CW.PostingNotice()
+    if CW.RenderBatch then CW.RenderBatch() end
     reconcileButton:SetShown(pendingPost)
     empty:SetShown(not selected)
     detail:SetShown(selected ~= nil)
     if not selected then
         preview = nil
         CW.CloseListings()
-        message:SetText(postingNotice or CW.intentNotice or "Mark items for AH in Inventory, then return here.")
+        message:SetText((CW.BatchNotice and CW.BatchNotice()) or postingNotice or CW.intentNotice or "Mark items for AH in Inventory, then return here.")
         return
     end
     local intent, draft = CW.SaleIntent(selected), drafts[selected]
-    CW.SelectListings(selected)
     renderListings(selected)
     local row = prepare(selected, intent, draft.quantity, draft.price)
     local item = CW.AvailableItem(selected)
@@ -268,11 +289,11 @@ function CW.RenderReview()
     totalText:SetText(money(validQuantity and row.price and row.price*draft.quantity or nil))
     for index, radio in ipairs(radios) do radio:SetChecked(index == duration) end
     local postingReason = CW.PostingReason()
-    postButton:SetEnabled(row.ready and not postingReason)
+    postButton:SetEnabled(row.ready and not postingReason and not (CW.BatchActive and CW.BatchActive()))
     postButton:SetText("Post item")
     local notice, pending = CW.PostingNotice()
     reconcileButton:SetShown(pending)
-    local status = notice or row.reason or row.pendingReason or postingReason or "Ready. Click a listing price to use it."
+    local status = (CW.BatchNotice and CW.BatchNotice()) or notice or row.reason or row.pendingReason or postingReason or "Ready. Click a listing price to use it."
     message:SetText(status)
     refreshButton:SetEnabled(not CW.PostingBlocksScan())
     preview = row
@@ -288,6 +309,7 @@ function CW.PostConfirmed(id, units)
 end
 
 function CW.DiscardReview()
+    if CW.StopBatch then CW.StopBatch("Left Copperwise; batch stopped.") end
     drafts, selected, preview, listingStamp, duration = {}, nil, nil, nil, 2
     CW.CloseListings(); CW.ClosePosting()
     if quantityInput then quantityInput:ClearFocus() end
@@ -338,7 +360,10 @@ function CW.SetupReview(parent)
         radio:SetSize(18,18); radio:SetPoint("TOPLEFT", 84+(i-1)*62, -149)
         label(detail, 105+(i-1)*62, -153, 35, hours .. "h")
         local index = i
-        radio:SetScript("OnClick", function() duration = index; CW.RenderReview() end)
+        radio:SetScript("OnClick", function()
+            if CW.StopBatch then CW.StopBatch("Duration changed; start a fresh batch.") end
+            duration = index; CW.RenderReview()
+        end)
         radios[i] = radio
     end
     local metrics = CreateFrame("Frame", nil, detail)
