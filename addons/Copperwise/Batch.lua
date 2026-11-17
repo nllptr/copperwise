@@ -9,6 +9,9 @@ function CW.BatchActive() return batch ~= nil end
 function CW.BatchNotice() return notice end
 function CW.BatchItemReason(id) return reasons[id] end
 function CW.BatchAllowsReview(review) return review == dispatchReview end
+function CW.ClearBatchResult()
+    if not batch then notice, reasons = nil, {} end
+end
 
 function CW.MinimumListedUnits()
     local value = type(CopperwiseDB) == "table" and CopperwiseDB.minimumListedUnits
@@ -190,13 +193,7 @@ function CW.RenderBatch()
             and "Continue posting" or (batch.phase == "scan" and "Checking…" or "Posting…")) or "Post all")
         CW.batchButton:SetEnabled(not pending and (not batch or hardwareRequired and batch.phase == "posting"))
     end
-    if CW.fullScanButton then
-        CW.fullScanButton:SetText(batch and "Stop batch" or (CW.attempt and
-            (CW.attempt.state == "waiting" or CW.attempt.state == "processing" or CW.attempt.state == "partial"
-                or CW.attempt.state == "ready" or CW.attempt.state == "throttled") and "Cancel scan" or "Full scan"))
-        local _, pending = CW.PostingNotice()
-        CW.fullScanButton:SetEnabled(batch ~= nil or not pending)
-    end
+    if CW.RenderScanButton then CW.RenderScanButton() end
     if minimumInput then minimumInput:SetEnabled(not batch) end
 end
 

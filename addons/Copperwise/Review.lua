@@ -146,7 +146,8 @@ local function readPrice()
 end
 
 local function editTerms(priceEdited)
-    if CW.BatchActive and CW.BatchActive() then CW.StopBatch("Review terms changed; start a fresh batch.") end
+    if CW.BatchActive and CW.BatchActive() then CW.StopBatch("Review terms changed; start a fresh batch.")
+    elseif CW.ClearBatchResult then CW.ClearBatchResult() end
     if not selected then return end
     local draft = drafts[selected]
     if not draft then return end
@@ -156,6 +157,7 @@ local function editTerms(priceEdited)
 end
 
 local function choose(id)
+    if CW.ClearBatchResult then CW.ClearBatchResult() end
     selected, listingStamp = id, nil
     for _, box in ipairs(priceInputs) do box:ClearFocus() end
     quantityInput:ClearFocus()
@@ -264,7 +266,7 @@ function CW.RenderReview()
     if not selected then
         preview = nil
         CW.CloseListings()
-        message:SetText((CW.BatchNotice and CW.BatchNotice()) or postingNotice or CW.intentNotice or "Mark items for AH in Inventory, then return here.")
+        message:SetText((pendingPost and postingNotice) or (CW.BatchNotice and CW.BatchNotice()) or postingNotice or CW.intentNotice or "Mark items for AH in Inventory, then return here.")
         return
     end
     local intent, draft = CW.SaleIntent(selected), drafts[selected]
@@ -293,7 +295,7 @@ function CW.RenderReview()
     postButton:SetText("Post item")
     local notice, pending = CW.PostingNotice()
     reconcileButton:SetShown(pending)
-    local status = (CW.BatchNotice and CW.BatchNotice()) or notice or row.reason or row.pendingReason or postingReason or "Ready. Click a listing price to use it."
+    local status = (pending and notice) or (CW.BatchNotice and CW.BatchNotice()) or notice or row.reason or row.pendingReason or postingReason or "Ready. Click a listing price to use it."
     message:SetText(status)
     refreshButton:SetEnabled(not CW.PostingBlocksScan())
     preview = row
@@ -361,7 +363,8 @@ function CW.SetupReview(parent)
         label(detail, 105+(i-1)*62, -153, 35, hours .. "h")
         local index = i
         radio:SetScript("OnClick", function()
-            if CW.StopBatch then CW.StopBatch("Duration changed; start a fresh batch.") end
+            if CW.BatchActive and CW.BatchActive() then CW.StopBatch("Duration changed; start a fresh batch.")
+            elseif CW.ClearBatchResult then CW.ClearBatchResult() end
             duration = index; CW.RenderReview()
         end)
         radios[i] = radio
@@ -377,6 +380,7 @@ function CW.SetupReview(parent)
     postButton:SetSize(120,25); postButton:SetPoint("TOPLEFT", 0, -85); postButton:SetText("Post item")
     label(detail, 0, -191, 200, "Current listings", "GameFontNormal")
     refreshButton = button(detail, "Refresh item", 0, 0, 110, function()
+        if CW.ClearBatchResult then CW.ClearBatchResult() end
         if selected then CW.SelectListings(selected, true); CW.RefreshPosting() end
     end)
     refreshButton:ClearAllPoints(); refreshButton:SetPoint("TOPRIGHT", 0, -184)

@@ -93,12 +93,18 @@ local function renderScanStatus()
     output:SetText(text)
 end
 
+function CW.RenderScanButton()
+    if not scanButton then return end
+    local batchActive = CW.BatchActive and CW.BatchActive()
+    scanButton:SetEnabled(batchActive or not (CW.PostingBlocksScan and CW.PostingBlocksScan()))
+    scanButton:SetText(batchActive and "Stop batch" or (active and "Cancel scan" or "Full scan"))
+end
+
 local function render()
     CW.attempt = attempt
     if CW.Render then CW.Render() end
     if not output then return end
-    scanButton:SetEnabled(not (CW.PostingBlocksScan and CW.PostingBlocksScan()))
-    scanButton:SetText(active and "Cancel scan" or "Full scan")
+    CW.RenderScanButton()
     renderScanStatus()
     if CW.RenderReview then CW.RenderReview() end
 end

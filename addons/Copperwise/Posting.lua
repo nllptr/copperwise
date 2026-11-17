@@ -146,6 +146,7 @@ end
 -- Called only by XML OnClick -> parent:PostItem(), matching the verified probe.
 -- No pcall, rendering, printing or disabling the button before the native post.
 function CW.PostReviewedItem(review)
+    if CW.ClearBatchResult then CW.ClearBatchResult() end
     if CW.BatchActive and CW.BatchActive() and not CW.BatchAllowsReview(review) then
         notice = "Stop the active batch before posting individually."; return
     end

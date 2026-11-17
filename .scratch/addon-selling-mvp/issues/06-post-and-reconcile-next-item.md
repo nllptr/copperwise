@@ -64,6 +64,21 @@ changes, partial scan coverage/cache preservation, multi-item/cross-stack
 confirmation, stop/reload/uncertainty, interference, price expiry and click fallback.
 These do not resolve the target-client acceptance checklist above or ticket 07.
 
+### Implementation review and checks — 2026-11-17
+
+Two-axis review against owner-approved 2d3e45b found no documented standards
+violations. Standards review identified a stale batch notice hiding later
+individual validation/errors, and duplicated interpretation of scan activity.
+Both were corrected and rechecked: deliberate individual work clears batch
+results, pending-outcome guidance takes precedence, and Scan owns its button
+rendering. A production UI regression covers the notice fix. Spec review found
+no implementation mismatch or scope creep; its remaining finding is the pending
+target-client acceptance described above.
+
+All 20 batch boundary tests and the complete Inventory/storage/scan regression
+suite pass. Lua syntax compilation and Go tests across the repository pass.
+No native-server result is claimed by these checks.
+
 Published after owner approval of the seven-ticket breakdown. This MVP series replaces the broader selling-context implementation order for the first release; the older roadmap remains historical and later-release scope. No parent specification or older ticket is closed or modified.
 
 ### Successive mass posting — 2026-11-15

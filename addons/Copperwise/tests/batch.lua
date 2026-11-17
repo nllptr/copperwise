@@ -327,3 +327,18 @@ test("native confirmation pauses the batch immediately without bypassing the dia
     local _, pending=s.cw.PostingNotice()
     assert(#s.posts==1 and pending and not s.cw.BatchActive())
 end)
+
+test("editing an individual review clears the previous batch result and exposes validation", function()
+    local s=session({item(1,1)},{summary(1,20,499)})
+    s:clickPostAll(); s:tick(8)
+    assert(s.cw.BatchNotice())
+    for _, w in ipairs(s.widgets) do
+        if w.kind=="EditBox" and w.scripts.OnTextChanged then w:SetText("0"); break end
+    end
+    assert(not s.cw.BatchNotice())
+    local found=false
+    for _, w in ipairs(s.widgets) do
+        if w.kind=="FontString" and w.text and w.text:find("Enter positive whole units",1,true) then found=true end
+    end
+    assert(found)
+end)
