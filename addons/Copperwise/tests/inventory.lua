@@ -28,7 +28,7 @@ local function inventory(items, prices, character)
     function methods:SetVerticalScroll(value) self.scroll = value end
     function methods:GetVerticalScroll() return self.scroll or 0 end
     function methods:SetScrollChild(child) self.child = child end
-    function methods:SetText(value) self.text = value end
+    function methods:SetText(value) self.text = value; state.textWrites = (state.textWrites or 0)+1 end
     function methods:SetScript(name, fn) self.scripts[name] = fn end
     function methods:CreateFontString() return widget("FontString") end
     function methods:CreateTexture() return widget("Texture") end
@@ -57,6 +57,7 @@ local function inventory(items, prices, character)
     env.C_Container = {
         GetContainerNumSlots=function(bag) return bag == 0 and #items or 0 end,
         GetContainerItemInfo=function(_, slot)
+            state.bagReads = (state.bagReads or 0)+1
             local item = items[slot]
             return {itemID=item.id, stackCount=item.quantity or 1, iconFileID=123}
         end,
@@ -95,11 +96,15 @@ local function inventory(items, prices, character)
         if frame.scripts.OnEvent then frame.scripts.OnEvent(frame, "PLAYER_LOGIN") end
     end
     local inventoryFrame = state.frames[1]
-    function state:refresh()
-        for _ = 1, 5 do
+    function state:tick(seconds)
+        for _ = 1, math.ceil((seconds or 1.25)/0.25) do
             self.clock = self.clock + 0.25
             inventoryFrame.scripts.OnUpdate(inventoryFrame, 0.25)
         end
+    end
+    function state:refresh()
+        inventoryFrame.scripts.OnEvent(inventoryFrame, "BAG_UPDATE_DELAYED")
+        self:tick()
     end
     function state:rows()
         local result = {}
@@ -120,8 +125,8 @@ local function inventory(items, prices, character)
     end
     state.env = env
     function state:command(text) env.SlashCmdList.COPPERWISE(text) end
-    state:refresh()
     env.SlashCmdList.COPPERWISE()
+    state:refresh()
     return state
 end
 local function suggested(row)
@@ -137,6 +142,26 @@ local function test(name, fn)
     fn()
     print("PASS: " .. name)
 end
+
+test("settled visible inventory does not poll bags or rewrite the list while idle", function()
+    local ui = inventory({{id=1,name="Ore",sell=1}}, {[1]=100})
+    local reads, writes = ui.bagReads, ui.textWrites
+    ui:tick(10)
+    assert(ui.bagReads == reads and ui.textWrites == writes)
+end)
+
+test("hidden inventory defers bag changes until it is opened again", function()
+    local items = {{id=1,name="Ore",sell=1,quantity=3}}
+    local ui = inventory(items, {[1]=100})
+    ui.env.CopperwiseInventory:Hide()
+    local reads, writes = ui.bagReads, ui.textWrites
+    items[1].quantity=9
+    ui:refresh(); ui:tick(10)
+    assert(ui.bagReads == reads and ui.textWrites == writes)
+    ui:command(""); ui:tick(2)
+    contains(ui:rows()[1].label.text, "Ore (9)")
+    assert(ui.bagReads > reads)
+end)
 
 test("equal net proceeds prefer Vendor and preserve gross asking detail", function()
     local ui = inventory({{id=1, name="Tie", sell=95}}, {[1]=100})

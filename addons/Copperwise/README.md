@@ -11,8 +11,11 @@ copper-coin button on the minimap toggles the same window. Drag it around the
 edge to reposition it; its angle is remembered per character. Round and square
 minimaps are supported, including resized minimaps. Select an
 owned item to inspect bag quantity and vendor sell values. Backpack and bags
-0–4 are covered. Identical unlocked slot snapshots must persist for 0.75 seconds
-after bag/cursor changes before new quantities replace the last settled view.
+0–4 are covered. Bag/cursor/metadata events invalidate holdings; settling runs
+only with Inventory/AH review visible or an unresolved post to reconcile.
+Identical unlocked slot snapshots must persist for 0.75 seconds after changes
+before new quantities replace the last settled view. Settled holdings are not
+polled again until another event, and hidden Inventory never renders.
 During updates, retain displayed quantities, totals and order without a visible
 status change; holdings remain unavailable to actions until settled. This is a settling heuristic, not an atomic guarantee.
 
@@ -372,8 +375,17 @@ stacks and the native quantity limit are revalidated at click time. The native
 deposit is calculated once for the full reviewed quantity. No consolidation or
 extra per-stack click is required. A completed intent disappears and the next
 marked item is selected. Individual price-level queries now require Refresh item;
-opening the tab or selecting an item uses retained scan prices without loading
-every current listing.
+opening the tab fetches current listings once for the automatically selected
+first item. Explicitly clicking a sidebar item also fetches its listings once and updates
+an unedited price to the lowest observed buyout as pages arrive. Refresh item
+repeats that fetch. Validated partial results appear immediately, sorted by unit
+buyout, and cumulative replies replace previous quantities rather than adding to
+them. Post item stays disabled until the entire selected-item fetch succeeds;
+failed or incomplete fetches cannot post. Explicit price edits survive arrivals.
+The price level matching the suggested or manually chosen unit buyout remains
+highlighted in gold, including after incoming pages reorder the results.
+Switching items resets the price choice to the fresh lowest buyout, including
+when returning to an item previously given a manual price. Quantity edits remain.
 
 A before/after owned-listing identity comparison, matching new listing units
 summed at the reviewed item/unit buyout, unchanged in-session intent revision

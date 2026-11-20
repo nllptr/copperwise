@@ -4,6 +4,8 @@ local active, attempt, panel, output, scanButton
 local houseOpen, ownRequest, hooksReady, reopenRequired = false, false, false, false
 local lastTraffic, externalPending = 0, {}
 local ageElapsed = 0
+local indexedSnapshot, itemIndex
+local lastStatus, lastButtonText, lastButtonEnabled
 local mode = {"CopperwiseMarketPanel"}
 local MAX_REQUESTS, MAX_ROWS, RESPONSE_TIMEOUT, TOTAL_TIMEOUT = 2000, 100000, 30, 180
 local responseEvents = {
@@ -43,15 +45,19 @@ function CW.ObservationFor(id)
     local nativeKey = C_AuctionHouse.MakeItemKey(id, 0, 0, 0)
     local info = C_AuctionHouse.GetItemKeyInfo(nativeKey)
     if not info or info.isCommodity ~= true then return nil end
-    local found
-    for _, row in pairs(snapshot.items) do
-        if row.key.itemID == id then
-            if row.ambiguous or found or (row.key.itemSuffix or 0) ~= 0 or (row.key.battlePetSpeciesID or 0) ~= 0 then
-                return nil -- ambiguous comparability must not manufacture an estimate
-            end
-            found = row
+    if indexedSnapshot ~= snapshot then
+        itemIndex = {}
+        for _, row in pairs(snapshot.items) do
+            local itemID = row.key.itemID
+            if itemIndex[itemID] ~= nil or row.ambiguous or (row.key.itemSuffix or 0) ~= 0
+                or (row.key.battlePetSpeciesID or 0) ~= 0 then
+                itemIndex[itemID] = false -- Preserve ambiguous/variant exclusions.
+            else itemIndex[itemID] = row end
         end
+        indexedSnapshot = snapshot
     end
+    local found = itemIndex[id]
+    if found == false then return nil end
     return {minimum=found and found.minimum, units=found and found.units or 0,
         observedAt=snapshot.observedAt, context=snapshot.context, full=true,
         empty=found == nil, rows=snapshot.count}
@@ -90,30 +96,36 @@ local function renderScanStatus()
             text = state .. " · " .. text
         end
     end
-    output:SetText(text)
+    if text ~= lastStatus then output:SetText(text); lastStatus = text end
 end
 
 function CW.RenderScanButton()
     if not scanButton then return end
     local batchActive = CW.BatchActive and CW.BatchActive()
-    scanButton:SetEnabled(batchActive or not (CW.PostingBlocksScan and CW.PostingBlocksScan()))
-    scanButton:SetText(batchActive and "Stop batch" or (active and "Cancel scan" or "Full scan"))
+    local enabled = not not (batchActive or not (CW.PostingBlocksScan and CW.PostingBlocksScan()))
+    local text = batchActive and "Stop batch" or (active and "Cancel scan" or "Full scan")
+    if enabled ~= lastButtonEnabled then scanButton:SetEnabled(enabled); lastButtonEnabled = enabled end
+    if text ~= lastButtonText then scanButton:SetText(text); lastButtonText = text end
 end
 
-local function render()
+function CW.Scanning()
+    return active ~= nil or (CW.BatchScanning and CW.BatchScanning())
+end
+
+local function render(views)
     CW.attempt = attempt
-    if CW.Render then CW.Render() end
+    if views and not CW.Scanning() and CW.Render then CW.Render() end
     if not output then return end
     CW.RenderScanButton()
     renderScanStatus()
-    if CW.RenderReview then CW.RenderReview() end
+    if views and not CW.Scanning() and CW.RenderReview then CW.RenderReview() end
 end
 
 local function finish(state, reason)
     if active and active.waiting then reopenRequired = true end
     active = nil
     if attempt then attempt.state, attempt.reason = state, reason end
-    render()
+    render(true)
 end
 
 local function guard(fn)

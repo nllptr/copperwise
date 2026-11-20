@@ -5,6 +5,9 @@ local listContent, listingStatus, message, summary, empty, reconcileButton, refr
 local rows, buttons, listingButtons, radios, drafts = {}, {}, {}, {}, {}
 local duration, elapsed, painting = 2, 0, false
 local preview, listingStamp
+local dirty, lastReadiness, lastNotice, lastPending = true, nil, nil, nil
+function CW.ReviewVisible() return panel and panel:IsShown() end
+function CW.InvalidateReview() dirty = true end
 local money = CW.FormatMoney
 
 local whole = CW.IsPositiveWhole
@@ -156,8 +159,9 @@ local function editTerms(priceEdited)
     CW.RenderReview()
 end
 
-local function choose(id)
+local function choose(id, fetchPrices)
     if CW.ClearBatchResult then CW.ClearBatchResult() end
+    local switching = selected ~= id
     selected, listingStamp = id, nil
     for _, box in ipairs(priceInputs) do box:ClearFocus() end
     quantityInput:ClearFocus()
@@ -169,23 +173,30 @@ local function choose(id)
         draft = {quantity=row.eligible, price=observation and observation.minimum, edited=false, defaultQuantity=true}
         drafts[id] = draft
     end
+    if switching then
+        local observation = CW.ObservationFor(id)
+        draft.edited, draft.price = false, observation and observation.minimum
+    end
     painting = true; quantityInput:SetText(tostring(draft.quantity or "")); painting = false
     putPrice(draft.price)
-    CW.CloseListings()
+    if fetchPrices and not (CW.BatchActive and CW.BatchActive()) then
+        CW.SelectListings(id, true)
+        CW.RefreshPosting()
+    else CW.CloseListings() end
 end
 
 local function renderListings(id)
     local result = CW.ItemListings(id)
     local valid = result and result.full and result.state == "complete"
-    if valid and listingStamp ~= result then
-        listingStamp = result
+    local levels = result and result.levels or {}
+    if (valid or #levels > 0) and listingStamp ~= levels then
+        listingStamp = levels
         local draft = drafts[id]
         if not draft.edited then
             draft.price = result.levels[1] and result.levels[1].price
             putPrice(draft.price)
         end
     end
-    local levels = valid and result.levels or {}
     listingStatus:SetText(result and ((valid and ("Observed " .. date("%H:%M:%S", result.observedAt) .. " · " .. result.units .. " units. ") or "") .. result.reason)
         or "Refresh item to load individual listings. Post all uses a targeted summary scan.")
     for index, level in ipairs(levels) do
@@ -194,6 +205,8 @@ local function renderListings(id)
             b = CreateFrame("Button", nil, listContent)
             b:SetHeight(24); b:SetPoint("LEFT", 0, 0); b:SetPoint("RIGHT", 0, 0)
             b:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
+            b.selection = b:CreateTexture(nil, "BACKGROUND")
+            b.selection:SetAllPoints(); b.selection:SetColorTexture(0.6, 0.48, 0.2, 0.3)
             b.price = label(b, 8, -4, 180)
             b.units = b:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
             b.units:SetPoint("TOPRIGHT", -10, -4); b.units:SetJustifyH("RIGHT")
@@ -201,6 +214,7 @@ local function renderListings(id)
         end
         b:ClearAllPoints(); b:SetPoint("TOPLEFT", 0, -(index-1)*24); b:SetPoint("RIGHT", listContent, "RIGHT", 0, 0)
         b.price:SetText(money(level.price)); b.units:SetText(tostring(level.quantity)); b:Show()
+        b.selection:SetShown(drafts[id].price == level.price)
         local price = level.price
         b:SetScript("OnClick", function()
             local draft = drafts[selected]
@@ -215,6 +229,8 @@ end
 
 function CW.RenderReview()
     if not panel or not panel:IsShown() then return end
+    if CW.Scanning and CW.Scanning() then return end
+    dirty = false
     rows = {}
     local present, units = {}, 0
     for id, intent in pairs(CW.SaleIntents()) do
@@ -227,7 +243,7 @@ function CW.RenderReview()
     table.sort(rows, function(a,b) if a.intent.name ~= b.intent.name then return a.intent.name < b.intent.name end; return a.id < b.id end)
     if not present[selected] then selected = nil end
     -- Select before rendering, but defer querying until the UI has a draft.
-    if not selected and rows[1] then choose(rows[1].id) end
+    if not selected and rows[1] then choose(rows[1].id, true) end
     summary:SetText(#rows .. " marked items · " .. units .. " intended units")
     for index, row in ipairs(rows) do
         local b = buttons[index]
@@ -253,7 +269,7 @@ function CW.RenderReview()
         b.state:SetText((CW.BatchItemReason and CW.BatchItemReason(row.id)) or (item and (item.quantity < row.intent.quantity and ("Short " .. (row.intent.quantity-item.quantity)) or "Marked for AH")
             or (CW.HoldingsSettled() and "Not in bags" or "Availability pending")))
         local id = row.id
-        b:SetScript("OnClick", function() choose(id); CW.RenderReview() end)
+        b:SetScript("OnClick", function() choose(id, true); CW.RenderReview() end)
         b:Show()
     end
     for i = #rows+1, #buttons do buttons[i]:Hide() end
@@ -287,6 +303,10 @@ function CW.RenderReview()
     eligibilityText:SetText("Eligible " .. row.eligible .. " · " .. #row.stacks .. " stacks")
     local validQuantity = whole(draft.quantity) and draft.quantity <= intent.quantity and draft.quantity <= row.eligible
     if not validQuantity then row.ready = false; row.reason = "Enter positive whole units within eligible marked holdings." end
+    if not CW.ListingsComplete(selected) then
+        row.ready = false
+        row.reason = row.reason or "Wait for complete current listings before posting."
+    end
     depositText:SetText(money(validQuantity and row.deposit or nil))
     totalText:SetText(money(validQuantity and row.price and row.price*draft.quantity or nil))
     for index, radio in ipairs(radios) do radio:SetChecked(index == duration) end
@@ -413,6 +433,20 @@ function CW.SetupReview(parent)
     panel:HookScript("OnHide", CW.DiscardReview)
     panel:HookScript("OnUpdate", function(_, dt)
         elapsed = elapsed + dt
-        if elapsed >= 0.25 then elapsed = 0; CW.RenderReview() end
+        if elapsed < 0.25 then return end
+        elapsed = 0
+        if CW.Scanning and CW.Scanning() then return end
+        local readiness = CW.PostingReason()
+        local notice, pending = CW.PostingNotice()
+        if readiness ~= lastReadiness then dirty, lastReadiness = true, readiness end
+        if notice ~= lastNotice or pending ~= lastPending then
+            dirty, lastNotice, lastPending = true, notice, pending
+        end
+        if dirty then CW.RenderReview() end
     end)
+    local events = CreateFrame("Frame")
+    events:SetScript("OnEvent", CW.InvalidateReview)
+    for _, event in ipairs({"PLAYER_MONEY", "GET_ITEM_INFO_RECEIVED", "OWNED_AUCTIONS_UPDATED"}) do
+        events:RegisterEvent(event)
+    end
 end

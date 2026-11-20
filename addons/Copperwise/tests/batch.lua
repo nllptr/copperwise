@@ -4,7 +4,7 @@ local function session(items, summaries, options)
     options = options or {}
     local env = setmetatable({}, {__index=_G})
     local s = {clock=10, frames={}, widgets={}, network={}, owned={}, posts={}, summaries=summaries,
-        full=true, ready=true, confirmPosts=true, targetRequests={}, items=items}
+        full=true, ready=true, confirmPosts=true, targetRequests={}, items=items, allowItemQueries=true}
     local methods = {}
     for _, name in ipairs({"SetPoint", "SetSize", "SetWidth", "SetHeight", "SetJustifyH", "SetJustifyV",
         "SetID", "RegisterEvent", "SetTitle", "SetHighlightTexture", "SetAllPoints", "SetColorTexture",
@@ -17,6 +17,7 @@ local function session(items, summaries, options)
         self.scripts[name]=function(...) if previous then previous(...) end; fn(...) end
     end
     function methods:SetText(value)
+        s.textWrites=(s.textWrites or 0)+1
         self.text=tostring(value)
         if self.scripts.OnTextChanged then self.scripts.OnTextChanged(self) end
     end
@@ -55,6 +56,7 @@ local function session(items, summaries, options)
     env.C_Container={
         GetContainerNumSlots=function(bag) return bag==0 and #items or 0 end,
         GetContainerItemInfo=function(_, slot)
+            s.bagReads=(s.bagReads or 0)+1
             local item=items[slot]
             if item.quantity==0 then return end
             return {itemID=item.id, stackCount=item.quantity, hyperlink="item:"..item.id, isLocked=item.locked}
@@ -80,8 +82,23 @@ local function session(items, summaries, options)
         GetAvailablePostCount=function(location)
             local total=0; for _, item in ipairs(items) do if item.id==source(location).id then total=total+item.quantity end end; return total
         end,
-        CalculateCommodityDeposit=function() return s.deposit or 100 end,
-        SendSearchQuery=forbidden, RequestMoreCommoditySearchResults=forbidden,
+        CalculateCommodityDeposit=function() s.depositReads=(s.depositReads or 0)+1; return s.deposit or 100 end,
+        SendSearchQuery=function(key)
+            if not s.allowItemQueries then forbidden() end
+            s.itemQueries=(s.itemQueries or 0)+1
+            s.network[#s.network+1]={"COMMODITY_SEARCH_RESULTS_UPDATED",key.itemID}
+        end,
+        RequestMoreCommoditySearchResults=function(id)
+            if not s.allowItemQueries then forbidden() end
+            s.moreItemRequests=(s.moreItemRequests or 0)+1
+            if not s.holdItemPages then s.network[#s.network+1]={"COMMODITY_SEARCH_RESULTS_ADDED",id} end
+        end,
+        HasFullCommoditySearchResults=function() return s.itemFull~=false end,
+        GetNumCommoditySearchResults=function() return s.itemRows and #s.itemRows or 1 end,
+        GetCommoditySearchResultInfo=function(id, index)
+            if s.itemRows then return s.itemRows[index] end
+            return {itemID=id,unitPrice=s.itemPrice or 25,quantity=500}
+        end,
         SearchForItemKeys=function(keys)
             s.targetRequests[#s.targetRequests+1]=keys
             local wanted={}; for _, key in ipairs(keys) do wanted[key.itemID]=true end
@@ -136,7 +153,9 @@ local function session(items, summaries, options)
         for _=1,math.ceil(seconds/0.25) do
             self.clock=self.clock+0.25
             local network=self.network; self.network={}
-            for _, event in ipairs(network) do self:event(event) end
+            for _, event in ipairs(network) do
+                if type(event)=="table" then self:event(unpack(event)) else self:event(event) end
+            end
             for _, f in ipairs(self.frames) do if f.scripts.OnUpdate and f.shown then f.scripts.OnUpdate(f,0.25) end end
         end
     end
@@ -151,6 +170,149 @@ end
 local function summary(id, price, units) return {itemKey={itemID=id}, minPrice=price, totalQuantity=units} end
 local function item(id, sell, destination, quantity) return {id=id, sell=sell, destination=destination or "AH", quantity=quantity or 10} end
 local function test(name, fn) fn(); print("PASS: "..name) end
+
+test("idle AH review does not repeatedly read bags or calculate deposits", function()
+    local s=session({item(1,1)},{summary(1,20,500)})
+    s:tick(3)
+    local bags, deposits=s.bagReads, s.depositReads
+    s:tick(10)
+    assert(s.bagReads==bags and s.depositReads==deposits)
+end)
+
+test("opening the AH tab fetches the first selected item once without a click", function()
+    local s=session({item(1,1)},{summary(1,20,500)})
+    s:tick(4)
+    assert(s.itemQueries==1 and s.env.CopperwisePostItemButton.enabled)
+    local queries=s.itemQueries
+    s:tick(5); assert(s.itemQueries==queries)
+end)
+
+test("clicking an AH item fetches current lowest price and populates post terms once", function()
+    local s=session({item(1,1)},{summary(1,20,500)})
+    s.allowItemQueries=true
+    local row
+    for _, w in ipairs(s.widgets) do if w.kind=="Button" and w.name and w.count then row=w; break end end
+    assert(row); row.scripts.OnClick(row)
+    s:tick(6)
+    assert(s.itemQueries==2 and s.env.CopperwisePostItemButton.enabled)
+    local deposit,total=false,false
+    for _, w in ipairs(s.widgets) do
+        if w.kind=="FontString" and w.text=="100c" then deposit=true end
+        if w.kind=="FontString" and w.text=="250c" then total=true end
+    end
+    assert(deposit and total)
+    local reads=s.depositReads; s:tick(5)
+    assert(s.itemQueries==2 and s.depositReads==reads)
+    s.env.CopperwisePostItemButton.scripts.OnClick()
+    assert(#s.posts==1 and s.posts[1].price==25 and s.posts[1].quantity==10)
+end)
+
+local function clickItem(s, id)
+    for _, w in ipairs(s.widgets) do
+        if w.kind=="Button" and w.name and w.count
+            and (not id or w.name.text:find("Item "..id.."|r",1,true)) then w.scripts.OnClick(w); return end
+    end
+    error("Missing AH sidebar item")
+end
+
+local function listingRows(s)
+    local rows={}
+    for _, w in ipairs(s.widgets) do
+        if w.kind=="Button" and w.price and w.units and w.shown then rows[#rows+1]=w end
+    end
+    return rows
+end
+
+test("switching items resets manual price selection to the fresh lowest buyout", function()
+    local s=session({item(1,1),item(2,1)},{summary(1,20,500),summary(2,20,500)})
+    s.itemRows={{unitPrice=10,quantity=5},{unitPrice=30,quantity=2}}
+    clickItem(s,1); s:tick(6)
+    listingRows(s)[2].scripts.OnClick()
+    assert(listingRows(s)[2].selection.shown)
+    s.itemRows={{unitPrice=15,quantity=5},{unitPrice=40,quantity=2}}
+    clickItem(s,2); s:tick(6)
+    assert(listingRows(s)[1].price.text=="15c" and listingRows(s)[1].selection.shown)
+    s.itemRows={{unitPrice=10,quantity=5},{unitPrice=30,quantity=2}}
+    clickItem(s,1); s:tick(6)
+    local rows=listingRows(s)
+    assert(rows[1].selection.shown and not rows[2].selection.shown)
+end)
+
+test("partial listings appear sorted immediately and posting waits for complete coverage", function()
+    local s=session({item(1,1)},{summary(1,20,500)})
+    s.allowItemQueries, s.holdItemPages, s.itemFull=true,true,false
+    s.itemRows={{unitPrice=30,quantity=2},{unitPrice=10,quantity=5}}
+    clickItem(s); s:tick(4)
+    local rows=listingRows(s)
+    assert(#rows==2 and rows[1].price.text=="10c" and rows[2].price.text=="30c")
+    assert(rows[1].selection.shown and not rows[2].selection.shown)
+    assert(not s.env.CopperwisePostItemButton.enabled)
+    s.env.CopperwisePostItemButton.scripts.OnClick()
+    assert(#s.posts==0)
+    s.itemRows={{unitPrice=20,quantity=4},{unitPrice=30,quantity=2},
+        {unitPrice=10,quantity=5},{unitPrice=10,quantity=3}}
+    s.itemFull=true; s:event("COMMODITY_SEARCH_RESULTS_ADDED",1); s:tick(4)
+    rows=listingRows(s)
+    assert(#rows==3 and rows[1].price.text=="10c" and rows[2].price.text=="20c" and rows[3].price.text=="30c")
+    assert(rows[1].units.text=="8" and rows[2].units.text=="4" and rows[3].units.text=="2")
+    assert(rows[1].selection.shown and not rows[2].selection.shown and not rows[3].selection.shown)
+    rows[2].scripts.OnClick()
+    assert(not rows[1].selection.shown and rows[2].selection.shown and not rows[3].selection.shown)
+    rows[3].scripts.OnClick()
+    assert(not rows[1].selection.shown and not rows[2].selection.shown and rows[3].selection.shown)
+    assert(s.env.CopperwisePostItemButton.enabled)
+end)
+
+test("manual price selected during streaming survives later lower prices", function()
+    local s=session({item(1,1)},{summary(1,20,500)})
+    s.allowItemQueries, s.holdItemPages, s.itemFull=true,true,false
+    s.itemRows={{unitPrice=30,quantity=2}}
+    clickItem(s); s:tick(4)
+    listingRows(s)[1].scripts.OnClick()
+    assert(not s.env.CopperwisePostItemButton.enabled)
+    s.itemRows={{unitPrice=30,quantity=2},{unitPrice=10,quantity=5}}
+    s.itemFull=true; s:event("COMMODITY_SEARCH_RESULTS_ADDED",1); s:tick(4)
+    local rows=listingRows(s)
+    assert(not rows[1].selection.shown and rows[2].selection.shown)
+    s.env.CopperwisePostItemButton.scripts.OnClick()
+    assert(#s.posts==1 and s.posts[1].price==30)
+end)
+
+test("unedited suggested price and highlight follow a lower final buyout", function()
+    local s=session({item(1,1)},{summary(1,20,500)})
+    s.holdItemPages, s.itemFull=true,false
+    s.itemRows={{unitPrice=30,quantity=2}}
+    clickItem(s); s:tick(4)
+    assert(listingRows(s)[1].selection.shown)
+    s.itemRows={{unitPrice=30,quantity=2},{unitPrice=10,quantity=5}}
+    s.itemFull=true; s:event("COMMODITY_SEARCH_RESULTS_ADDED",1); s:tick(4)
+    local rows=listingRows(s)
+    assert(rows[1].price.text=="10c" and rows[1].selection.shown and not rows[2].selection.shown)
+    s.env.CopperwisePostItemButton.scripts.OnClick()
+    assert(#s.posts==1 and s.posts[1].price==10)
+end)
+
+test("failed streaming fetch keeps posting disabled despite visible partial prices", function()
+    local s=session({item(1,1)},{summary(1,20,500)})
+    s.allowItemQueries, s.holdItemPages, s.itemFull=true,true,false
+    s.itemRows={{unitPrice=30,quantity=2}}
+    clickItem(s); s:tick(4)
+    s:event("AUCTION_HOUSE_SHOW_ERROR"); s:tick(1)
+    assert(#listingRows(s)==1 and not s.env.CopperwisePostItemButton.enabled)
+    s.env.CopperwisePostItemButton.scripts.OnClick()
+    assert(#s.posts==0)
+end)
+
+test("full scan processes pages without rebuilding the selected item review", function()
+    local s=session({item(1,1)},{summary(1,20,500)})
+    s:tick(3)
+    s.full=false; s.cw.Scan()
+    local deposits=s.depositReads
+    s:tick(5)
+    assert(s.depositReads==deposits)
+    s.full=true; s:tick(2)
+    assert(s.depositReads>deposits)
+end)
 
 test("fresh summary prices override cached values, exact minimum passes, only AH intent posts", function()
     local s=session({item(1,10),item(2,0,"Vendor")},{summary(1,20,500)})
@@ -258,10 +420,11 @@ test("a blocked automatic post requires reconciliation and subsequent hardware c
     local s=session({item(1,1),item(2,1)},{summary(1,20,500),summary(2,20,500)})
     s.blockPost=true; s:clickPostAll(); s:tick(5)
     assert(#s.posts==1 and not s.cw.BatchActive())
+    s:tick(2) -- Let post-error bag revalidation settle before reviewing a new batch.
     local _, token=s.cw.PendingPostDetails(); assert(token)
     s.cw.ResolvePost(false,token); s.blockPost=false
-    s:clickPostAll(); s:tick(4)
-    assert(#s.posts==1 and s.cw.batchButton.text=="Continue posting")
+    s:clickPostAll(); s:tick(6)
+    assert(#s.posts==1 and s.cw.batchButton.text=="Continue posting" and s.cw.batchButton.enabled)
     s:clickPostAll(); s:tick(6)
     assert(#s.posts==2 and s.cw.SaleIntent(2).quantity==10)
     s:clickPostAll(); s:tick(6)

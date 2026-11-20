@@ -10,6 +10,21 @@ local displayedComparisons = {}
 local rows, selected, candidate, candidateAt, dirtyAt = {}, nil, nil, 0, 0
 local settled, hasSnapshot = false, false
 local selectedMarked = false
+local holdingsDirty = true
+
+local function visible()
+    return window and window:IsShown()
+end
+
+local function needsHoldings()
+    return visible() or (CW.ReviewVisible and CW.ReviewVisible())
+        or (CW.PostingNeedsHoldings and CW.PostingNeedsHoldings())
+end
+
+function CW.InvalidateHoldings()
+    holdingsDirty, settled, candidate, dirtyAt = true, false, nil, GetTime()
+    if CW.InvalidateReview then CW.InvalidateReview() end
+end
 
 function CW.FormatMoney(value)
     if value == nil then return "unavailable" end
@@ -291,7 +306,7 @@ local function renderList()
 end
 
 function CW.Render()
-    if not output then return end
+    if not output or not visible() or (CW.Scanning and CW.Scanning()) then return end
     if CW.SyncItemChoices then CW.SyncItemChoices() end
     renderScanWarning()
     local intent = CW.SaleIntent and CW.SaleIntent(selected)
@@ -560,13 +575,17 @@ frame:RegisterEvent("CURSOR_CHANGED")
 frame:RegisterEvent("GET_ITEM_INFO_RECEIVED")
 frame:SetScript("OnEvent", function(_, event)
     if event == "PLAYER_LOGIN" then createMinimapButton() end
-    if event ~= "GET_ITEM_INFO_RECEIVED" then
-        settled, candidate, dirtyAt = false, nil, GetTime()
-    end
-    CW.Render()
+    CW.InvalidateHoldings()
 end)
-local elapsed = 0
+local elapsed, warningElapsed = 0, 0
 frame:SetScript("OnUpdate", function(_, dt)
+    if not needsHoldings() then return end
+    warningElapsed = warningElapsed + dt
+    if warningElapsed >= 1 then
+        warningElapsed = 0
+        if visible() and not (CW.Scanning and CW.Scanning()) then renderScanWarning() end
+    end
+    if not holdingsDirty then return end
     elapsed = elapsed + dt
     if elapsed < 0.25 then return end
     elapsed = 0
@@ -577,6 +596,9 @@ frame:SetScript("OnUpdate", function(_, dt)
         settled, candidate, candidateAt = false, signature, GetTime()
     elseif GetTime() - candidateAt >= 0.75 and GetTime() - dirtyAt >= 0.75 then
         rows, settled, hasSnapshot = nextRows, true, true
+        holdingsDirty = false
+        if CW.SyncItemChoices then CW.SyncItemChoices() end
+        CW.Render()
+        if CW.InvalidateReview then CW.InvalidateReview() end
     end
-    CW.Render()
 end)

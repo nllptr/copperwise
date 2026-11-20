@@ -15,6 +15,7 @@ end
 local function changed(id)
     revision = revision + 1
     revisions[id] = revision
+    if CW.InvalidateReview then CW.InvalidateReview() end
 end
 
 function CW.SaleIntent(id)

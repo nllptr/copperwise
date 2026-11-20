@@ -19,6 +19,11 @@ function CW.ItemListings(id)
     if result and result.id == id then return result end
 end
 
+function CW.ListingsComplete(id)
+    return selected == id and queued == nil and request == nil and result ~= nil
+        and result.id == id and result.full == true and result.state == "complete"
+end
+
 function CW.ListingsWaitReason()
     return waitingReason or "Waiting to request current item listings…"
 end
@@ -60,6 +65,7 @@ local function dispatch(more)
     if more then ok, err = CW.AHRequest("RequestMoreCommoditySearchResults", request.id)
     else ok, err = CW.AHRequest("SendSearchQuery", request.key, {}, false) end
     if not ok then finish("failed", tostring(err)) end
+    changed()
 end
 
 local function read()
@@ -105,10 +111,12 @@ local function read()
     else
         r.more = true
         result.state, result.reason = "partial", "Partial item listings; collecting more…"
+        changed()
     end
 end
 
 frame:SetScript("OnUpdate", function()
+    if not request and not queued then return end
     local ok, err = pcall(function()
         if request then
             if GetTime() > request.totalDeadline then finish("failed", "Item search timed out; close/reopen AH if a response is outstanding.")

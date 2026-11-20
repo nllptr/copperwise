@@ -2,10 +2,13 @@ local CW = Copperwise
 local frame = CreateFrame("Frame")
 local batch, notice, reasons = nil, nil, {}
 local dispatchReview, hardwareRequired, minimumInput
+local renderedState
+local elapsed = 0
 local MAX_KEYS, CHUNK_SIZE, MAX_REQUESTS = 1000, 100, 100
 local FRESH_SECONDS = 60
 
 function CW.BatchActive() return batch ~= nil end
+function CW.BatchScanning() return batch and batch.phase == "scan" end
 function CW.BatchNotice() return notice end
 function CW.BatchItemReason(id) return reasons[id] end
 function CW.BatchAllowsReview(review) return review == dispatchReview end
@@ -20,6 +23,11 @@ function CW.MinimumListedUnits()
 end
 
 local function changed()
+    local state = tostring(batch and batch.phase) .. ":" .. tostring(batch and batch.index)
+        .. ":" .. tostring(batch and batch.inFlight) .. ":" .. tostring(notice)
+    if state == renderedState then return end
+    renderedState = state
+    if CW.RenderBatch then CW.RenderBatch() end
     if CW.RenderReview then CW.RenderReview() end
 end
 
@@ -29,6 +37,7 @@ function CW.StopBatch(reason)
     if CW.AHOperation == "batch" then CW.AHOperation = nil end
     batch, dispatchReview = nil, nil
     notice = reason or "Batch stopped. Unfinished intent retained."
+    if CW.Render then CW.Render() end
     changed()
 end
 
@@ -85,6 +94,7 @@ local function receive()
     if batch.chunkStart > #batch.entries then
         batch.phase, batch.index = "posting", 1
         notice = "Targeted check complete. Posting eligible items…"
+        if CW.Render then CW.Render() end
     else batch.more = false end
 end
 
@@ -121,6 +131,7 @@ local function nextReview()
     if math.floor(gross * 95 / 100) <= item.sell * entry.quantity then
         skip(entry, "AH after 5% cut does not beat vendor"); return
     end
+    if CW.PostingReason() then return end
     local review = CW.PrepareReview(entry.id, intent, entry.quantity, observation.minimum, entry.duration)
     if review.deposit ~= entry.deposit then
         CW.StopBatch("Deposit changed; review and start a fresh batch."); return
@@ -137,7 +148,6 @@ local function nextReview()
     if not review.ready or entry.quantity > review.eligible then
         skip(entry, review.reason or "Reviewed quantity no longer available"); return
     end
-    if CW.PostingReason() then return end
     return review
 end
 
@@ -159,6 +169,7 @@ function CW.BatchPostConfirmed(id)
     reasons[id] = "Posted"
     batch.inFlight, batch.postStarted = nil, nil
     batch.completed, batch.index = batch.completed+1, batch.index+1
+    if batch.index > #batch.entries then nextReview() end
 end
 
 function CW.BatchClick()
@@ -191,7 +202,8 @@ function CW.RenderBatch()
         local _, pending = CW.PostingNotice()
         CW.batchButton:SetText(batch and (hardwareRequired and batch.phase == "posting" and not batch.inFlight
             and "Continue posting" or (batch.phase == "scan" and "Checking…" or "Posting…")) or "Post all")
-        CW.batchButton:SetEnabled(not pending and (not batch or hardwareRequired and batch.phase == "posting"))
+        CW.batchButton:SetEnabled(not pending and (not batch or hardwareRequired
+            and batch.phase == "posting" and not CW.PostingReason()))
     end
     if CW.RenderScanButton then CW.RenderScanButton() end
     if minimumInput then minimumInput:SetEnabled(not batch) end
@@ -218,8 +230,11 @@ function CW.SetupBatchControls(parent)
     end)
 end
 
-frame:SetScript("OnUpdate", function()
+frame:SetScript("OnUpdate", function(_, dt)
     if not batch then return end
+    elapsed = elapsed + dt
+    if elapsed < 0.25 then return end
+    elapsed = 0
     local review
     local ok, err = pcall(function()
         if batch.phase == "scan" then
@@ -238,7 +253,7 @@ frame:SetScript("OnUpdate", function()
         elseif GetTime()-batch.started > 300 then
             CW.StopBatch("Batch timed out; start a fresh batch.")
         else
-            review = nextReview()
+            if not hardwareRequired then review = nextReview() end
             if batch then notice = hardwareRequired and "Click Continue posting for the next eligible item."
                 or ("Posting " .. batch.index .. "/" .. #batch.entries .. " · " .. batch.skipped .. " skipped") end
         end

@@ -109,6 +109,8 @@ function CW.PostingBlocksScan()
     return pending ~= nil or (CW.BatchActive and CW.BatchActive())
 end
 
+function CW.PostingNeedsHoldings() return pending ~= nil end
+
 function CW.PostingNotice()
     return notice, pending ~= nil
 end
@@ -149,6 +151,9 @@ function CW.PostReviewedItem(review)
     if CW.ClearBatchResult then CW.ClearBatchResult() end
     if CW.BatchActive and CW.BatchActive() and not CW.BatchAllowsReview(review) then
         notice = "Stop the active batch before posting individually."; return
+    end
+    if not (CW.BatchActive and CW.BatchActive()) and not (review and CW.ListingsComplete(review.id)) then
+        notice = "Wait for complete current listings before posting."; return
     end
     local reason = CW.PostingReason()
     if reason then notice = reason; return end
@@ -230,6 +235,7 @@ end
 
 frame:SetScript("OnUpdate", function()
     if not loaded then return end
+    if not pending and not wanted and not query and not ownPost then return end
     if ownPost then
         ownPost = false
         if type(pending) == "table" then pending.conflict = true end
